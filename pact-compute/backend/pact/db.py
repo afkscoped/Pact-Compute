@@ -109,7 +109,7 @@ class Runner(Base):
 
 class Job(Base):
     __tablename__ = 'jobs'
-    __table_args__ = (UniqueConstraint('org_id', 'request_key'), Index('ix_jobs_runner_status', 'runner_id', 'status'))
+    __table_args__ = (UniqueConstraint('org_id', 'request_key'), Index('ix_jobs_runner_status', 'runner_id', 'status'), Index('ix_jobs_org_created', 'org_id', 'created_at', 'id'))
     id: Mapped[str] = mapped_column(String(32), primary_key=True, default=uid)
     org_id: Mapped[str] = mapped_column(ForeignKey('organizations.id'), index=True)
     policy_id: Mapped[str] = mapped_column(ForeignKey('policies.id'))
@@ -144,6 +144,7 @@ class Attempt(Base):
 
 class CapacityOffer(Base):
     __tablename__ = 'capacity_offers'
+    __table_args__ = (Index('ix_offers_org_start', 'org_id', 'starts_at', 'id'), Index('ix_offers_status_ends', 'status', 'ends_at'),)
     id: Mapped[str] = mapped_column(String(32), primary_key=True, default=uid)
     org_id: Mapped[str] = mapped_column(ForeignKey('organizations.id'), index=True)
     runner_id: Mapped[str] = mapped_column(ForeignKey('runners.id'), index=True)
@@ -172,6 +173,7 @@ class MarketQuote(Base):
 
 class MarketBooking(Base):
     __tablename__ = 'market_bookings'
+    __table_args__ = (Index('ix_bookings_consumer_accepted', 'consumer_org_id', 'accepted_at', 'id'), Index('ix_bookings_producer_accepted', 'producer_org_id', 'accepted_at', 'id'),)
     id: Mapped[str] = mapped_column(String(32), primary_key=True, default=uid)
     quote_id: Mapped[str] = mapped_column(ForeignKey('market_quotes.id'), unique=True)
     offer_id: Mapped[str] = mapped_column(ForeignKey('capacity_offers.id'))
@@ -195,6 +197,7 @@ class Artifact(Base):
 
 class ResearchRun(Base):
     __tablename__ = 'research_runs'
+    __table_args__ = (Index('ix_research_runs_org_created', 'org_id', 'created_at', 'id'),)
     id: Mapped[str] = mapped_column(String(32), primary_key=True, default=uid)
     org_id: Mapped[str] = mapped_column(ForeignKey('organizations.id'), index=True)
     created_by: Mapped[str] = mapped_column(ForeignKey('members.id'))
@@ -212,7 +215,7 @@ class ResearchRun(Base):
 
 class Event(Base):
     __tablename__ = 'events'
-    __table_args__ = (Index('ix_events_entity', 'org_id', 'entity_type', 'entity_id', 'seq'),)
+    __table_args__ = (Index('ix_events_entity', 'org_id', 'entity_type', 'entity_id', 'seq'), Index('ix_events_type_seq', 'entity_type', 'seq'))
     seq: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     org_id: Mapped[str] = mapped_column(ForeignKey('organizations.id'), index=True)
     entity_type: Mapped[str] = mapped_column(String(30))

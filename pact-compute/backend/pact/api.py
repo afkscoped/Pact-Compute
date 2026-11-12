@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field, StringConstraints
 from sqlalchemy import desc, select
 from sqlalchemy.exc import IntegrityError
 
-from . import datasets, live, market, outbox, ratelimit, storage
+from . import datasets, live, market, outbox, pagination, ratelimit, storage
 from .resilience import retry_db
 from .access import User, entity, require
 from .audit import compliance
@@ -355,10 +355,11 @@ def job_detail_view(db, job):
 
 
 @app.get('/api/v1/jobs')
-def jobs(member: User):
+def jobs(member: User, response: Response, limit: pagination.Limit = 100, cursor: pagination.Cursor = None):
     with session() as db:
-        return [job_view(job) for job in db.scalars(select(Job).where(Job.org_id == member.org_id)
-                                                   .order_by(desc(Job.created_at)).limit(100))]
+        rows, more = pagination.page(db, select(Job).where(Job.org_id == member.org_id), Job.created_at, Job.id, True, limit, cursor)
+        pagination.set_next(response, more)
+        return [job_view(job) for job in rows]
 
 
 @app.post('/api/v1/jobs/preview')
@@ -495,10 +496,12 @@ def run_view(run, detail=False):
 
 
 @app.get('/api/v1/runs')
-def runs(member: User):
+def runs(member: User, response: Response, limit: pagination.Limit = 100, cursor: pagination.Cursor = None):
     with session() as db:
-        return [run_view(run) for run in db.scalars(select(ResearchRun).where(ResearchRun.org_id == member.org_id)
-                                                   .order_by(desc(ResearchRun.created_at)).limit(100))]
+        rows, more = pagination.page(db, select(ResearchRun).where(ResearchRun.org_id == member.org_id),
+                                     ResearchRun.created_at, ResearchRun.id, True, limit, cursor)
+        pagination.set_next(response, more)
+        return [run_view(run) for run in rows]
 
 
 @app.post('/api/v1/runs', status_code=202)

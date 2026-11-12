@@ -3,12 +3,12 @@ import json
 import time
 from typing import Annotated
 
-from fastapi import APIRouter, Header, Request
+from fastapi import APIRouter, Header, Request, Response
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy import func, or_, select
 
-from . import market, outbox
+from . import market, outbox, pagination
 from .resilience import retry_db
 from .access import User, require
 from .db import Event, MarketBooking, session
@@ -18,10 +18,12 @@ router = APIRouter(prefix='/api/v1/market', tags=['exchange'])
 
 
 @router.get('/offers')
-def offer_list(member: User):
+def offer_list(member: User, response: Response, limit: pagination.Limit = 100, cursor: pagination.Cursor = None):
     require(member, *market.PARTICIPANTS)
     with session() as db:
-        return market.offers(db, member)
+        rows, more = market.offers_page(db, member, limit, cursor)
+        pagination.set_next(response, more)
+        return rows
 
 
 @router.post('/offers', status_code=201)
@@ -56,10 +58,12 @@ def confirm(quote_id: str, data: market.ConfirmInput, member: User):
 
 
 @router.get('/bookings')
-def booking_list(member: User):
+def booking_list(member: User, response: Response, limit: pagination.Limit = 100, cursor: pagination.Cursor = None):
     require(member, *market.PARTICIPANTS)
     with session() as db:
-        return market.bookings(db, member)
+        rows, more = market.bookings_page(db, member, limit, cursor)
+        pagination.set_next(response, more)
+        return rows
 
 
 @router.get('/bookings/{booking_id}')

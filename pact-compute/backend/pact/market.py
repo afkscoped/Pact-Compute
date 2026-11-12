@@ -1,11 +1,12 @@
 import json
 import time
+from collections import defaultdict
 from typing import Literal
 
 from pydantic import BaseModel, Field
 from sqlalchemy import or_, select
 
-from . import live
+from . import live, pagination
 from .db import Attempt, CapacityOffer, Event, Job, MarketBooking, MarketQuote, Organization, Runner, record, scoped, sha
 from .protocol import observe
 
@@ -40,11 +41,12 @@ class ConfirmInput(BaseModel):
     images: list[live.ImageInput] = Field(default_factory=list, max_length=16)
 
 
-def offer_view(db, offer, member, now):
+def offer_view(db, offer, member, now, claims=None):
     runner = db.get(Runner, offer.runner_id)
     org = db.get(Organization, offer.org_id)
     available_at = max(now, offer.starts_at)
-    claims = db.scalars(select(Job).where(Job.runner_id == runner.id, Job.status.in_(live.ACTIVE)))
+    if claims is None:
+        claims = db.scalars(select(Job).where(Job.runner_id == runner.id, Job.status.in_(live.ACTIVE)))
     uncertain = False
     for claim in claims:
         available_at = max(available_at, claim.decision.get('reserved_until', now))
@@ -58,12 +60,26 @@ def offer_view(db, offer, member, now):
             'fresh_at': runner.last_seen, 'own': offer.org_id == member.org_id}
 
 
-def offers(db, member):
+def offers_page(db, member, limit=100, cursor=None):
     now = time.time()
     stmt = select(CapacityOffer).where(or_(CapacityOffer.org_id == member.org_id,
                                          (CapacityOffer.status == 'published') & (CapacityOffer.ends_at > now)))
-    return [offer_view(db, item, member, now) for item in db.scalars(
-        stmt.order_by(CapacityOffer.starts_at, CapacityOffer.id).limit(100))]
+    rows, more = pagination.page(db, stmt, CapacityOffer.starts_at, CapacityOffer.id, False, limit, cursor)
+    # Batch the per-row lookups: prime the identity map with one query per table, group active claims once.
+    runner_ids = {row.runner_id for row in rows}
+    keep = []  # the identity map holds weak references: keep primed rows alive until rendered
+    if rows:
+        keep.append(list(db.scalars(select(Runner).where(Runner.id.in_(runner_ids)))))
+        keep.append(list(db.scalars(select(Organization).where(Organization.id.in_({row.org_id for row in rows})))))
+    claims = defaultdict(list)
+    if runner_ids:
+        for claim in db.scalars(select(Job).where(Job.runner_id.in_(runner_ids), Job.status.in_(live.ACTIVE))):
+            claims[claim.runner_id].append(claim)
+    return [offer_view(db, item, member, now, claims[item.runner_id]) for item in rows], more
+
+
+def offers(db, member):
+    return offers_page(db, member)[0]
 
 
 def publish(db, member, data):
@@ -182,11 +198,12 @@ def trace(db, job, quote=None):
     return observe(events, market=quote is not None)
 
 
-def booking_view(db, booking, member, detailed=False):
+def booking_view(db, booking, member, detailed=False, attempt=False):
     job = db.get(Job, booking.job_id)
     quote = db.get(MarketQuote, booking.quote_id)
     offer = db.get(CapacityOffer, booking.offer_id)
-    attempt = db.scalar(select(Attempt).where(Attempt.job_id == job.id).order_by(Attempt.ordinal.desc()).limit(1))
+    if attempt is False:  # not prefetched
+        attempt = db.scalar(select(Attempt).where(Attempt.job_id == job.id).order_by(Attempt.ordinal.desc()).limit(1))
     result = (attempt.result or {}) if attempt else {}
     consumer = booking.consumer_org_id == member.org_id
     public_title = job.title if consumer else f'Image embedding batch ({job.spec["sample_count"]} images)'
@@ -199,9 +216,24 @@ def booking_view(db, booking, member, detailed=False):
             **({'protocol': trace(db, job, quote)} if detailed else {})}
 
 
-def bookings(db, member):
+def bookings_page(db, member, limit=100, cursor=None):
     conditions = [MarketBooking.consumer_org_id == member.org_id]
     if member.role in PRODUCERS:
         conditions.append(MarketBooking.producer_org_id == member.org_id)
-    rows = db.scalars(select(MarketBooking).where(or_(*conditions)).order_by(MarketBooking.accepted_at.desc()).limit(100))
-    return [booking_view(db, item, member) for item in rows]
+    rows, more = pagination.page(db, select(MarketBooking).where(or_(*conditions)), MarketBooking.accepted_at,
+                                 MarketBooking.id, True, limit, cursor)
+    if not rows:
+        return [], more
+    # Prime the identity map (one query per table) and fetch every latest attempt in one query.
+    job_ids = [row.job_id for row in rows]
+    keep = [list(db.scalars(select(Job).where(Job.id.in_(job_ids)))),  # weak identity map: hold until rendered
+            list(db.scalars(select(MarketQuote).where(MarketQuote.id.in_([row.quote_id for row in rows])))),
+            list(db.scalars(select(CapacityOffer).where(CapacityOffer.id.in_([row.offer_id for row in rows]))))]
+    latest = {}
+    for attempt in db.scalars(select(Attempt).where(Attempt.job_id.in_(job_ids)).order_by(Attempt.job_id, Attempt.ordinal)):
+        latest[attempt.job_id] = attempt  # ascending ordinal: the last one wins
+    return [booking_view(db, item, member, attempt=latest.get(item.job_id)) for item in rows], more
+
+
+def bookings(db, member):
+    return bookings_page(db, member)[0]

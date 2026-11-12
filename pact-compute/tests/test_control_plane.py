@@ -376,6 +376,87 @@ def test_artifact_download_integrity_and_verify_command(client, capsys):
     assert passed.value.code == 0 and 'corrupt: 0' in capsys.readouterr().out
 
 
+def test_cursor_pagination_stability_scope_and_validation(client):
+    policy = approve(client, title='Pagination agreement')
+    ids = []
+    for index in range(7):
+        job = client.post('/api/v1/jobs', json={'title': f'Page job {index}', 'policy_id': policy, 'mode': 'shadow', 'sample_count': 1},
+                          headers={'Idempotency-Key': f'page-key-{index:04d}'})
+        assert job.status_code == 201, job.text
+        ids.append(job.json()['id'])
+
+    def walk(actor, size):
+        seen, cursor = [], None
+        while True:
+            response = actor.get('/api/v1/jobs', params={'limit': size, **({'cursor': cursor} if cursor else {})})
+            assert response.status_code == 200
+            seen.extend(item['id'] for item in response.json())
+            cursor = response.headers.get('x-next-cursor')
+            if not cursor:
+                return seen
+            assert len(response.json()) == size
+    everything = [item['id'] for item in client.get('/api/v1/jobs').json()]
+    assert set(ids) <= set(everything) and 'x-next-cursor' not in client.get('/api/v1/jobs').headers
+    assert walk(client, 3) == everything == walk(client, 1)                   # same order, no gaps, no repeats
+    first = client.get('/api/v1/jobs', params={'limit': 3})
+    newer = client.post('/api/v1/jobs', json={'title': 'Arrives mid-walk', 'policy_id': policy, 'mode': 'shadow', 'sample_count': 1},
+                        headers={'Idempotency-Key': 'page-key-new0'}).json()['id']
+    rest = client.get('/api/v1/jobs', params={'limit': 100, 'cursor': first.headers['x-next-cursor']}).json()
+    assert newer not in [item['id'] for item in rest]                         # stable: new rows never shift older pages
+    assert not {item['id'] for item in first.json()} & {item['id'] for item in rest}
+    for bad in ({'limit': 0}, {'limit': 101}, {'cursor': 'not-a-cursor'}, {'cursor': 'W10'}):
+        assert client.get('/api/v1/jobs', params=bad).status_code == 422
+    with TestClient(app) as stranger:                                         # another tenant, even holding our cursor
+        assert stranger.post('/api/v1/accounts', json={'username': 'page-stranger', 'password': 'sample-registration-password',
+                                                       'organization': 'Page stranger', 'role': 'consumer'}).status_code == 201
+        theirs = stranger.get('/api/v1/jobs', params={'cursor': first.headers['x-next-cursor']})
+        assert theirs.status_code == 200 and theirs.json() == []
+        assert stranger.get('/api/v1/runs', params={'cursor': first.headers['x-next-cursor']}).json() == []
+
+
+def test_offer_list_queries_do_not_grow_with_rows_and_indexes_are_used():
+    from sqlalchemy import event, text
+    from pact.db import CapacityOffer
+    from pact.security import ORG_ID
+    import time
+
+    now = time.time()
+
+    def add_offers(count, tag):
+        with session(write=True) as db:
+            for index in range(count):
+                db.add(CapacityOffer(org_id=ORG_ID, runner_id='native-gpu', title=f'{tag} {index}', starts_at=now + index,
+                                     ends_at=now + 3600, rate_cents=200 + index))
+
+    def statements(actor):
+        counter = []
+        listener = lambda conn, cursor, statement, *args: counter.append(statement)
+        event.listen(engine, 'before_cursor_execute', listener)
+        try:
+            response = actor.get('/api/v1/market/offers', params={'limit': 100})
+        finally:
+            event.remove(engine, 'before_cursor_execute', listener)
+        assert response.status_code == 200
+        return len(counter), response
+    with TestClient(app) as admin:
+        assert admin.post('/api/v1/session', json={'username': 'admin', 'password': 'test-admin-credentials'}).status_code == 200
+        add_offers(2, 'small')
+        few, _ = statements(admin)
+        add_offers(15, 'large')
+        many, response = statements(admin)
+        assert len(response.json()) >= 17
+        assert many - few <= 1, (few, many)                                   # was ~1 extra query per offer
+        page = admin.get('/api/v1/market/offers', params={'limit': 5})
+        assert len(page.json()) == 5 and page.headers['x-next-cursor']
+        following = admin.get('/api/v1/market/offers', params={'limit': 100, 'cursor': page.headers['x-next-cursor']}).json()
+        assert not {item['id'] for item in page.json()} & {item['id'] for item in following}
+        assert len(following) + 5 == len(response.json())
+    with session() as db:
+        plan = ' '.join(row[3] for row in db.execute(text(
+            'EXPLAIN QUERY PLAN SELECT id FROM jobs WHERE org_id = :o ORDER BY created_at DESC, id DESC LIMIT 11'), {'o': ORG_ID}))
+        assert 'ix_jobs_org_created' in plan, plan
+
+
 def test_invitation_accept_is_rate_limited():
     import pact.api
     from pact import ratelimit
@@ -574,6 +655,16 @@ def test_fault_injection_key_reuse_quote_expiry_and_stale_fence(client):
                                json={'fence': lease['fence'], 'state': 'started'}, headers=AUTH)
     assert other_runner.status_code in (401, 403, 404)
     assert client.post(endpoint + '/events', json={'fence': lease['fence'], 'state': 'interrupted'}, headers=AUTH).status_code == 200
+    everything = [item['id'] for item in producer.get('/api/v1/market/bookings').json()]
+    paged, cursor = [], None
+    while True:
+        part = producer.get('/api/v1/market/bookings', params={'limit': 1, **({'cursor': cursor} if cursor else {})})
+        assert part.status_code == 200 and len(part.json()) <= 1
+        paged.extend(item['id'] for item in part.json())
+        cursor = part.headers.get('x-next-cursor')
+        if not cursor:
+            break
+    assert paged == everything and len(everything) >= 2
 
 
 def test_research_holdouts_and_groq_fallback(monkeypatch):
