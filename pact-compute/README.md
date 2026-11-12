@@ -49,7 +49,7 @@ Use `.\scripts\stop.ps1` to stop the launched processes. Logs are in `.local/log
 
 ### Fresh setup
 
-Use Python 3.14 and Node.js 24. The reference environment used Python 3.14.4 and Node.js 24.15.
+Use Python 3.14 and Node.js 24. The reference environment used Python 3.14.4 and Node.js 24.15. Python 3.11.9 and Node 25 were also verified (235 backend tests, frontend build and 33 node tests pass). Clone to a short path on Windows: very long paths make pip drop files and one S3 test then fails. After the install, `npm.cmd test` in `frontend` runs the node tests.
 
 ~~~powershell
 python -m venv .venv

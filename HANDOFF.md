@@ -1,5 +1,53 @@
 # HANDOFF.md (live status — keep current)
 
+## START HERE (for Nithesh)
+
+**(a) What this is.** PACT-Compute is a private GPU exchange: producers publish GPU capacity, consumers reserve it under reviewer-approved service agreements, and a native runner executes an image-embedding job and records a shared usage receipt.
+Stack: React + TypeScript console, FastAPI backend, SQLAlchemy/Alembic (PostgreSQL or SQLite), a research worker and research experiments, all in `pact-compute/`.
+Work only on branch `sasha-work`; push only to the `fork` remote, never to `origin`/main. Read `CLAUDE.md` first (safety rules).
+
+**(b) First 5 commands** (PowerShell, Windows, Python 3.11+ and Node 25; clone to a SHORT path such as `C:\Users\<you>\pf`, because very deep paths make pip drop files and one S3 test then fails):
+```powershell
+git clone --branch sasha-work <fork-url> C:\Users\<you>\pf; cd C:\Users\<you>\pf\pact-compute
+python -m venv .venv; & .\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+$env:PYTEST_DISABLE_PLUGIN_AUTOLOAD='1'; $env:PACT_DATABASE_URL='sqlite:///C:/Users/<you>/pact_test.db'; & .\.venv\Scripts\python.exe -m pytest -q   # expect 235 passed, 1 skipped
+cd frontend; npm.cmd ci; npm.cmd run build; npm.cmd test   # build clean, 33 node tests pass
+cd ..; $env:PYTHONPATH='backend'; & .\.venv\Scripts\python.exe -m uvicorn pact.api:app --host 127.0.0.1 --port 8765   # then GET http://127.0.0.1:8765/api/health
+```
+Without a `.env` this runs on SQLite under `.local/`; no secrets are needed for any of the above. These were checked on a fresh clone with no `.env`.
+
+**(c) Secrets Sasha must give you privately (never in git, chat or docs).**
+| File | Place at | What it is |
+| --- | --- | --- |
+| `.env` | `pact-compute/.env` | The previous member's Neon PostgreSQL URL (a teammate's real database) and the Groq key. Do NOT run tests, migrations or the app against it without that teammate's consent; tests always override `PACT_DATABASE_URL` with SQLite. |
+| `deploy.env` | `pact-compute/deploy.env` | Connection string for the `pact-deploy` Neon project (the live app's database). Needed only for `pact.cli member NAME reviewer --org WORKSPACE_ID` against the live DB: load its variables into the shell first, never print them. |
+Render dashboard variables (signing secret, admin password, database URL) live only in the Render account; ask Sasha to add you to it or to make the changes with you.
+
+**(d) Live deployment.** https://pact-compute-sasha.onrender.com (Render free Docker service `pact-compute-sasha`, built from the fork's `sasha-work` branch; every push redeploys and the entrypoint runs Alembic migrations; the free instance sleeps when idle and its disk is ephemeral). Database: Neon project `pact-deploy` (aws-us-east-2). `GET /api/health` returned 200 with `postgresql`; signup was confirmed by Sasha. See `DEPLOYMENT.md` and `BACKUP_RESTORE.md`.
+
+**(e) Needs human, ranked (with steps).**
+1. Confirm migrations 0005-0007 applied on the live DB: Render service, Logs tab, find the Alembic lines from the last deploy (or from a shell with `deploy.env` loaded: `$env:PYTHONPATH='backend'; python -m alembic current` should say `0007`).
+2. Reviewer account on the live DB: sign up a user on the live site, copy the workspace id, then with `deploy.env` loaded run `python -m pact.cli member NAME reviewer --org WORKSPACE_ID`. Without it no agreement can be approved, so no quote can be confirmed.
+3. Browser click-through (nothing below has been browser-tested): reviewer inbox (Agreements, approve and reject with a reason), invitation flow (Team: create invite, redeem in a private window), What-if panel on a job, Incident queue (admin/operator nav), Home and Exchange sorting and Load more.
+4. GPU runner on the live URL: sign in as a producer, Compute capacity, "Enroll a GPU host", copy the token (shown once). On the GPU machine put `PACT_URL`, `PACT_RUNNER_ID`, `PACT_RUNNER_TOKEN` in that machine's `.env`, follow README "Fresh setup" for PyTorch and `gpu_task.py prepare`, then `python -m pact.runner`. Then run one quote, confirm, job end to end.
+5. Pin the model weights: from the first real runner output copy `weights_sha256` and set `PACT_MODEL_WEIGHTS_SHA256` in Render; outputs with other weights are then rejected.
+6. Durable artifacts: create a free S3-compatible bucket, then in Render add `PACT_ARTIFACT_BACKEND=s3`, `PACT_S3_BUCKET`, `PACT_S3_ENDPOINT_URL` (if not AWS), `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`; redeploy. Check any free-tier terms first.
+7. Restore drill: follow `BACKUP_RESTORE.md` once and record the result here.
+8. `GROQ_API_KEY` on Render (the app falls back to local guidance without it).
+9. Operator review of the 50 support-benchmark expected answers (`backend/pact/support_bench.py`).
+10. Manual keyboard and screen-reader pass of the console.
+11. Decisions needing Sasha's approval (each changes behaviour): the five design observations under "Run 4 item 1 status".
+
+**(f) NOT verified.**
+- No browser check of the reviewer inbox, invitations, what-if panel, incident queue or other new screens (no browser on this machine; only API tests and node tests ran).
+- The runner stage-timing code has never run on a real GPU; no GPU runner has been connected to the live URL.
+- The support benchmark's 50 expected answers were written by a developer and not reviewed by an operator.
+- Scheduler baselines were run at light load (utilization about 0.15), where all arms tie on service metrics and `easy_backfill` equals `fcfs`, `edf_aging` equals `edf`; they say nothing about heavy load.
+- PostgreSQL-specific paths (rate limits, indexes, retry classification) ran only on a smoke test against `pact-deploy`, not in the automated suite; the Docker image build was never run locally; S3 storage was tested against `moto`, not a real bucket.
+- Research numbers other than the ones reproduced in this file's status sections should not be quoted as verified.
+
+---
+
 ## Goal
 Get PACT-Compute running end-to-end on the configured PostgreSQL (Neon), do the highest-value backlog work, then deploy it with free services.
 
@@ -7,9 +55,9 @@ Get PACT-Compute running end-to-end on the configured PostgreSQL (Neon), do the 
 | Check | Result |
 | --- | --- |
 | Backend deps in `.venv` (Python 3.11.9; README says 3.14) | OK |
-| Backend tests on SQLite (`PYTEST_DISABLE_PLUGIN_AUTOLOAD=1`) | 8/8 pass (after restoring the data files; Known issues #1) |
-| Frontend `npm ci` + `npm run build` (tsc + esbuild) | OK (bundle ~900 kB) |
-| App started with real `.env`, `GET /api/health` | 200, `database: postgresql` (startup `bootstrap()` ran idempotently) |
+| Backend tests on SQLite (`PYTEST_DISABLE_PLUGIN_AUTOLOAD=1`) | 235 passed, 1 skipped (also on a fresh clone with no `.env`) |
+| Frontend `npm ci`, `npm run build`, `npm test` | OK; 33 node tests pass |
+| API on SQLite from a fresh clone, `GET /api/health` and `/` | 200 and 200 (live site returned 200 `postgresql` earlier) |
 | Playwright e2e, GPU runner, live job | NOT run (need demo accounts, GPU; this machine has no verified GPU runner) |
 
 ## Done
@@ -31,7 +79,7 @@ Get PACT-Compute running end-to-end on the configured PostgreSQL (Neon), do the 
 
 ## Known issues
 1. `core.autocrlf=true` rewrote the dataset CSVs to CRLF on checkout, so SHA-256 manifest checks fail (`Source checksum changed for openb_pod_list_gpuspec33.csv`; sizes 595620 vs 587467). Git blobs are correct. `.gitattributes` prevents recurrence; files were restored by copying the committed bytes over them (`git checkout` alone skipped them as unchanged). `git status` may still list them as M with an empty diff; harmless. On a fresh clone elsewhere, `.gitattributes` keeps them byte-exact.
-2. Handoff says Python 3.14 / Node 24; verified on Python 3.11.9 / Node 25 (works).
+2. Handoff says Python 3.14 / Node 24; verified on Python 3.11.9 / Node 25 (works). Clone to a short path on Windows: under a very deep path pip drops files (`moto/utilities`) and `test_artifact_stores_local_s3_and_integrity` fails.
 3. Artifacts/experiments under `.local` are not in the database: backups of DB alone are incomplete.
 4. Rate limits and Groq budget are process-local (single replica only).
 
