@@ -326,6 +326,53 @@ def test_market_roles_last_slot_and_privacy(client):
     assert producer.get('/api/v1/market/bookings/' + reserved['id']).json()['protocol']['verdict'] == 'pass'
 
 
+def test_fault_injection_key_reuse_quote_expiry_and_stale_fence(client):
+    import json
+    import time
+    from pact.db import MarketQuote
+
+    # Same idempotency key with a different submission is rejected, an identical retry returns the same job.
+    policy = approve(client, title='Fault agreement')
+    runner_ready(client)
+    body = {'title': 'Retry me', 'policy_id': policy, 'mode': 'shadow', 'sample_count': 2}
+    key = {'Idempotency-Key': 'fault-key-0001'}
+    first = client.post('/api/v1/jobs', json=body, headers=key)
+    assert first.status_code == 201, first.text
+    assert client.post('/api/v1/jobs', json=body, headers=key).json()['id'] == first.json()['id']
+    assert client.post('/api/v1/jobs', json={**body, 'sample_count': 3}, headers=key).status_code == 409
+    assert client.post('/api/v1/jobs', json=body).status_code == 422  # key is mandatory
+
+    users = json.loads(provision_demo().read_bytes())
+    producer, buyer = TestClient(app), TestClient(app)
+    for role, actor, name in [('producer', producer, 'demo-producer'), ('consumer', buyer, 'demo-consumer')]:
+        assert actor.post('/api/v1/session', json={'username': name, 'password': users[name], 'workspace': role}).status_code == 200
+    now = time.time()
+    offer = producer.post('/api/v1/market/offers', json={'runner_id': 'native-gpu', 'title': 'Fault window',
+                          'starts_at': now - 10, 'ends_at': now + 400, 'rate_cents': 250}).json()
+    agreement = next(item for item in buyer.get('/api/v1/policies').json() if item['status'] == 'approved')['id']
+    request = {'offer_id': offer['id'], 'policy_id': agreement, 'title': 'Fault run', 'sample_count': 2}
+    stale = buyer.post('/api/v1/market/quotes', json=request).json()
+    assert stale['id'], stale
+    with session(write=True) as db:
+        db.get(MarketQuote, stale['id']).expires_at = time.time() - 1
+    expired = buyer.post('/api/v1/market/quotes/' + stale['id'] + '/confirm', json={})
+    assert expired.status_code == 409 and 'expired' in expired.text
+
+    fresh = buyer.post('/api/v1/market/quotes', json=request).json()
+    booked = buyer.post('/api/v1/market/quotes/' + fresh['id'] + '/confirm', json={})
+    assert booked.status_code == 201, booked.text
+    lease = client.post('/api/v1/runners/native-gpu/claim', headers=AUTH).json()
+    assert lease and lease['job_id'] == booked.json()['job_id']
+    endpoint = '/api/v1/runners/native-gpu/attempts/' + lease['attempt_id']
+    wrong = client.post(endpoint + '/events', json={'fence': 'stale-fence-value', 'state': 'started'}, headers=AUTH)
+    assert wrong.status_code == 404
+    assert client.get(endpoint + '/input', headers={**AUTH, 'Lease-Fence': 'stale-fence-value'}).status_code == 404
+    other_runner = client.post('/api/v1/runners/other-runner/attempts/' + lease['attempt_id'] + '/events',
+                               json={'fence': lease['fence'], 'state': 'started'}, headers=AUTH)
+    assert other_runner.status_code in (401, 403, 404)
+    assert client.post(endpoint + '/events', json={'fence': lease['fence'], 'state': 'interrupted'}, headers=AUTH).status_code == 200
+
+
 def test_research_holdouts_and_groq_fallback(monkeypatch):
     from pact import model_gateway, pricing_model
     from pact.llm import suggest

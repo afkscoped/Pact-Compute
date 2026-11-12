@@ -66,3 +66,7 @@ Items: 1 membership/onboarding, 2 reliability, 3 artifact storage. Items 4-5 and
 - Tests: 11/11 backend pass on SQLite (new: invitation lifecycle, cross-tenant denial, owner cannot self-approve, one-time/revoked/expired codes, workspace switch, accept rate limit). Frontend typecheck+build OK.
 - Known gaps: no member removal / session revocation UI; invitation role limited to reviewer or inviter's own participant role; reviewer nav is the existing full operations nav; no browser (Playwright) test run.
 - Needs human: after the Render redeploy, sign up a consumer on the live site, create a reviewer invite in Team, redeem it in a private window to confirm end to end (I only tested via API/TestClient).
+
+## Item 2 status (reliability) - in progress
+- 2a DONE: audit showed idempotency already exists (jobs: mandatory Idempotency-Key + unique(org_id,request_key); booking: keyed by quote id, retry returns same booking, changed input -> 409). Added fault-injection test (key reuse with different body 409, retry same job, missing key 422, quote expiry 409, stale/foreign fence 404). Existing tests already cover last-slot double booking, concurrent job retry, duplicate runner events and lost-lease reconcile.
+- 2b shared DB rate limits: next. 2c bounded DB retries: next. 2d outbox/replay: next.
