@@ -8,7 +8,7 @@ from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy import func, or_, select
 
-from . import market
+from . import market, outbox
 from .resilience import retry_db
 from .access import User, require
 from .db import Event, MarketBooking, session
@@ -92,23 +92,26 @@ def events(request: Request, member: User, last_event_id: Annotated[str | None, 
         owned.append(MarketBooking.producer_org_id == member.org_id)
     visible_jobs = select(MarketBooking.job_id).where(or_(*owned))
 
-    def notices_since(cursor):
+    def notices_since(cursor, gaps):
         with session() as db:
+            safe = outbox.horizon(db, cursor, gaps)
+            if safe <= cursor:
+                return cursor, []
             stmt = select(Event.seq, Event.kind).where(
-                Event.seq > cursor,
+                Event.seq > cursor, Event.seq <= safe,
                 or_(Event.entity_type.in_(['market_offer', 'market_capacity']),
                     (Event.entity_type == 'job') & Event.entity_id.in_(visible_jobs)),
             ).order_by(Event.seq).limit(100)
-            return db.execute(stmt).all()
+            rows = db.execute(stmt).all()
+            return (rows[-1][0] if len(rows) == 100 else safe), rows
 
     async def stream():
-        cursor = start
+        cursor, gaps = start, {}
         yield 'event: snapshot\ndata: {}\n\n'
         stop = time.monotonic() + 24
         while time.monotonic() < stop and not await request.is_disconnected():
-            notices = await run_in_threadpool(notices_since, cursor)
+            cursor, notices = await run_in_threadpool(notices_since, cursor, gaps)
             for seq, kind in notices:
-                cursor = seq
                 # The stream only invalidates projections. Scoped endpoints return the authorized payload.
                 yield f'id: {seq}\nevent: update\ndata: {json.dumps({"kind": kind})}\n\n'
             if not notices:

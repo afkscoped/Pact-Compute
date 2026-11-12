@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field, StringConstraints
 from sqlalchemy import desc, select
 from sqlalchemy.exc import IntegrityError
 
-from . import datasets, live, market, ratelimit
+from . import datasets, live, market, outbox, ratelimit
 from .resilience import retry_db
 from .access import User, entity, require
 from .audit import compliance
@@ -580,23 +580,9 @@ def event_stream(kind: Literal['jobs', 'runs'], object_id: str, member: User, la
     model, entity_type = (Job, 'job') if kind == 'jobs' else (ResearchRun, 'run')
     with session() as db:
         entity(db, model, member, object_id)
-    cursor = int(last_event_id) if last_event_id and last_event_id.isdecimal() else 0
-
-    def messages():
-        nonlocal cursor
-        until = time.monotonic() + 22
-        while time.monotonic() < until:
-            with session() as db:
-                batch = [event_view(row) for row in event_rows(db, member.org_id, entity_type, object_id, cursor)]
-            if batch:
-                for item in batch:
-                    cursor = item['seq']
-                    yield f'id: {cursor}\ndata: {json.dumps(item)}\n\n'
-            else:
-                yield ': keepalive\n\n'
-            time.sleep(1)
-
-    return StreamingResponse(messages(), media_type='text/event-stream', headers={'X-Accel-Buffering': 'no'})
+    cursor = int(last_event_id) if last_event_id and last_event_id.isdecimal() and len(last_event_id) < 18 else 0
+    messages = outbox.entity_stream(member.org_id, entity_type, object_id, cursor, view=lambda row: event_view(row))
+    return StreamingResponse(messages, media_type='text/event-stream', headers={'X-Accel-Buffering': 'no'})
 
 
 app.include_router(market_router)

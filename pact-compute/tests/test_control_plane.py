@@ -242,6 +242,47 @@ def test_bounded_retries_for_retriable_database_errors(client, monkeypatch):
     assert again.json()['id'] == first.json()['id']
 
 
+def test_outbox_horizon_replay_and_tenant_scope():
+    import json as jsonlib
+    from pact import outbox
+    from pact.db import Event
+
+    with session(write=True) as db:
+        for org in ('outbox-a', 'outbox-b'):
+            if not db.get(Organization, org):
+                db.add(Organization(id=org, name=org))
+        base = outbox.newest(db) + 100
+
+        def add(offset, org='outbox-a', kind='Step'):
+            db.add(Event(seq=base + offset, org_id=org, entity_type='job', entity_id='job-outbox', kind=kind, details={}))
+        add(1, kind='One'); add(2, kind='Two'); add(4, kind='Four')  # seq base+3 is "in flight"
+        add(5, org='outbox-b', kind='Foreign')
+    gaps = {}
+    with session() as db:
+        assert outbox.horizon(db, base, gaps, now=0.0) == base + 2          # waits for the missing number
+        assert outbox.horizon(db, base, gaps, now=1.0) == base + 2          # still within grace
+    with session(write=True) as db:                                          # the slow transaction finally commits
+        db.add(Event(seq=base + 3, org_id='outbox-a', entity_type='job', entity_id='job-outbox', kind='Three', details={}))
+    with session() as db:
+        assert outbox.horizon(db, base, gaps, now=1.5) == base + 5          # late commit is no longer skipped
+        assert outbox.horizon(db, base + 5, {}, now=0.0) == base + 5
+    # A rolled-back transaction leaves a permanent gap that is skipped only after the grace period.
+    with session(write=True) as db:
+        db.add(Event(seq=base + 8, org_id='outbox-a', entity_type='job', entity_id='job-outbox', kind='Eight', details={}))
+    gaps = {}
+    with session() as db:
+        assert outbox.horizon(db, base + 5, gaps, now=10.0) == base + 5
+        assert outbox.horizon(db, base + 5, gaps, now=10.0 + outbox.GAP_GRACE + 0.1) == base + 8
+
+    def kinds(org, last):
+        lines = outbox.entity_stream(org, 'job', 'job-outbox', last, window=0.05, pause=0.01)
+        return [jsonlib.loads(line.split('data: ', 1)[1])['kind'] for line in lines if line.startswith('id:')]
+    assert kinds('outbox-a', base) == ['One', 'Two', 'Three', 'Four', 'Eight']
+    assert kinds('outbox-a', base + 3) == ['Four', 'Eight']                  # reconnect resumes after Last-Event-ID
+    assert kinds('outbox-b', base) == ['Foreign']                            # other tenant sees only its own events
+    assert kinds('outbox-a', base + 8) == []
+
+
 def test_invitation_accept_is_rate_limited():
     import pact.api
     from pact import ratelimit
