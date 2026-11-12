@@ -1,4 +1,5 @@
 import base64
+import json
 import os
 import tempfile
 from concurrent.futures import ThreadPoolExecutor
@@ -17,7 +18,7 @@ os.environ['GROQ_API_KEY'] = ''
 os.environ['PACT_LLM_API_KEY'] = ''
 
 from pact.api import app
-from pact.db import Attempt, Member, Organization, engine, session
+from pact.db import Attempt, Member, Organization, engine, session, sha
 from pact.demo import provision_demo
 from pact.live import MODEL
 from pact.policy import EXAMPLE, compile_local
@@ -562,17 +563,44 @@ def test_reservation_output_and_evidence(client):
     rows = [{key: item[key] for key in ('row', 'name', 'sha256')} | {'embedding': [1.0] + [0.0] * 959} for item in inputs['images']]
     result = {'fence': lease['fence'], 'state': 'succeeded', 'duration_s': 5.0, 'device': 'Test GPU inventory',
               'gpu_energy_kwh': .0001, 'telemetry_coverage': .8, 'power_samples': 4,
+              'stage_seconds': {'staging': .4, 'startup': 3.1, 'compute': 1.5},
               'artifact': {'model': MODEL, 'backend': 'cuda', 'items': rows}}
+    bad_stage = client.post(endpoint + '/events', json={**result, 'stage_seconds': {'compute': -1}}, headers=AUTH)
+    assert bad_stage.status_code == 422
+    assert client.post(endpoint + '/events', json={**result, 'stage_seconds': {'validation': 1}}, headers=AUTH).status_code == 422
     ended = client.post(endpoint + '/events', json=result, headers=AUTH)
     assert ended.status_code == 200, ended.text
     assert client.post(endpoint + '/events', json=result, headers=AUTH).json()['duplicate']
     details = client.get('/api/v1/jobs/' + first['id']).json()
     assert details['status'] == 'succeeded'
     assert [finding['status'] for finding in details['findings']].count('pass') >= 4
+    spec = details['workload']
+    assert spec['version'] == 1 and spec['template_id'] == 'image-embeddings-v1' and spec['retry']['automatic_retry'] is False
+    assert spec['input_manifest']['sha256'] == details['input_sha256'] and spec['input_manifest']['rows'] == 2
+    assert len(spec['runtime']['task_sha256']) == 64 and len(spec['runtime']['kernels_sha256']) == 64
+    assert spec['output_schema']['dimension'] == 960 and spec['hardware']['gpu_count'] == 1 and spec['timeout_s'] > 0
+    assert spec['model']['name'] == MODEL and len(spec['spec_sha256']) == 64
+    body_only = {key: value for key, value in spec.items() if key != 'spec_sha256'}
+    assert spec['spec_sha256'] == sha(json.dumps(body_only, sort_keys=True, separators=(',', ':')))
+    stages = details['attempts'][0]['result']['stage_seconds']
+    assert list(stages) == ['staging', 'startup', 'compute', 'validation', 'upload']
+    assert (stages['staging'], stages['startup'], stages['compute']) == (.4, 3.1, 1.5) and stages['validation'] >= 0 and stages['upload'] >= 0
+    assert client.get('/api/v1/jobs/' + shadow['id']).json()['workload']['input_manifest']['sha256'] is None
     artifact = details['attempts'][0]['result']['artifact_id']
     assert client.get('/api/v1/artifacts/' + artifact).json()['items'][1]['row'] == 2
     manifest = client.get('/api/v1/jobs/' + first['id'] + '/evidence.json').json()
     assert sign(manifest['manifest']) == manifest['hmac_sha256']
+
+
+def test_pinned_model_digest_rejects_other_weights():
+    from pact.live import LiveError, output_bytes
+    rows = [{'row': 1, 'name': 'a', 'sha256': 'x' * 64}]
+    payload = json.dumps({'images': rows})
+    artifact = {'model': MODEL, 'backend': 'cuda', 'weights_sha256': 'a' * 64, 'items': [{**rows[0], 'embedding': [1.0] + [0.0] * 959}]}
+    assert output_bytes(artifact, payload, 'GPU')                      # unpinned: accepted
+    assert output_bytes(artifact, payload, 'GPU', 'a' * 64)            # pinned and equal: accepted
+    with pytest.raises(LiveError, match='pinned digest'):
+        output_bytes(artifact, payload, 'GPU', 'b' * 64)
 
 
 def test_infeasible_memory_and_carbon(client):

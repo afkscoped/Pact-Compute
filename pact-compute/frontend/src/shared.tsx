@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { ArrowUpRight, Check, CircleAlert, Clock3, LoaderCircle } from 'lucide-react';
 import { pagePath, walkPages, type Page } from './paging';
+import type { Workload } from './stages';
 
 export type User = { username: string; organization: string; role: string };
 export type Config = { llm_available: boolean; example_contract: string; database: string; model: string };
@@ -18,9 +19,9 @@ export type Preview = { selected: Candidate | null; candidates: Candidate[]; dea
 export type Job = { id: string; title: string; policy_id: string; status: string; mode: 'live' | 'shadow'; created_at: number; deadline_at: number; sample_count: number; cancel_requested: boolean };
 export type LogEvent = { seq: number; at: number; kind: string; details: Record<string, unknown> };
 export type Review = { id: string; finding_id: string; disposition: string; note: string; at: number };
-export type AttemptResult = { duration_s: number; gpu_energy_kwh: number | null; device: string; power_samples: number; telemetry_coverage: number; artifact_id?: string; sha256?: string; rows?: number; model?: string; inference_seconds?: number; charged_cents: number; message?: string };
+export type AttemptResult = { duration_s: number; gpu_energy_kwh: number | null; device: string; power_samples: number; telemetry_coverage: number; artifact_id?: string; sha256?: string; rows?: number; model?: string; inference_seconds?: number; charged_cents: number; message?: string; stage_seconds?: Record<string, number> };
 export type Finding = { id: string; rule: string; status: string; observed: unknown; expected: unknown; source_span?: [number, number]; evidence: number[] };
-export type JobDetail = Job & { decision: Partial<Candidate> & { candidates: Candidate[] }; policy: Agreement; input_sha256: string | null; events: LogEvent[]; findings: Finding[]; reviews: Review[]; attempts: { id: string; status: string; result: AttemptResult | null }[] };
+export type JobDetail = Job & { decision: Partial<Candidate> & { candidates: Candidate[] }; policy: Agreement; input_sha256: string | null; workload?: Workload | null; events: LogEvent[]; findings: Finding[]; reviews: Review[]; attempts: { id: string; status: string; result: AttemptResult | null }[] };
 export type Dataset = { id: string; pods: number; gpu_pods: number; gpu_nodes: number; gpu_devices: number; runtime_proxies: number; carbon_intervals: number; carbon_range: number[]; carbon_zone: string; sources: { file: string; url: string; sha256: string }[]; origins: Record<string, string> };
 export type Run = { id: string; title: string; created_at: number; status: string; progress: number; jobs: number; seeds: number };
 export type Transition = { from: string; to: string; action: string; count: number; rounds: number[] };

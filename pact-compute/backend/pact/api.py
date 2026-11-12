@@ -397,7 +397,7 @@ def job_view(job, detailed=False):
             'mode': job.mode, 'created_at': job.created_at, 'start_after': job.start_after,
             'deadline_at': job.deadline_at, 'runner_id': job.runner_id, 'cancel_requested': job.cancel_requested,
             'sample_count': job.spec['sample_count'], 'flexible': job.spec['flexible'],
-            **({'decision': job.decision, 'input_sha256': job.spec.get('input_sha256')} if detailed else {})}
+            **({'decision': job.decision, 'input_sha256': job.spec.get('input_sha256'), 'workload': job.spec.get('workload')} if detailed else {})}
 
 
 def review_views(db, org, kind, item_id):

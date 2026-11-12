@@ -4,13 +4,15 @@ import hmac
 import io
 import json
 import math
+import os
 import re
 import secrets
 import time
+from pathlib import Path
 from typing import Literal
 
 from PIL import Image, ImageDraw, ImageOps, UnidentifiedImageError
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import select
 
 from . import storage
@@ -24,6 +26,36 @@ LEASE_SECONDS = 35
 RUNNER_TTL = 25
 MODEL = 'MobileNetV3-Large IMAGENET1K_V2'
 TEMPLATE = 'image-embeddings-v1'
+SPEC_VERSION = 1
+STAGES = ('staging', 'startup', 'compute', 'validation', 'upload')
+RUNNER_STAGES = ('staging', 'startup', 'compute')
+
+
+def file_digest(name):
+    return sha((Path(__file__).with_name(name)).read_bytes())
+
+
+def runtime_pin():
+    # The runner is native, so the immutable "image" is the exact task source and CUDA kernel bytes it executes.
+    return {'kind': 'native-runner', 'task_sha256': file_digest('gpu_task.py'), 'kernels_sha256': file_digest('mobilenet.ptx')}
+
+
+def workload_spec(spec, policy, selected, input_artifact):
+    """Versioned, hashed description of exactly what a job may run. Stored in Job.spec['workload']; never edited afterwards."""
+    limits = values(policy.rules)
+    pinned = os.getenv('PACT_MODEL_WEIGHTS_SHA256', '').strip().lower() or None
+    body = {
+        'version': SPEC_VERSION, 'template_id': TEMPLATE, 'runtime': runtime_pin(),
+        'model': {'name': MODEL, 'weights_sha256': pinned, 'digest_status': 'pinned' if pinned else 'unpinned: the runner verifies the upstream hash'},
+        'input_manifest': {'artifact_id': input_artifact.id if input_artifact else None, 'sha256': input_artifact.digest if input_artifact else None,
+                           'rows': len(spec.images) or spec.sample_count, 'format': 'png-base64-manifest'},
+        'hardware': {'min_vram_mib': limits.get('min_vram_mib', 0), 'gpu_count': 1, 'backend': 'cuda', 'gpu_model': limits.get('gpu_model')},
+        'region': (selected or {}).get('zone') or limits.get('grid_zone'),
+        'timeout_s': (selected or {}).get('max_runtime_s'),
+        'output_schema': {'name': 'image-embeddings-v1', 'rows': len(spec.images) or spec.sample_count, 'dimension': 960, 'unit_norm_tolerance': 0.01},
+        'retry': {'max_attempts': 1, 'automatic_retry': False, 'manual_resubmit': True},
+    }
+    return {**body, 'spec_sha256': sha(json.dumps(body, sort_keys=True, separators=(',', ':')))}
 
 
 class LiveError(Exception):
@@ -57,6 +89,7 @@ class Heartbeat(BaseModel):
 class RunnerUpdate(BaseModel):
     fence: str = Field(min_length=1, max_length=64)
     state: Literal['started', 'succeeded', 'failed', 'cancelled', 'expired', 'interrupted']
+    stage_seconds: dict[Literal['staging', 'startup', 'compute'], float] | None = None
     duration_s: float | None = Field(default=None, ge=0, le=86400, allow_inf_nan=False)
     device: str | None = Field(default=None, max_length=200)
     gpu_energy_kwh: float | None = Field(default=None, ge=0, le=10, allow_inf_nan=False)
@@ -64,6 +97,13 @@ class RunnerUpdate(BaseModel):
     telemetry_coverage: float = Field(default=0, ge=0, le=1, allow_inf_nan=False)
     artifact: dict | None = None
     message: str | None = Field(default=None, max_length=500)
+
+    @field_validator('stage_seconds')
+    @classmethod
+    def sane_stages(cls, value):
+        if value and any(not math.isfinite(v) or v < 0 or v > 86400 for v in value.values()):
+            raise ValueError('Stage timings must be finite seconds between 0 and 86400.')
+        return value
 
 
 def organization_lock(db, org):
@@ -265,9 +305,11 @@ def persist_job(db, member, spec, request_key, payload, fingerprint, now, previe
               created_at=now, start_after=selected['start'] if selected else None, deadline_at=preview['deadline_at'])
     db.add(job)
     db.flush()
+    artifact = None
     if job.status == 'reserved':
         artifact = save_artifact(db, job.org_id, payload, 'input-manifest.json', 'input', job.id)
         job.spec = {**job.spec, 'input_id': artifact.id, 'input_sha256': artifact.digest}
+    job.spec = {**job.spec, 'workload': workload_spec(spec, db.get(Policy, spec.policy_id), selected, artifact)}
     record(db, job.org_id, 'job', job.id, 'JobSubmitted', policy_id=spec.policy_id, mode=job.mode, template=TEMPLATE)
     if accepted:
         record(db, job.org_id, 'job', job.id, 'MarketQuoteAccepted', **accepted)
@@ -365,13 +407,15 @@ def attempt_for_runner(db, runner, attempt_id, fence):
     return attempt, db.get(Job, attempt.job_id)
 
 
-def output_bytes(artifact, payload, device):
+def output_bytes(artifact, payload, device, weights_sha256=None):
     source = json.loads(payload)
     items = artifact.get('items') if artifact else None
     if not isinstance(items, list) or len(items) != len(source['images']):
         raise LiveError('The output manifest must contain one row per input.')
     if artifact.get('model') != MODEL or not device or artifact.get('backend') != 'cuda':
         raise LiveError('The output must record the approved CUDA model and device.')
+    if weights_sha256 and artifact.get('weights_sha256') != weights_sha256:
+        raise LiveError('The output was produced with model weights that differ from the pinned digest.')
     for item, expected in zip(items, source['images'], strict=True):
         if not isinstance(item, dict) or any(item.get(k) != expected[k] for k in ('row', 'name', 'sha256')):
             raise LiveError('Output rows do not match the input manifest.')
@@ -404,16 +448,23 @@ def runner_update(db, runner, attempt_id, update):
     if update.state == 'succeeded' and attempt.started_at is None:
         raise LiveError('A successful attempt requires a recorded start.', 409)
     final = 'failed' if update.state == 'interrupted' else update.state
-    result = update.model_dump(exclude={'fence', 'artifact', 'state'})
+    result = update.model_dump(exclude={'fence', 'artifact', 'state', 'stage_seconds'})
+    stages = dict(update.stage_seconds or {})
     if final == 'succeeded':
         input_artifact = db.get(Artifact, job.spec['input_id'])
-        content = output_bytes(update.artifact, storage.store().get(input_artifact.digest), update.device)
+        checking = time.monotonic()
+        content = output_bytes(update.artifact, storage.store().get(input_artifact.digest), update.device,
+                               (job.spec.get('workload') or {}).get('model', {}).get('weights_sha256'))
+        stages['validation'] = round(time.monotonic() - checking, 6)
+        storing = time.monotonic()
         artifact = save_artifact(db, job.org_id, content, 'image-embeddings.json', 'output', job.id)
+        stages['upload'] = round(time.monotonic() - storing, 6)
         result.update(artifact_id=artifact.id, sha256=artifact.digest, model=MODEL, rows=job.spec['sample_count'])
         inference = update.artifact.get('inference_seconds')
         if type(inference) in (int, float) and 0 <= inference <= 86400:
             result['inference_seconds'] = inference
     duration = update.duration_s if update.duration_s is not None else max(0, now - (attempt.started_at or now))
+    result['stage_seconds'] = {name: stages[name] for name in STAGES if name in stages}
     result['charged_cents'] = quote(job.decision['rate_cents'], duration)
     result['charge_unit'] = 'internal compute credits'
     attempt.finished_at = now

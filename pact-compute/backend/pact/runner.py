@@ -61,6 +61,7 @@ def execute(client, claim, identity):
     folder = STATE / 'runner' / claim['attempt_id']
     folder.mkdir(parents=True, exist_ok=True)
     input_file, output_file, log_file = (folder / name for name in ('input.json', 'output.json', 'process.log'))
+    staging_began = time.monotonic()
     try:
         payload = request(client, 'GET', f'/attempts/{claim["attempt_id"]}/input',
                           headers={'Lease-Fence': claim['fence']}).content
@@ -74,6 +75,7 @@ def execute(client, claim, identity):
         if exc.response.status_code == 409:
             return {'state': 'cancelled', 'message': 'The dispatch lease is no longer executable.'}
         raise
+    staging = time.monotonic() - staging_began
     budget = min(claim['max_runtime_s'], max(0, claim['reserved_until'] - time.time() - 1))
     if budget <= 0:
         return {'state': 'expired', 'message': 'The reservation window elapsed.'}
@@ -116,11 +118,15 @@ def execute(client, claim, identity):
     samples = [(at, w) for at, w in samples if at <= began + duration]
     covered = sum(b[0] - a[0] for a, b in zip(samples, samples[1:]) if b[0] - a[0] <= 4)
     energy = sum((b[0] - a[0]) * (a[1] + b[1]) / 2 for a, b in zip(samples, samples[1:]) if b[0] - a[0] <= 4)
-    result = {'duration_s': round(duration, 3), 'device': identity['device'], 'power_samples': len(samples),
+    produced = json.loads(output_file.read_bytes()) if proc.returncode == 0 and output_file.is_file() and not action else None
+    compute = produced.get('inference_seconds') if produced else None
+    compute = compute if type(compute) in (int, float) and 0 <= compute <= duration else None
+    stages = {'staging': round(staging, 3), **({'compute': round(compute, 6), 'startup': round(max(0, duration - compute), 3)} if compute is not None else {})}
+    result = {'duration_s': round(duration, 3), 'stage_seconds': stages, 'device': identity['device'], 'power_samples': len(samples),
               'telemetry_coverage': round(min(1, covered / max(duration, .001)), 3),
               'gpu_energy_kwh': round(energy / 3_600_000, 8) if covered else None}
-    if proc.returncode == 0 and output_file.is_file() and not action:
-        return {'state': 'succeeded', **result, 'artifact': json.loads(output_file.read_bytes())}
+    if produced is not None:
+        return {'state': 'succeeded', **result, 'artifact': produced}
     return {'state': action or ('expired' if proc.returncode == 124 else 'failed'), **result,
             'message': f'GPU process exited with code {proc.returncode}.'}
 

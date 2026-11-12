@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { reasonProblem, segments, valueText } from './inbox';
+import { specRows, stageRows } from './stages';
 import { Activity, ArrowRight, CheckCircle2, ChevronRight, ClipboardCheck, Cpu, Download, FileText, FlaskConical, Layers3, Plus, Radio, ShieldCheck, UploadCloud } from 'lucide-react';
 import {
   active, api, countLabel, date, Empty, evidence, go, label, LinkButton, LoadMore, Loading, message, money, Notice, num, Page, Panel, pct, post, ReviewForm, RetryNotice, Status, useDetail, usePagedList,
@@ -383,6 +384,15 @@ export function JobView({ id, user, onChange }: { id: string; user: User; onChan
           <details><summary>Data</summary><pre>{JSON.stringify(event.details, null, 2)}</pre></details></li>)}</ol>
         <a className="button secondary" href={'/api/v1/jobs/' + id + '/evidence.json'}><Download size={16} /> Signed evidence</a>
       </Panel>
+      {(job.workload || stageRows(result?.stage_seconds).length > 0) && <Panel title="Workload specification" subtitle="Fixed when the job was submitted; it cannot change afterwards.">
+        {stageRows(result?.stage_seconds).length > 0 && <div className="stack" aria-label="Stage timing">
+          <h4>Where the time went</h4>
+          {stageRows(result?.stage_seconds).map(row => <div key={row.key} className="split" title={row.hint}>
+            <span>{row.label}<small> {row.hint}</small></span><strong>{num(row.seconds, 3)} s <small>({pct(row.share)})</small></strong></div>)}
+        </div>}
+        {job.workload && <dl className="stack">{specRows(job.workload).map(([name, value]) => <div key={name} className="split"><dt>{name}</dt><dd>{value}</dd></div>)}</dl>}
+        {job.workload && <div className="hash"><small>Specification SHA-256</small><code>{job.workload.spec_sha256}</code></div>}
+      </Panel>}
       <Panel title="Policy audit" subtitle="Reconstructed from execution evidence" action={<div className="button-row">
         <LinkButton to={'/agreements/' + job.policy_id}>Pinned policy</LinkButton><LinkButton to={'/explain/job/' + id}>Explain</LinkButton></div>}>
         <div className="stack">{job.findings.map(finding => <article className="rule-card" key={finding.id}>
