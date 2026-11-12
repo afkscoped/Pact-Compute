@@ -157,7 +157,7 @@ function Shell({ user, logout }: { user: User; logout: () => void }) {
     else if (route.startsWith('/bookings/') && id) screen = <BookingDetail key={id} id={id} />;
     else if (route === '/explain' || route.startsWith('/explain/')) screen = <ExplainConsole key={route} context={id} reference={route.split('/')[3]} />;
     else if (route === '/jobs') screen = <Queue exchange={user.role === 'consumer'} />;
-    else if (route === '/jobs/new') screen = user.role === 'consumer' ? <Exchange {...{ user, runners, policies }} /> : <NewJob policies={policies} config={config} onChange={refresh} />;
+    else if (route === '/jobs/new') screen = user.role === 'consumer' ? <Exchange {...{ user, runners, policies }} /> : <NewJob policies={policies} config={config} onChange={refresh} canRevise={['admin', 'reviewer'].includes(user.role)} />;
     else if (route.startsWith('/jobs/') && id) screen = <JobView key={id} id={id} user={user} onChange={refresh} />;
     else if (route === '/agreements') screen = <Agreements policies={policies} config={config} onChange={refresh} canReview={['admin', 'reviewer'].includes(user.role)} />;
     else if (route.startsWith('/agreements/') && id) screen = <AgreementView key={id} id={id} onChange={refresh} />;

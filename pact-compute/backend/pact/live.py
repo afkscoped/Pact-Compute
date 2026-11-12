@@ -9,10 +9,11 @@ import re
 import secrets
 import time
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Literal
 
 from PIL import Image, ImageDraw, ImageOps, UnidentifiedImageError
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from sqlalchemy import select
 
 from . import storage
@@ -248,6 +249,104 @@ def placement(db, org, spec: JobInput, policy: Policy, now, *, offer=None):
         feasible.sort(key=lambda c: (c['start'], c['quote_cents'], c['runner_id']))
     return {'policy_id': policy.id, 'deadline_at': due, 'selected': feasible[0] if feasible else None,
             'candidates': candidates, 'charge_unit': 'compute credits', 'template': TEMPLATE}
+
+
+EDITABLE = ('deadline_seconds', 'max_charge_cents', 'grid_zone')
+EDIT_LABELS = {'deadline_seconds': 'Completion deadline (seconds)', 'max_charge_cents': 'Charge cap (credit cents)', 'grid_zone': 'Grid region'}
+
+
+class Edit(BaseModel):
+    kind: Literal['deadline_seconds', 'max_charge_cents', 'grid_zone']
+    value: int | str
+
+    @model_validator(mode='after')
+    def typed(self):
+        if self.kind == 'grid_zone':
+            if not isinstance(self.value, str) or not re.fullmatch(r'[A-Za-z0-9_-]{1,16}', self.value):
+                raise ValueError('A grid region is a short code such as GB.')
+        elif isinstance(self.value, bool) or not isinstance(self.value, int) or not (
+                (60 <= self.value <= 86_400) if self.kind == 'deadline_seconds' else (0 <= self.value <= 100_000)):
+            raise ValueError('Deadline must be 60-86400 seconds and the charge cap 0-100000 credit cents.')
+        return self
+
+
+class CounterfactualInput(JobInput):
+    images: list[ImageInput] = Field(default_factory=list, max_length=0)  # counterfactuals never carry uploads
+    edits: list[Edit] = Field(default_factory=list, max_length=6)
+    suggest: bool = False
+
+
+def edited_rules(rules, edits):
+    """Copy of the rules with explicit edits applied. The stored policy is never modified."""
+    out = [dict(rule) for rule in rules]
+    for edit in edits:
+        for rule in out:
+            if rule['kind'] == edit.kind:
+                rule['value'], rule['strict'] = edit.value, False
+                break
+        else:
+            out.append({'kind': edit.kind, 'value': edit.value, 'start': None, 'end': None, 'strict': False,
+                        'rationale': 'Counterfactual edit.'})
+    return out
+
+
+def suggested_edits(rules, runners):
+    """Deterministic candidate edits: a few explicit steps per dimension, never a search over arbitrary values."""
+    limits = values(rules)
+    options = []
+    if 'deadline_seconds' in limits:
+        current = limits['deadline_seconds']
+        options += [Edit(kind='deadline_seconds', value=v) for v in dict.fromkeys(min(86_400, max(60, current * k)) for k in (2, 4)) if v > current]
+    if 'max_charge_cents' in limits:
+        current = limits['max_charge_cents']
+        options += [Edit(kind='max_charge_cents', value=v) for v in dict.fromkeys(min(100_000, max(current * k, current + 1)) for k in (2, 4)) if v > current]
+    zones = sorted({runner.zone for runner in runners if runner.zone and runner.zone != limits.get('grid_zone')})
+    if 'grid_zone' in limits:
+        options += [Edit(kind='grid_zone', value=zone) for zone in zones]
+    return options
+
+
+def candidate_summary(candidate):
+    keys = ('runner_name', 'start', 'reserved_until', 'quote_cents', 'envelope_cents', 'estimated_carbon_g', 'zone')
+    return {key: candidate[key] for key in keys} if candidate else None
+
+
+def nearest_codes(result):
+    """Typed reason codes of the candidate closest to feasible (fewest reasons), so offline or unrelated runners do not add noise."""
+    if not result['candidates']:
+        return []
+    best = min(result['candidates'], key=lambda c: (len(c['reasons']), c['runner_id'], c['start']))
+    return sorted({r['code'] for r in best['reasons']})
+
+
+def counterfactual(db, org, spec, policy, now, offer=None):
+    """Re-run the deterministic feasibility check against edited copies of the policy limits. Nothing is stored or reserved."""
+    runners = db.scalars(select(Runner).where(Runner.org_id == org).order_by(Runner.id)).all()
+    job = JobInput(**spec.model_dump(exclude={'edits', 'suggest'}))
+    base = placement(db, org, job, policy, now, offer=offer)
+    base_codes = nearest_codes(base)
+    edits = list(spec.edits)
+    suggested = []
+    if not edits and (spec.suggest or not base['selected']):
+        suggested = suggested_edits(policy.rules, runners)[:8]
+        edits = suggested
+    groups = [[edit] for edit in edits]
+    firsts = list({edit.kind: edit for edit in reversed(edits)}.values())  # one edit per dimension, the last one listed
+    if len(edits) > 1 and len(firsts) > 1:
+        groups.append(sorted(firsts, key=lambda e: e.kind))
+    results = []
+    for group in groups[:10]:
+        trial = placement(db, org, job, SimpleNamespace(id=policy.id, rules=edited_rules(policy.rules, group)), now, offer=offer)
+        codes = nearest_codes(trial)
+        results.append({'edits': [edit.model_dump() for edit in group],
+                        'label': ' and '.join(f'{EDIT_LABELS[e.kind]}: {e.value}' for e in group),
+                        'feasible': bool(trial['selected']), 'selected': candidate_summary(trial['selected']),
+                        'blocking_codes': codes, 'resolved_codes': sorted(set(base_codes) - set(codes)),
+                        'new_codes': sorted(set(codes) - set(base_codes))})
+    return {'policy_id': policy.id, 'engine': 'placement-v1 (deterministic feasibility check)',
+            'baseline': {'feasible': bool(base['selected']), 'blocking_codes': base_codes, 'basis': 'nearest candidate', 'selected': candidate_summary(base['selected'])},
+            'suggested': bool(suggested), 'options': results,
+            'notice': 'These are what-if results only. No job, reservation or policy was changed. Applying one means creating a new policy revision that a reviewer approves.'}
 
 
 def prepared_images(spec: JobInput):

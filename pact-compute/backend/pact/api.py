@@ -440,6 +440,13 @@ def preview_job(body: live.JobInput, member: User):
         return live.placement(db, member.org_id, body, policy, time.time())
 
 
+@app.post('/api/v1/jobs/preview/counterfactual')
+def preview_counterfactual(body: live.CounterfactualInput, member: User):
+    with session() as db:
+        policy = live.active_policy(db, member.org_id, body.policy_id)
+        return live.counterfactual(db, member.org_id, body, policy, time.time())
+
+
 @app.post('/api/v1/jobs', status_code=201)
 @retry_db
 def submit_job(body: live.JobInput, member: User, idempotency_key: Annotated[str, Header(min_length=8, max_length=120)]):

@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { reasonProblem, segments, valueText } from './inbox';
 import { specRows, stageRows } from './stages';
+import { applyEdits, changeLines, reasonName, verdict, type Counterfactual, type Option } from './counterfactual';
 import { Activity, ArrowRight, CheckCircle2, ChevronRight, ClipboardCheck, Cpu, Download, FileText, FlaskConical, Layers3, Plus, Radio, ShieldCheck, UploadCloud } from 'lucide-react';
 import {
   active, api, countLabel, date, Empty, evidence, go, label, LinkButton, LoadMore, Loading, message, money, Notice, num, Page, Panel, pct, post, ReviewForm, RetryNotice, Status, useDetail, usePagedList,
@@ -269,7 +270,57 @@ export async function encodeImage(file: File) {
   return { name: file.name, content: btoa(binary) };
 }
 
-export function NewJob({ policies, config, onChange }: { policies: Policy[]; config: Config; onChange: () => void }) {
+function WhatIf({ spec, policyId, canRevise, onChange, auto }: { spec: object; policyId: string; canRevise: boolean; onChange: () => void; auto: boolean }) {
+  const [result, setResult] = useState<Counterfactual | null>(null);
+  const [chosen, setChosen] = useState<Option | null>(null);
+  const [rules, setRules] = useState<Agreement['rules'] | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  async function explore() {
+    setBusy(true); setError(''); setChosen(null);
+    try { setResult(await post<Counterfactual>('/jobs/preview/counterfactual', { ...spec, suggest: true })); }
+    catch (failure) { setError(message(failure)); }
+    finally { setBusy(false); }
+  }
+  useEffect(() => { setResult(null); setChosen(null); if (auto) void explore(); }, [policyId, auto, JSON.stringify(spec)]);
+  async function choose(option: Option) {
+    setError('');
+    try { setRules((await api<Agreement>('/policies/' + policyId)).rules); setChosen(option); } catch (failure) { setError(message(failure)); }
+  }
+  async function accept() {
+    if (!chosen || !rules) return;
+    setBusy(true); setError('');
+    try {
+      const version = await post<Agreement>('/policies/' + policyId + '/revisions', { rules: applyEdits(rules, chosen.edits), resolutions: {} });
+      onChange(); go('/agreements/' + version.id);
+    } catch (failure) { setError(message(failure)); setBusy(false); }
+  }
+  return <Panel title="What would make this feasible?" subtitle="Checks other deadlines, budgets and regions with the same rules engine. Nothing changes until you accept.">
+    <div className="button-row"><button className="button secondary" type="button" disabled={busy || !policyId} onClick={() => void explore()}>{busy ? 'Checking…' : result ? 'Check again' : 'Explore changes'}</button></div>
+    {error && <Notice>{error}</Notice>}
+    {result && <>
+      <small role="status">{result.baseline.feasible ? 'The current terms already work.' : 'Today blocked by: ' + (result.baseline.blocking_codes.map(reasonName).join('; ') || 'nothing recorded')}</small>
+      {!result.options.length && <Empty title="No alternatives to test" icon={<Cpu size={22} />}>This agreement has no deadline, charge cap or region rule to vary, or no other region is enrolled.</Empty>}
+      <div className="stack">{result.options.map((option, index) => <article className="rule-card" key={index}>
+        <div className="split"><strong>{option.label}</strong><Status value={option.feasible ? 'eligible' : 'rejected'} /></div>
+        <p className="muted">{verdict(option)}.{option.selected ? ' Would use ' + option.selected.runner_name + ' for up to ' + money(option.selected.envelope_cents) + '.' : ''}</p>
+        {!option.feasible && option.blocking_codes.length > 0 && <small>Still blocked by: {option.blocking_codes.map(reasonName).join('; ')}</small>}
+        <div className="button-row"><button className="button ghost" type="button" onClick={() => void choose(option)}>Review this change</button></div>
+      </article>)}</div>
+      <small>{result.notice}</small>
+    </>}
+    {chosen && rules && <Notice type="info">
+      <strong>Proposed change to the agreement</strong>
+      <ul>{changeLines(rules, chosen.edits).map(line => <li key={line}>{line}</li>)}</ul>
+      {canRevise
+        ? <div className="button-row"><button className="button primary" disabled={busy} onClick={() => void accept()}>Accept and create a revision for review</button>
+            <button className="button ghost" onClick={() => setChosen(null)}>Cancel</button></div>
+        : <p>Only a reviewer can change an agreement. Share this change with one; nothing has been changed.</p>}
+    </Notice>}
+  </Panel>;
+}
+
+export function NewJob({ policies, config, onChange, canRevise = false }: { policies: Policy[]; config: Config; onChange: () => void; canRevise?: boolean }) {
   const approved = policies.filter(policy => policy.status === 'approved');
   const [policy, setPolicy] = useState('');
   const [title, setTitle] = useState('Nightly image embeddings');
@@ -331,6 +382,7 @@ export function NewJob({ policies, config, onChange }: { policies: Policy[]; con
         </> : <Empty title="Preview a placement" icon={<Cpu size={26} />}>Review the available device, quoted charge, time window, and any blocked clauses.</Empty>}
       </Panel>
     </div>
+    {approved.length > 0 && <WhatIf spec={{ ...spec(), images: [] }} policyId={selected} canRevise={canRevise} onChange={onChange} auto={!!preview && !preview.selected} />}
   </Page>;
 }
 

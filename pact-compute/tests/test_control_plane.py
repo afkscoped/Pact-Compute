@@ -540,6 +540,65 @@ def test_explain_answer_cites_recorded_event_and_blocks_cross_tenant(client, mon
         assert other.post('/api/v1/explain/answer', json={'topic': 'job', 'ref': 'nonexistent-ref-id'}).status_code == 404
 
 
+def test_counterfactual_preview_is_deterministic_typed_and_changes_nothing(client, monkeypatch):
+    import pact.api
+    monkeypatch.setattr(pact.api, 'limit_auth_attempts', lambda *args: None)
+    runner_ready(client)
+    from pact.db import Runner
+    with session(write=True) as db:
+        previous_zone = db.get(Runner, 'native-gpu').zone
+        db.get(Runner, 'native-gpu').zone = 'GB'
+    zone = 'GB'
+    try:
+        _counterfactual_checks(client, zone)
+    finally:
+        with session(write=True) as db:
+            db.get(Runner, 'native-gpu').zone = previous_zone
+
+
+def _counterfactual_checks(client, zone):
+    text = chr(10).join(['Jobs require at least 4 GiB VRAM.', 'Jobs must finish within 20 seconds.', 'Total charge must not exceed 4 compute credits.', 'Jobs must run in grid zone FR.'])
+    policy = approve(client, text, title='Counterfactual agreement')
+    request = {'title': 'What if', 'policy_id': policy, 'mode': 'shadow', 'sample_count': 4}
+    assert client.post('/api/v1/jobs/preview', json=request).json()['selected'] is None
+    before_jobs = len(client.get('/api/v1/jobs').json())
+    rules_before = client.get('/api/v1/policies/' + policy).json()['rules']
+    first = client.post('/api/v1/jobs/preview/counterfactual', json=request)
+    assert first.status_code == 200, first.text
+    result = first.json()
+    assert result['suggested'] and not result['baseline']['feasible']
+    assert {'time_window', 'grid_zone'} <= set(result['baseline']['blocking_codes'])
+    by_label = {item['label']: item for item in result['options']}
+    deadline_only = next(i for i in result['options'] if [e['kind'] for e in i['edits']] == ['deadline_seconds'] and i['edits'][0]['value'] == 80)
+    region_only = next(i for i in result['options'] if i['edits'] == [{'kind': 'grid_zone', 'value': zone}])
+    combined = next(i for i in result['options'] if len(i['edits']) > 1)
+    assert not deadline_only['feasible'] and 'time_window' in deadline_only['resolved_codes'] and 'grid_zone' in deadline_only['blocking_codes']
+    assert not region_only['feasible'] and 'grid_zone' in region_only['resolved_codes'] and 'time_window' in region_only['blocking_codes']
+    assert combined['feasible'] and combined['blocking_codes'] == [] and combined['selected']['runner_name']
+    assert all(code in {'time_window', 'grid_zone', 'budget', 'vram', 'runner_offline', 'gpu_count', 'gpu_model', 'rate', 'offer_paused',
+                        'offer_window', 'carbon_unknown', 'carbon_limit', 'execution_unknown'} for i in result['options'] for code in i['blocking_codes'])
+    again = client.post('/api/v1/jobs/preview/counterfactual', json=request).json()
+    strip = lambda data: [(i['label'], i['feasible'], i['blocking_codes'], i['resolved_codes']) for i in data['options']]
+    assert strip(again) == strip(result) and len(by_label) == len(result['options'])
+    explicit = client.post('/api/v1/jobs/preview/counterfactual', json={**request, 'edits': [{'kind': 'deadline_seconds', 'value': 900}]}).json()
+    assert not explicit['suggested'] and len(explicit['options']) == 1 and 'time_window' in explicit['options'][0]['resolved_codes']
+    # nothing was created or changed
+    assert len(client.get('/api/v1/jobs').json()) == before_jobs
+    detail = client.get('/api/v1/policies/' + policy).json()
+    assert detail['rules'] == rules_before and detail['status'] == 'approved'
+    for bad in ({'kind': 'min_vram_mib', 'value': 1}, {'kind': 'deadline_seconds', 'value': 5}, {'kind': 'deadline_seconds', 'value': True},
+                {'kind': 'grid_zone', 'value': 'not a zone!'}, {'kind': 'max_charge_cents', 'value': 'lots'}):
+        assert client.post('/api/v1/jobs/preview/counterfactual', json={**request, 'edits': [bad]}).status_code == 422, bad
+    uploads = [{'name': 'a.png', 'content': 'AAAA'}]
+    assert client.post('/api/v1/jobs/preview/counterfactual', json={**request, 'images': uploads}).status_code == 422
+    with TestClient(app) as other:
+        assert other.post('/api/v1/accounts', json={'username': 'cf-other', 'password': 'sample-registration-password',
+                                                    'organization': 'CF other', 'role': 'consumer'}).status_code == 201
+        assert other.post('/api/v1/jobs/preview/counterfactual', json=request).status_code == 404
+    on_request = client.post('/api/v1/jobs/preview/counterfactual', json={**request, 'policy_id': approve(client, title='Feasible agreement'), 'suggest': True})
+    assert on_request.status_code == 200 and on_request.json()['baseline']['feasible'] and on_request.json()['suggested']
+
+
 def test_invitation_accept_is_rate_limited():
     import pact.api
     from pact import ratelimit
