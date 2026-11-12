@@ -53,6 +53,14 @@ class Membership(Base):
     created_at: Mapped[float] = mapped_column(Float, default=time.time)
 
 
+class RateHit(Base):
+    __tablename__ = 'rate_hits'
+    __table_args__ = (Index('ix_rate_hits_bucket_until', 'bucket', 'until'),)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    bucket: Mapped[str] = mapped_column(String(160))
+    until: Mapped[float] = mapped_column(Float)
+
+
 class Invitation(Base):
     __tablename__ = 'invitations'
     id: Mapped[str] = mapped_column(String(32), primary_key=True, default=uid)

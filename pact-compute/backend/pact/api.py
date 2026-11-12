@@ -2,7 +2,6 @@ import json
 import secrets
 import threading
 import time
-from collections import defaultdict, deque
 from contextlib import asynccontextmanager
 from typing import Annotated, Literal
 
@@ -13,7 +12,7 @@ from pydantic import BaseModel, Field, StringConstraints
 from sqlalchemy import desc, select
 from sqlalchemy.exc import IntegrityError
 
-from . import datasets, live, market
+from . import datasets, live, market, ratelimit
 from .access import User, entity, require
 from .audit import compliance
 from .config import COOKIE_SECURE, FRONTEND, LLM_KEY, LLM_MODEL, SESSION_SECONDS, URL
@@ -96,9 +95,8 @@ class ReconcileInput(BaseModel):
     note: str = Field(min_length=12, max_length=500)
 
 
-auth_lock = threading.Lock()
-login_attempts = defaultdict(deque)
-registration_attempts = defaultdict(deque)
+login_attempts = 'login'
+registration_attempts = 'register'
 DUMMY = password_digest(secrets.token_hex(16))
 
 
@@ -117,22 +115,11 @@ def health():
     return {'status': 'ok', 'database': 'sqlite' if sqlite else 'postgresql'}
 
 
-def limit_auth_attempts(request, history, limit, detail):
-    now = time.monotonic()
+def limit_auth_attempts(request, bucket, limit, detail):
+    # Shared across API replicas (database-backed sliding window per client address).
     ip = request.client.host if request.client else 'local'
-    with auth_lock:
-        if len(history) >= 4096 and ip not in history:
-            expired = [key for key, times in history.items() if times[-1] <= now - 60]
-            for key in expired:
-                del history[key]
-            if len(history) >= 4096:
-                raise HTTPException(429, detail)
-        recent = history[ip]
-        while recent and recent[0] <= now - 60:
-            recent.popleft()
-        if len(recent) >= limit:
-            raise HTTPException(429, detail)
-        recent.append(now)
+    if ratelimit.hit(f'{bucket}:{ip}', limit, 60) is None:
+        raise HTTPException(429, detail)
 
 
 def create_session(db, member):

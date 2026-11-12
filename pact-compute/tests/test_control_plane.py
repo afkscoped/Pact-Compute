@@ -174,12 +174,32 @@ def test_invitations_membership_and_workspace_switch(monkeypatch):
     assert outsider.post('/api/v1/session/workspace', json={'org_id': next(i for i in spaces if not i['home'])['org_id']}).status_code == 403
 
 
+def test_shared_rate_limit_primitives():
+    from pact import ratelimit
+    ratelimit.reset('unit:')
+    assert [ratelimit.hit('unit:a', 2, 60, now=100.0) is not None for _ in range(3)] == [True, True, False]
+    assert ratelimit.hit('unit:a', 2, 60, now=161.0) is not None  # earlier hits expired
+    with ThreadPoolExecutor(max_workers=8) as pool:  # atomic under concurrency: exactly `limit` winners
+        winners = [r is not None for r in pool.map(lambda _: ratelimit.hit('unit:race', 3, 600), range(8))]
+    assert sum(winners) == 3
+    row = ratelimit.hit('unit:flight', 1, 600)
+    assert row and ratelimit.hit('unit:flight', 1, 600) is None
+    ratelimit.release(row)
+    assert ratelimit.hit('unit:flight', 1, 600) is not None
+    assert not ratelimit.blocked('unit:cool')
+    ratelimit.mark('unit:cool', 600)
+    assert ratelimit.blocked('unit:cool')
+    ratelimit.reset('unit:')
+    assert not ratelimit.blocked('unit:cool')
+
+
 def test_invitation_accept_is_rate_limited():
     import pact.api
-    pact.api.registration_attempts.clear()
+    from pact import ratelimit
+    ratelimit.reset('register')
     with TestClient(app) as anonymous:
         codes = [anonymous.post('/api/v1/invitations/accept', json={'code': 'y' * 30, 'username': 'rl-user', 'password': 'sample-registration-password'}).status_code for _ in range(8)]
-    pact.api.registration_attempts.clear()
+    ratelimit.reset('register')
     assert codes[:6] == [404] * 6 and codes[-1] == 429
 
 
@@ -392,7 +412,8 @@ def test_research_holdouts_and_groq_fallback(monkeypatch):
     calls = []
     monkeypatch.setattr(model_gateway, 'LLM_KEY', 'test-key')
     monkeypatch.setattr(model_gateway, 'LLM_MODEL', 'test-model')
-    monkeypatch.setattr(model_gateway, '_retry_at', 0)
+    from pact import ratelimit
+    ratelimit.reset('llm')
     monkeypatch.setattr(model_gateway.httpx, 'post', lambda *a, **kw: (calls.append(kw), Throttled())[1])
     rules, issues, method = suggest(EXAMPLE)
     assert len(rules) == 6 and not issues
