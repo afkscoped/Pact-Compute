@@ -151,6 +151,6 @@ npm.cmd run test:e2e
 Pop-Location
 ~~~
 
-The browser tests expect the console and GPU runner on localhost, the local market accounts, and the generated publication study. They verify a live job and its output hash, a rejected placement, a five-arm replay, producer and consumer isolation, a real last-slot race, shared receipts and mobile layout. They save evidence to `.local/verified/`. The API schema is available in [OpenAPI](http://127.0.0.1:8765/api/docs).
+The browser tests expect the console and GPU runner on localhost, the local market accounts, and the generated publication study. They verify a live job and its output hash, a rejected placement, a five-arm replay, producer and consumer isolation, a real last-slot race, shared receipts and mobile layout. They save evidence to `.local/verified/`. The API schema is available at `/api/docs` only when `PACT_API_DOCS=1` is set (off by default because it lists every route).
 
 This is a private installation with an enrolled runner. A customer pilot needs authorized capacity, a real job queue, a verified grid zone, TLS, secret storage, backups, retention settings, and an operator rollback plan. Hosted deployment, OIDC, Kubernetes, paid provider billing, and marketplace settlement remain follow-on integrations. The pricing auditor flags observable patterns for review. Commercial outcomes need a customer pilot.

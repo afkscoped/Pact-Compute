@@ -1,4 +1,5 @@
 import json
+import os
 import secrets
 import threading
 import time
@@ -35,7 +36,10 @@ async def startup(_app):
     yield
 
 
-app = FastAPI(title='PACT-Compute', version='0.1.0', lifespan=startup, docs_url='/api/docs', openapi_url='/api/openapi.json')
+# Interactive docs and the schema list every route, including administrative ones, so they are opt-in (PACT_API_DOCS=1).
+DOCS = os.getenv('PACT_API_DOCS') == '1'
+app = FastAPI(title='PACT-Compute', version='0.1.0', lifespan=startup, docs_url='/api/docs' if DOCS else None,
+              redoc_url=None, openapi_url='/api/openapi.json' if DOCS else None)
 
 
 @app.exception_handler(live.LiveError)
