@@ -150,3 +150,16 @@ Items: 1 membership/onboarding, 2 reliability, 3 artifact storage. Items 4-5 and
 - Reproduced result (20 seeds, 90 jobs, no policy rules): all arms tie on admitted/completed/on-time (0.996/0.932/0.932), utilization (0.149) and overruns. `easy_backfill` equals `fcfs` and `edf_aging` equals `edf` on every metric, so aging and backfilling change nothing at this load.
 - Versus `carbon_aware`, both baselines are better on wait p95 (0 vs 46.5 min), bounded slowdown (1.0 vs 1.11) and cost per completed (about -0.03 credit), but worse on carbon (about +200 g total, +2.4 g per completed job). Versus `policy_only` they are better on wait and slowdown, worse on cost (+0.008) and carbon (+33 to +41 g). The CP-SAT arms trade extra wait for lower carbon; the simple baselines do not lose on service here.
 - Caveats: the replay is lightly loaded, so it does not stress any scheduler. Fragmentation and fairness are not reported. Calibrated-vs-median predictions with backfilling are not covered. No policy rules are configured.
+
+## Run 4 item 5 status: DONE (support benchmark extended from 37 to 50 cases)
+- 13 cases added in `support_bench.py` from the plan's scenario table (new roles per scenario: producer, operator, admin; one more injection case with planted canary text). All 50 pass; the six checks and the canary check are unchanged. `test_support_benchmark.py` now requires at least 50 cases.
+- **No operator has reviewed the expected answers.** The developer wrote them from the situation table in `support.py`, so a pass means the rules agree with the developer's reading, not with an operator's. The plan target is 50 operator-reviewed cases; the count is met, the review is not (still under Needs human).
+- Several cases overlap their neighbours (same situation, different role); they test role permissions more than new situations. Real pilot incidents should replace them.
+
+## Suggested next batch (ranked by value)
+1. Needs-human items that block a real pilot: confirm migrations 0005-0007 applied on Render, set S3 settings, add a reviewer account, run a GPU runner against the live URL (also exercises the stage-timing code), then a browser click-through of the reviewer inbox, what-if panel and incident queue.
+2. Operator review of the 50 support-benchmark expected answers; replace overlapping cases with real incidents.
+3. Restore drill on the deploy database and a written runbook entry.
+4. Decide on the five unchanged authorization observations in Run 4 item 1 (each loosens or changes behaviour, so it needs approval): restrict invitation revoke, trim `/api/health` and `/config` for anonymous callers, tighten the market notice stream, check policy before offer in quote creation.
+5. Scheduler research: re-run baselines at a heavier, separately disclosed load so backfilling and aging can differ; add fragmentation and fairness metrics; test calibrated vs median predictions with backfilling.
+6. Keyboard and screen-reader accessibility pass on the new screens.

@@ -3,7 +3,7 @@ from pact import support, support_bench
 
 def test_benchmark_has_enough_cases_and_covers_the_plan_scenarios():
     report = support_bench.run()
-    assert report['cases'] >= 30
+    assert report['cases'] >= 50
     scenarios = set(report['by_scenario'])
     required = {'Two buyers confirm the final slot', 'Client retries after a timeout', 'Runner disconnects during a job',
                 'Old runner reconnects after recovery', 'Producer pauses a listing', 'Job exceeds prediction',
