@@ -279,3 +279,7 @@ progress { width: 100%; height: 11px; }
 .workspace-switch label { display: grid; gap: 5px; font-size: 12px; color: var(--muted, #9fb3a6); }
 .workspace-switch select { width: 100%; }
 .workspace-switch small { color: #f0a0a0; }
+
+.skip-link { position: fixed; left: 12px; top: -60px; z-index: 100; padding: 9px 14px; border-radius: 8px; background: #b8ffd2; color: #07140d; font-weight: 650; border: 0; cursor: pointer; }
+.skip-link:focus { top: 12px; }
+main:focus { outline: none; }

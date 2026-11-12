@@ -106,8 +106,13 @@ export function Notice({ children, type = 'error' }: { children: ReactNode; type
   return <div role={type === 'error' ? 'alert' : 'status'} className={'notice ' + type}><Icon size={17} /><div>{children}</div></div>;
 }
 
-export function Loading() {
-  return <div className="empty"><LoaderCircle className="spin" size={22} /> Loading workspace</div>;
+export function Loading({ label = 'Loading workspace' }: { label?: string }) {
+  return <div className="empty" role="status" aria-live="polite"><LoaderCircle className="spin" size={22} aria-hidden="true" /> {label}…</div>;
+}
+
+export function RetryNotice({ children, onRetry }: { children: ReactNode; onRetry: () => void }) {
+  return <div role="alert" className="notice error"><CircleAlert size={17} aria-hidden="true" /><div>{children}
+    <div className="button-row"><button className="button secondary" type="button" onClick={onRetry}>Try again</button></div></div></div>;
 }
 
 export function Empty({ icon, title, children, action }: { icon?: ReactNode; title: string; children?: ReactNode; action?: ReactNode }) {

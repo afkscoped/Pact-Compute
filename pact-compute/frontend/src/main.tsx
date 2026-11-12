@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Activity, ArrowRight, BookOpen, CalendarCheck, Cpu, Database, FileCheck2, FlaskConical, LayoutDashboard, ListOrdered, LogOut, Menu, ShieldCheck, Store, Users, X } from 'lucide-react';
 import { AgreementView, Agreements, Capacity, JobView, NewJob, Overview, Queue } from './operations';
@@ -114,13 +114,14 @@ function Shell({ user, logout }: { user: User; logout: () => void }) {
   const [data, setData] = useState<WorkspaceData | null>(null);
   const [error, setError] = useState('');
   const [refreshAt, requestRefresh] = useState(0);
+  const mainRef = useRef<HTMLElement>(null);
   const participant = user.role === 'producer' || user.role === 'consumer';
   const links = participant ? nav.filter(item => (user.role === 'producer'
     ? ['/market', '/bookings', '/capacity', '/team', '/explain']
     : ['/market', '/bookings', '/jobs', '/agreements', '/team', '/explain']).includes(item.path)) : nav;
   const refresh = () => requestRefresh(value => value + 1);
   useEffect(() => {
-    const onHash = () => { setRoute(location.hash.slice(1) || '/'); setMobile(false); window.scrollTo(0, 0); };
+    const onHash = () => { setRoute(location.hash.slice(1) || '/'); setMobile(false); window.scrollTo(0, 0); mainRef.current?.focus({ preventScroll: true }); };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
@@ -168,6 +169,7 @@ function Shell({ user, logout }: { user: User; logout: () => void }) {
   }
   const online = data?.runners.some(runner => runner.online);
   return <div className="shell">
+    <button type="button" className="skip-link" onClick={() => mainRef.current?.focus()}>Skip to main content</button>
     {mobile && <button className="scrim" aria-label="Close navigation" onClick={() => setMobile(false)} />}
     <aside className={'sidebar ' + (mobile ? 'is-open' : '')}>
       <div className="sidebar-head"><Brand /><button className="icon-button mobile-only" onClick={() => setMobile(false)} aria-label="Close navigation"><X size={20} /></button></div>
@@ -186,7 +188,7 @@ function Shell({ user, logout }: { user: User; logout: () => void }) {
       <header className="topbar"><div><button className="icon-button mobile-only" aria-label="Open navigation" onClick={() => setMobile(true)}><Menu size={21} /></button><span>Workspace</span><span className="slash">/</span><strong>{current.title}</strong></div>
         <div className="topbar-right">{user.role !== 'consumer' && <span className="connection"><i className={online ? 'connected' : ''} />{online ? 'GPU connected' : 'GPU offline'}</span>}
           <span className="db-label">{data?.config.database ?? 'Connecting'}</span></div></header>
-      <main className="main" id="main-content">{error && <Notice>{error}</Notice>}{screen ?? (!error && <Loading />)}</main>
+      <main className="main" id="main-content" tabIndex={-1} ref={mainRef}>{error && <Notice>{error}</Notice>}{screen ?? (!error && <Loading />)}</main>
     </div>
   </div>;
 }

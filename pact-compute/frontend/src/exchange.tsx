@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { ArrowRight, CheckCircle2, Cpu, Download, GitBranch, Radio, RefreshCw } from 'lucide-react';
-import { api, date, Empty, go, label, LinkButton, Loading, message, money, Notice, num, Page, Panel, post, Status,
+import { api, date, Empty, go, label, LinkButton, Loading, message, money, Notice, num, Page, Panel, post, RetryNotice, Status,
   type Candidate, type Policy, type Runner, type User } from './shared';
 import { encodeImage } from './operations';
 
@@ -85,6 +85,12 @@ export function Exchange({ user, runners, policies }: { user: User; runners: Run
   const expires = quote?.expires_at ? Math.max(0, Math.ceil(quote.expires_at - now)) : 0;
   const remaining = files.length || count;
   useEffect(() => {
+    if (!selection) return;
+    const close = (event: KeyboardEvent) => { if (event.key === 'Escape') { select(''); setQuote(null); } };
+    window.addEventListener('keydown', close);
+    return () => window.removeEventListener('keydown', close);
+  }, [selection]);
+  useEffect(() => {
     if (!quote?.expires_at) return;
     const timer = window.setInterval(() => setNow(Date.now() / 1000), 1000);
     return () => window.clearInterval(timer);
@@ -137,7 +143,7 @@ export function Exchange({ user, runners, policies }: { user: User; runners: Run
   return <Page title={user.role === 'producer' ? 'Producer exchange' : 'GPU exchange'}
     subtitle={user.role === 'producer' ? 'Publish verified capacity and manage offer availability.' : 'Compare capacity, review the terms, and reserve a GPU for an approved workload.'}
     action={<div className="button-row"><LiveLabel connected={connected} />{producer && <button className="button primary" onClick={() => setOffering(!offering)}>{offering ? 'Close publisher' : 'Publish capacity'}</button>}</div>}>
-    {error && <Notice>{error}</Notice>}{problem && <Notice>{problem}</Notice>}
+    {error && <RetryNotice onRetry={refresh}>{error}</RetryNotice>}{problem && <Notice>{problem}</Notice>}
     {offering && <Panel title="Publish capacity" subtitle="A producer can pause future quotes from the listing. Existing reservations keep their terms.">
       <form className="stack" onSubmit={publish}>
         <div className="form-grid">
@@ -163,7 +169,7 @@ export function Exchange({ user, runners, policies }: { user: User; runners: Run
               <span>Hourly rate <b>{money(item.rate_cents)}</b></span><span>First available <b>{date(item.available_at)}</b></span></div>
             <small>Window ends {date(item.ends_at)} · Verified {date(item.fresh_at)}</small>
             <div className="button-row">
-              {buyer && <button className="button secondary" disabled={!item.available || !!busy} onClick={() => { select(item.id); setQuote(null); setProblem(''); }}>
+              {buyer && <button className="button secondary" aria-label={'Request quote for ' + item.title} disabled={!item.available || !!busy} onClick={() => { select(item.id); setQuote(null); setProblem(''); }}>
                 Request quote <ArrowRight size={15} /></button>}
               {producer && item.own && <button className="button ghost" disabled={!!busy} onClick={() => toggle(item)}>
                 {busy === item.id ? 'Saving…' : item.status === 'paused' ? 'Resume offer' : 'Pause offer'}</button>}
@@ -203,9 +209,9 @@ export function Exchange({ user, runners, policies }: { user: User; runners: Run
 }
 
 export function Bookings() {
-  const { data, error, connected } = useExchange<Booking[]>('/market/bookings');
+  const { data, error, connected, refresh } = useExchange<Booking[]>('/market/bookings');
   return <Page title="Bookings" subtitle="Shared reservations and usage from your side of the exchange." action={<LiveLabel connected={connected} />}>
-    {error && <Notice>{error}</Notice>}
+    {error && <RetryNotice onRetry={refresh}>{error}</RetryNotice>}
     <Panel title="Booking history">{!data ? <Loading /> : !data.length ? <Empty title="No bookings yet">A confirmed quote creates a booking for both parties.</Empty>
       : <div className="table-wrap"><table><thead><tr><th>Workload</th><th>Offer</th><th>Role</th><th>Status</th><th>Charge</th></tr></thead><tbody>
         {data.map(item => <tr key={item.id}><td><a className="table-link" href={'#/bookings/' + item.id}>{item.title}</a></td><td>{item.offer}</td>
@@ -233,11 +239,11 @@ export function ProtocolTimeline({ protocol }: { protocol: Protocol }) {
 }
 
 export function BookingDetail({ id }: { id: string }) {
-  const { data, error, connected } = useExchange<Booking>('/market/bookings/' + id);
-  if (error && !data) return <Notice>{error}</Notice>;
-  if (!data) return <Loading />;
+  const { data, error, connected, refresh } = useExchange<Booking>('/market/bookings/' + id);
+  if (error && !data) return <RetryNotice onRetry={refresh}>{error}</RetryNotice>;
+  if (!data) return <Loading label="Loading booking" />;
   return <Page title={data.title} subtitle={'Booking ' + data.id.slice(0, 10) + ' · ' + data.offer} action={<LiveLabel connected={connected} />}>
-    {error && <Notice>{error}</Notice>}
+    {error && <RetryNotice onRetry={refresh}>{error}</RetryNotice>}
     <div className="content-grid">
       <Panel title="Shared usage receipt" subtitle="Internal compute credits" action={<Status value={data.status} />}>
         <div className="form-facts"><span>Accepted <b>{date(data.accepted_at)}</b></span><span>Deadline <b>{date(data.deadline_at)}</b></span>

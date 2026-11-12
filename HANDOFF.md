@@ -81,3 +81,8 @@ Items: 1 membership/onboarding, 2 reliability, 3 artifact storage. Items 4-5 and
 - Tests: 17/17 pass on SQLite (new: local/S3/integrity/env selection, download corruption/missing, verify command).
 - Needs human: (1) To keep live artifacts across Render restarts, create a free S3-compatible bucket (provider choice and any card requirement are yours; verify current free-tier terms), then in the Render dashboard add PACT_ARTIFACT_BACKEND=s3, PACT_S3_BUCKET, PACT_S3_ENDPOINT_URL (if not AWS), AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and redeploy. (2) Run one restore drill (BACKUP_RESTORE.md) and record the result. (3) Confirm invitation flow in a browser on the live site (item 1 note). (4) GPU runner, reviewer account on live DB and GROQ_API_KEY on Render remain open from before.
 - ITEMS 1-3 COMPLETE. Per the user's amendment, stopped here; items 4-5 and the backlog are NOT started.
+
+## Run scope 2 (user): items 4 and 5, then stop and wait.
+## Item 4 status (frontend polish) - in progress
+- 4a DONE: skip-to-content button, focus moves to main on route change, Loading is an aria-live status with labels, RetryNotice ("Try again") on Exchange/Bookings/BookingDetail load errors, Escape closes the quote panel, offer buttons have descriptive aria-labels. Typecheck+build OK, backend 17/17. No automated browser/a11y test run (Playwright e2e needs demo accounts + GPU runner) - manual keyboard pass is a Needs-human item.
+- 4b consumer home, 4c offer comparison + booking detail: next.
