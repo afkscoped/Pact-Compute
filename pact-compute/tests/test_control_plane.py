@@ -283,6 +283,99 @@ def test_outbox_horizon_replay_and_tenant_scope():
     assert kinds('outbox-a', base + 8) == []
 
 
+def test_artifact_stores_local_s3_and_integrity(tmp_path, monkeypatch):
+    import hashlib
+
+    import boto3
+    from moto import mock_aws
+    from pact import storage
+
+    data = b'{"embedding": [1, 0, 0]}'
+    digest = hashlib.sha256(data).hexdigest()
+    local = storage.LocalStore(tmp_path / 'artifacts')
+    local.put(digest, data)
+    local.put(digest, data)  # idempotent
+    assert local.exists(digest) and local.get(digest) == data
+    with pytest.raises(storage.StorageError):
+        local.put(digest, b'tampered')  # bytes must hash to the claimed digest
+    with pytest.raises(storage.StorageError):
+        local.get('../../etc/passwd')  # digest is validated, no path traversal
+    (tmp_path / 'artifacts' / digest).write_bytes(b'bit rot')
+    with pytest.raises(storage.StorageError, match='does not match'):
+        local.get(digest)
+    assert not local.exists('0' * 64)
+    with pytest.raises(storage.MissingArtifact):
+        local.get('0' * 64)
+
+    with mock_aws():
+        client = boto3.client('s3', region_name='us-east-1')
+        client.create_bucket(Bucket='pact-test')
+        remote = storage.S3Store('pact-test', 'artifacts', client=client)
+        assert not remote.exists(digest)
+        with pytest.raises(storage.MissingArtifact):
+            remote.get(digest)
+        remote.put(digest, data)
+        remote.put(digest, data)
+        assert remote.exists(digest) and remote.get(digest) == data
+        assert client.head_object(Bucket='pact-test', Key='artifacts/' + digest)['Metadata']['sha256'] == digest
+        client.put_object(Bucket='pact-test', Key='artifacts/' + digest, Body=b'corrupted in the bucket')
+        with pytest.raises(storage.StorageError, match='does not match'):
+            remote.get(digest)
+
+        # Environment selection
+        monkeypatch.setenv('PACT_ARTIFACT_BACKEND', 's3')
+        monkeypatch.setenv('PACT_S3_BUCKET', 'pact-test')
+        monkeypatch.setenv('AWS_DEFAULT_REGION', 'us-east-1')
+        built = storage.build_store()
+        assert built.name == 's3' and built.prefix == 'artifacts/'
+    monkeypatch.delenv('PACT_S3_BUCKET')
+    with pytest.raises(storage.StorageError, match='PACT_S3_BUCKET'):
+        storage.build_store()
+    monkeypatch.setenv('PACT_ARTIFACT_BACKEND', 'floppy')
+    with pytest.raises(storage.StorageError):
+        storage.build_store()
+    monkeypatch.setenv('PACT_ARTIFACT_BACKEND', 'local')
+    assert storage.build_store().name == 'local'
+
+
+def test_artifact_download_integrity_and_verify_command(client, capsys):
+    from pact import storage
+    from pact.cli import main
+    import sys
+
+    from pact.db import save_artifact
+    from pact.security import ORG_ID
+    with session(write=True) as db:
+        stored = save_artifact(db, ORG_ID, b'{"integrity": "check"}', 'integrity.json', 'output')
+        artifact_id, digest = stored.id, stored.digest
+    good = client.get('/api/v1/artifacts/' + artifact_id)
+    assert good.status_code == 200 and good.headers['x-content-sha256'] == digest
+    path = storage.store().path(digest)
+    original = path.read_bytes()
+    path.write_bytes(b'tampered on disk')
+    try:
+        assert client.get('/api/v1/artifacts/' + artifact_id).status_code == 502
+        monkey_argv = sys.argv
+        sys.argv = ['pact', 'artifacts-verify']
+        try:
+            with pytest.raises(SystemExit) as failed:
+                main()
+        finally:
+            sys.argv = monkey_argv
+        assert failed.value.code == 1 and 'corrupt: 1' in capsys.readouterr().out
+        path.unlink()
+        assert client.get('/api/v1/artifacts/' + artifact_id).status_code == 410
+    finally:
+        path.write_bytes(original)
+    sys.argv = ['pact', 'artifacts-verify']
+    try:
+        with pytest.raises(SystemExit) as passed:
+            main()
+    finally:
+        sys.argv = monkey_argv
+    assert passed.value.code == 0 and 'corrupt: 0' in capsys.readouterr().out
+
+
 def test_invitation_accept_is_rate_limited():
     import pact.api
     from pact import ratelimit

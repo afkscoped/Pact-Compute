@@ -11,6 +11,7 @@ from .benchmark import evaluate
 from .config import STATE
 from .datasets import import_sources, write_atomic
 from .db import Base, Member, Organization, Runner, engine, session, sha, sqlite
+from .storage import MissingArtifact as storage_missing
 from .security import ORG_ID, bootstrap, password_digest, sign
 
 
@@ -21,6 +22,7 @@ def main():
     sub.add_parser('import')
     sub.add_parser('benchmark')
     sub.add_parser('market-demo')
+    sub.add_parser('artifacts-verify')
     study = sub.add_parser('publication-study')
     study.add_argument('--seeds', type=int, default=20)
     study.add_argument('--jobs', type=int, default=90)
@@ -57,6 +59,21 @@ def main():
 
         run(STATE / 'evaluations', seeds=args.seeds, jobs=args.jobs, progress=lambda line: print(line, flush=True))
         print('Publication metrics and evidence saved under .local/evaluations.')
+    elif args.command == 'artifacts-verify':
+        from .db import Artifact
+        from .storage import StorageError, store
+        checked = missing = corrupt = 0
+        with session() as db:
+            for digest in dict.fromkeys(db.scalars(select(Artifact.digest))):
+                checked += 1
+                try:
+                    store().get(digest)
+                except storage_missing as error:
+                    missing += 1
+                except StorageError:
+                    corrupt += 1
+        print(f'Artifacts checked: {checked}, missing: {missing}, corrupt: {corrupt} (backend: {store().name}).')
+        parser.exit(1 if missing or corrupt else 0)
     elif args.command == 'verify':
         data = json.loads(args.evidence.read_bytes())
         if not hmac.compare_digest(sign(data['manifest']), data['hmac_sha256']):

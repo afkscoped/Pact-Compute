@@ -1,2 +1,4 @@
 -r requirements.txt
 pytest>=8,<10
+boto3>=1.35,<2
+moto[s3]>=5,<6

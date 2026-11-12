@@ -13,8 +13,9 @@ from PIL import Image, ImageDraw, ImageOps, UnidentifiedImageError
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 
+from . import storage
 from .carbon import estimate, forecast_snapshot, power_bound
-from .db import Artifact, Attempt, Job, Organization, Policy, Runner, artifact_path, record, save_artifact, scoped, sha
+from .db import Artifact, Attempt, Job, Organization, Policy, Runner, record, save_artifact, scoped, sha
 from .policy import deadline, exceeds, values
 
 ACTIVE = ('reserved', 'dispatched', 'running', 'execution_unknown')
@@ -406,7 +407,7 @@ def runner_update(db, runner, attempt_id, update):
     result = update.model_dump(exclude={'fence', 'artifact', 'state'})
     if final == 'succeeded':
         input_artifact = db.get(Artifact, job.spec['input_id'])
-        content = output_bytes(update.artifact, artifact_path(input_artifact.digest).read_bytes(), update.device)
+        content = output_bytes(update.artifact, storage.store().get(input_artifact.digest), update.device)
         artifact = save_artifact(db, job.org_id, content, 'image-embeddings.json', 'output', job.id)
         result.update(artifact_id=artifact.id, sha256=artifact.digest, model=MODEL, rows=job.spec['sample_count'])
         inference = update.artifact.get('inference_seconds')

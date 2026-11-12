@@ -26,6 +26,7 @@ Alternative for a faculty demo that needs persistent files and the GPU on the sa
 | `PACT_ADMIN_PASSWORD` | Only used if the `admin` user does not exist yet in the database; if it exists, the existing password still applies |
 | `GROQ_API_KEY` | Secret, optional |
 | `PACT_RUN_MIGRATIONS` / `PACT_RUN_IMPORT` / `PACT_RUN_WORKER` | Defaults `1`; set `PACT_RUN_MIGRATIONS=0` on any extra replica. Run a single replica: rate limits and Groq budget are process-local |
+| `PACT_ARTIFACT_BACKEND` and `PACT_S3_*`, `AWS_*` | Optional S3-compatible artifact storage so artifacts survive restarts; see BACKUP_RESTORE.md. Values are secrets: enter them only in the dashboard |
 | `PORT` | Set by Render automatically |
 
 ## Decisions made
@@ -45,7 +46,7 @@ Manual steps (need Sasha's accounts — Claude will give click-by-click instruct
 6. Smoke test: sign in, publish capacity, quote/confirm as a consumer with a reviewer-approved agreement (reviewer accounts still need `pact.cli member ... reviewer --org WORKSPACE_ID` run against that database).
 
 ## Known deployment gaps
-- Ephemeral artifacts on free tier (above). Backups of the DB alone are incomplete.
+- Ephemeral artifacts on free tier (above) unless an S3-compatible bucket is configured (implemented; see BACKUP_RESTORE.md). Backups of the DB alone are incomplete.
 - No monitoring/alerting, no restore drill, single replica only.
 - `pact.cli member` for reviewers must be run with the deployment's `PACT_DATABASE_URL` (a local shell with that variable set, or Render Shell if available on the plan).
 - Image build untested locally (no Docker). Python 3.12 in the image vs 3.11 tested locally; tests ran on 3.11.

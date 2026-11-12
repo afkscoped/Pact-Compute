@@ -11,8 +11,8 @@ FROM python:3.12-slim
 ENV PYTHONUNBUFFERED=1 PYTHONPATH=/app/pact-compute/backend PACT_STATE_DIR=/data \
     PACT_SOURCE_DIR=/app/PACT-Compute-data-preflight
 WORKDIR /app/pact-compute
-COPY pact-compute/requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+COPY pact-compute/requirements.txt pact-compute/requirements-s3.txt ./
+RUN pip install --no-cache-dir -r requirements.txt -r requirements-s3.txt
 COPY pact-compute/backend ./backend
 COPY pact-compute/alembic.ini ./
 COPY --from=web /web/dist ./frontend/dist

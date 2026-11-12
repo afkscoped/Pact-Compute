@@ -274,17 +274,14 @@ def sha(data: bytes | str) -> str:
 
 
 def artifact_path(digest: str) -> Path:
+    # Local backend only; prefer pact.storage.store() which also supports S3 and verifies hashes.
     return STATE / 'artifacts' / digest
 
 
 def save_artifact(db: Session, org: str, data: bytes, filename: str, kind: str, job_id: str | None = None):
+    from .storage import store
     digest = sha(data)
-    target = artifact_path(digest)
-    target.parent.mkdir(exist_ok=True)
-    if not target.exists():
-        staging = target.with_suffix('.' + uid() + '.part')
-        staging.write_bytes(data)
-        staging.replace(target)
+    store().put(digest, data)  # content-addressed and idempotent; local disk by default, S3-compatible optional
     artifact = Artifact(org_id=org, filename=filename, kind=kind, digest=digest, size=len(data), job_id=job_id)
     db.add(artifact)
     db.flush()

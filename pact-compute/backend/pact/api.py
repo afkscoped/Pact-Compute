@@ -12,13 +12,13 @@ from pydantic import BaseModel, Field, StringConstraints
 from sqlalchemy import desc, select
 from sqlalchemy.exc import IntegrityError
 
-from . import datasets, live, market, outbox, ratelimit
+from . import datasets, live, market, outbox, ratelimit, storage
 from .resilience import retry_db
 from .access import User, entity, require
 from .audit import compliance
 from .config import COOKIE_SECURE, FRONTEND, LLM_KEY, LLM_MODEL, SESSION_SECONDS, URL
 from .db import Artifact, Attempt, Base, Event, FindingReview, Job, Login, MarketBooking, MarketQuote, Member, Organization, Policy, ResearchRun, Runner
-from .db import artifact_path, engine, record, scoped, session, sha, sqlite, uid
+from .db import engine, record, scoped, session, sha, sqlite, uid
 from .policy import EXAMPLE, PolicyText, Revision, compile_local, parse_local, verify
 from .research import Scenario
 from .security import COOKIE, bootstrap, password_digest, password_ok, sign
@@ -438,6 +438,15 @@ def claim(runner_id: str, authorization: Auth = None):
         return live.claim(db, live.runner_identity(db, runner_id, authorization))
 
 
+def stored_bytes(artifact, media_type, headers=None):
+    try:
+        return Response(storage.store().get(artifact.digest), media_type=media_type, headers=headers)
+    except storage.MissingArtifact as error:
+        raise HTTPException(410, 'Artifact bytes are unavailable.') from error
+    except storage.StorageError as error:
+        raise HTTPException(502, str(error)) from error
+
+
 @app.get('/api/v1/runners/{runner_id}/attempts/{attempt_id}/input')
 def input_manifest(runner_id: str, attempt_id: str, lease_fence: Annotated[str, Header()], authorization: Auth = None):
     with session() as db:
@@ -446,7 +455,7 @@ def input_manifest(runner_id: str, attempt_id: str, lease_fence: Annotated[str, 
         if attempt.status not in ('dispatched', 'running') or attempt.lease_until < time.time():
             raise HTTPException(409, 'The execution lease is no longer valid.')
         artifact = db.get(Artifact, job.spec['input_id'])
-        return FileResponse(artifact_path(artifact.digest), media_type='application/json')
+        return stored_bytes(artifact, media_type='application/json')
 
 
 @app.post('/api/v1/runners/{runner_id}/attempts/{attempt_id}/events')
@@ -460,10 +469,8 @@ def attempt_events(runner_id: str, attempt_id: str, body: live.RunnerUpdate, aut
 def artifact(artifact_id: str, member: User):
     with session() as db:
         file = entity(db, Artifact, member, artifact_id)
-        if not artifact_path(file.digest).is_file():
-            raise HTTPException(410, 'Artifact bytes are unavailable.')
-        return FileResponse(artifact_path(file.digest), filename=file.filename, media_type='application/json',
-                            headers={'X-Content-SHA256': file.digest})
+        return stored_bytes(file, media_type='application/json', headers={
+            'X-Content-SHA256': file.digest, 'Content-Disposition': f'attachment; filename="{file.filename}"'})
 
 
 @app.get('/api/v1/datasets')
