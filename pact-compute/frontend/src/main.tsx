@@ -118,16 +118,44 @@ function Shell({ user, logout }: { user: User; logout: () => void }) {
   const [error, setError] = useState('');
   const [refreshAt, requestRefresh] = useState(0);
   const mainRef = useRef<HTMLElement>(null);
+  const navigationRef = useRef<HTMLElement>(null);
+  const navigationButtonRef = useRef<HTMLButtonElement>(null);
+  const returnToNavigation = useRef(true);
   const participant = user.role === 'producer' || user.role === 'consumer';
   const links = participant ? nav.filter(item => (user.role === 'producer'
     ? ['/market', '/bookings', '/capacity', '/team', '/explain']
     : ['/', '/market', '/bookings', '/jobs', '/agreements', '/team', '/explain']).includes(item.path)).map(item => item.path === '/' && user.role === 'consumer' ? { ...item, title: 'Home' } : item) : nav.filter(item => item.path !== '/incidents' || ['admin', 'operator'].includes(user.role));
   const refresh = () => requestRefresh(value => value + 1);
   useEffect(() => {
-    const onHash = () => { setRoute(location.hash.slice(1) || '/'); setMobile(false); window.scrollTo(0, 0); mainRef.current?.focus({ preventScroll: true }); };
+    const onHash = () => { returnToNavigation.current = false; setRoute(location.hash.slice(1) || '/'); setMobile(false); window.scrollTo(0, 0); mainRef.current?.focus({ preventScroll: true }); };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
+  useEffect(() => {
+    if (!mobile) return;
+    const panel = navigationRef.current;
+    panel?.querySelector<HTMLButtonElement>('button[aria-label="Close navigation"]')?.focus();
+    const keydown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { event.preventDefault(); setMobile(false); return; }
+      if (event.key !== 'Tab' || !panel) return;
+      const targets = Array.from(panel.querySelectorAll<HTMLElement>('a[href], button:not(:disabled), select:not(:disabled), [tabindex="0"]'))
+        .filter(node => node.getClientRects().length > 0);
+      const first = targets[0], last = targets.at(-1);
+      if (!first || !last) return;
+      if (!panel.contains(document.activeElement) || (event.shiftKey && document.activeElement === first)) {
+        event.preventDefault(); (event.shiftKey ? last : first).focus();
+      } else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    const resize = () => { if (window.innerWidth > 825) setMobile(false); };
+    document.addEventListener('keydown', keydown);
+    window.addEventListener('resize', resize);
+    return () => {
+      document.removeEventListener('keydown', keydown);
+      window.removeEventListener('resize', resize);
+      if (returnToNavigation.current && navigationButtonRef.current?.getClientRects().length) navigationButtonRef.current.focus();
+      else mainRef.current?.focus({ preventScroll: true });
+    };
+  }, [mobile]);
   useEffect(() => {
     let current = true;
     let inFlight = false;
@@ -173,9 +201,10 @@ function Shell({ user, logout }: { user: User; logout: () => void }) {
   }
   const online = data?.runners.some(runner => runner.online);
   return <div className="shell">
-    <button type="button" className="skip-link" onClick={() => mainRef.current?.focus()}>Skip to main content</button>
-    {mobile && <button className="scrim" aria-label="Close navigation" onClick={() => setMobile(false)} />}
-    <aside className={'sidebar ' + (mobile ? 'is-open' : '')}>
+    <button type="button" className="skip-link" inert={mobile} onClick={() => mainRef.current?.focus()}>Skip to main content</button>
+    {mobile && <div className="scrim" aria-hidden="true" onClick={() => setMobile(false)} />}
+    <aside ref={navigationRef} id="workspace-navigation" role={mobile ? 'dialog' : undefined} aria-modal={mobile || undefined}
+      aria-label={mobile ? 'Navigation menu' : undefined} className={'sidebar ' + (mobile ? 'is-open' : '')}>
       <div className="sidebar-head"><Brand /><button className="icon-button mobile-only" onClick={() => setMobile(false)} aria-label="Close navigation"><X size={20} /></button></div>
       <div className="workspace"><span className="workspace-mark"><Cpu size={17} /></span><div><strong title={user.organization}>{user.organization}</strong><small>Compute workspace</small></div></div>
       <WorkspaceSwitcher user={user} />
@@ -188,8 +217,9 @@ function Shell({ user, logout }: { user: User; logout: () => void }) {
       <div className="sidebar-foot"><div className="workspace-user"><div className="avatar">{user.username.slice(0, 2).toUpperCase()}</div>
         <div><strong>{user.username}</strong><small>{user.role}</small></div><button className="icon-button" aria-label="Sign out" title="Sign out" onClick={logout}><LogOut size={17} /></button></div></div>
     </aside>
-    <div className="workspace-body">
-      <header className="topbar"><div><button className="icon-button mobile-only" aria-label="Open navigation" onClick={() => setMobile(true)}><Menu size={21} /></button><span>Workspace</span><span className="slash">/</span><strong>{current.title}</strong></div>
+    <div className="workspace-body" inert={mobile}>
+      <header className="topbar"><div><button ref={navigationButtonRef} className="icon-button mobile-only" aria-label="Open navigation"
+        aria-haspopup="dialog" aria-expanded={mobile} aria-controls="workspace-navigation" onClick={() => { returnToNavigation.current = true; setMobile(true); }}><Menu size={21} /></button><span>Workspace</span><span className="slash">/</span><strong>{current.title}</strong></div>
         <div className="topbar-right">{user.role !== 'consumer' && <span className="connection"><i className={online ? 'connected' : ''} />{online ? 'GPU connected' : 'GPU offline'}</span>}
           <span className="db-label">{data?.config.database ?? 'Connecting'}</span></div></header>
       <main className="main" id="main-content" tabIndex={-1} ref={mainRef}>{error && <Notice>{error}</Notice>}{screen ?? (!error && <Loading />)}</main>

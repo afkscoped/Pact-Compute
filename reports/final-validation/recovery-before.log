@@ -1,0 +1,20 @@
+..F                                                                      [100%]
+================================== FAILURES ===================================
+______ test_retry_does_not_report_success_over_a_corrupt_existing_object ______
+
+tmp_path = WindowsPath('C:/Users/nithe/AppData/Local/Temp/pytest-of-nithe/pytest-45/test_retry_does_not_report_suc0')
+
+    def test_retry_does_not_report_success_over_a_corrupt_existing_object(tmp_path):
+        payload = b'approved immutable output'
+        digest = hashlib.sha256(payload).hexdigest()
+        store = LocalStore(tmp_path / 'artifacts')
+        store.put(digest, payload)
+        store.path(digest).write_bytes(b'corrupted disk bytes')
+>       with pytest.raises(StorageError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE StorageError
+
+tests\test_release_recovery.py:95: Failed
+=========================== short test summary info ===========================
+FAILED tests/test_release_recovery.py::test_retry_does_not_report_success_over_a_corrupt_existing_object
+1 failed, 2 passed in 11.03s

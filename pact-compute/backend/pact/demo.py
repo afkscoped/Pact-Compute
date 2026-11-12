@@ -1,6 +1,7 @@
 import json
 import secrets
 import time
+from urllib.parse import urlsplit
 
 from sqlalchemy import select
 
@@ -19,8 +20,19 @@ ACCOUNTS = {
 }
 
 
+def local_demo_origin(url):
+    """Permit isolated development ports while rejecting remote/lookalike origins."""
+    try:
+        parsed = urlsplit(url)
+        return (parsed.scheme == 'http' and parsed.hostname in {'127.0.0.1', 'localhost'}
+                and parsed.port is not None and not parsed.username and not parsed.password
+                and parsed.path in {'', '/'} and not parsed.query and not parsed.fragment)
+    except ValueError:
+        return False
+
+
 def provision_demo():
-    if URL not in ('http://127.0.0.1:8765', 'http://localhost:8765'):
+    if not local_demo_origin(URL):
         raise RuntimeError('Demo users are for a local installation. Provision named accounts for deployment.')
     path = STATE / 'market-credentials.json'
     if not path.exists():

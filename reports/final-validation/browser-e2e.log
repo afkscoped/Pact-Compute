@@ -1,0 +1,266 @@
+
+> pact-compute-console@0.1.0 test:e2e
+> playwright test --reporter=json
+
+{
+  "config": {
+    "argv": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "C:\\Users\\nithe\\Pact-Compute\\pact-compute\\frontend\\node_modules\\@playwright\\test\\cli.js",
+      "test",
+      "--reporter=json"
+    ],
+    "configFile": "C:\\Users\\nithe\\Pact-Compute\\pact-compute\\frontend\\playwright.config.ts",
+    "rootDir": "C:/Users/nithe/Pact-Compute/pact-compute/frontend/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Users/nithe/Pact-Compute/pact-compute/frontend/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "C:/Users/nithe/Pact-Compute/pact-compute/frontend/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 210000
+      }
+    ],
+    "filteredProjects": [
+      {
+        "grep": {},
+        "grepInvert": null,
+        "outputDir": "C:\\Users\\nithe\\Pact-Compute\\pact-compute\\frontend\\test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "name": "",
+        "testDir": "C:\\Users\\nithe\\Pact-Compute\\pact-compute\\frontend\\e2e",
+        "snapshotDir": "C:\\Users\\nithe\\Pact-Compute\\pact-compute\\frontend\\e2e",
+        "testIgnore": [],
+        "testMatch": "**/*.@(spec|test).?(c|m)[jt]s?(x)",
+        "timeout": 210000,
+        "use": {
+          "baseURL": "http://127.0.0.1:8766",
+          "channel": "msedge",
+          "viewport": {
+            "width": 1440,
+            "height": 1050
+          },
+          "screenshot": "only-on-failure",
+          "actionTimeout": 12000
+        },
+        "dependencies": [],
+        "ignoreSnapshots": false,
+        "__projectId": ""
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "default",
+    "updateSourceMethod": "patch",
+    "version": "1.65.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "exchange.spec.ts",
+      "file": "exchange.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "producer and consumers share a live booking and inspect its protocol",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 210000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 17209,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-12T19:51:48.823Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "24d6aa13145a20c0e77c-eeb838b601b8b0ac745d",
+          "file": "exchange.spec.ts",
+          "line": 5,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "roles.spec.ts",
+      "file": "roles.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "consumer signup, reviewer invitation and inbox approval work across isolated sessions",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 210000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6845,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-12T19:52:06.571Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7a25b8aaa0fcc60dba5a-e768d8027fcaf93fa8c8",
+          "file": "roles.spec.ts",
+          "line": 6,
+          "column": 1
+        },
+        {
+          "title": "operator explores a policy revision and resolves a stale-heartbeat fixture with evidence",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 210000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 27812,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-12T19:52:13.437Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7a25b8aaa0fcc60dba5a-28b5136e0f34d6a8aa14",
+          "file": "roles.spec.ts",
+          "line": 75,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "workspace.spec.ts",
+      "file": "workspace.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "approves an agreement, executes a real GPU job, and runs the trace benchmark",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 210000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 16121,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-12T19:52:41.287Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "b163ed09f68681248ada-57bedd07a0d7d3c2c5c3",
+          "file": "workspace.spec.ts",
+          "line": 6,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-12T19:51:48.041Z",
+    "duration": 69713.315,
+    "expected": 4,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

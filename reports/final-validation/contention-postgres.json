@@ -1,0 +1,11 @@
+{
+  "cases": 25,
+  "confirmations": 50,
+  "duplicate_retries": 25,
+  "double_bookings": 0,
+  "reservation_inventory": "controlled test fixture, no GPU execution",
+  "database": "PostgreSQL",
+  "concurrency": 2,
+  "confirmation_p50_s": 0.03655139997135848,
+  "confirmation_p95_s": 0.05134639993775636
+}

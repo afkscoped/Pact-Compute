@@ -1,0 +1,110 @@
+[
+  {
+    "file": "openb_pod_list_default.csv",
+    "expected": "1ee7ed79c27a3b0861cda8ddba86a004c6aba904caafa329a76ae93ca63834a8",
+    "before": "1ee7ed79c27a3b0861cda8ddba86a004c6aba904caafa329a76ae93ca63834a8",
+    "actual": "1ee7ed79c27a3b0861cda8ddba86a004c6aba904caafa329a76ae93ca63834a8",
+    "bytes": 575468,
+    "restored": false,
+    "match": true
+  },
+  {
+    "file": "openb_pod_list_gpuspec33.csv",
+    "expected": "eca4f746db1e5b25864ad021b55ece3943e101a3ebd4574d09dcb95c46117652",
+    "before": "eca4f746db1e5b25864ad021b55ece3943e101a3ebd4574d09dcb95c46117652",
+    "actual": "eca4f746db1e5b25864ad021b55ece3943e101a3ebd4574d09dcb95c46117652",
+    "bytes": 587467,
+    "restored": false,
+    "match": true
+  },
+  {
+    "file": "openb_node_list_gpu_node.csv",
+    "expected": "2beca64b4d3dfa342036a34b56a495c6cef9225db836c81f541282cb1df320b5",
+    "before": "2beca64b4d3dfa342036a34b56a495c6cef9225db836c81f541282cb1df320b5",
+    "actual": "2beca64b4d3dfa342036a34b56a495c6cef9225db836c81f541282cb1df320b5",
+    "bytes": 42353,
+    "restored": false,
+    "match": true
+  },
+  {
+    "file": "neso_gb_2025-10-01_to_2025-10-29.json",
+    "expected": "3a87023bfc80685a03018a17c10c3abf85eaf774f09097c8b624e606fe771ef1",
+    "before": "3a87023bfc80685a03018a17c10c3abf85eaf774f09097c8b624e606fe771ef1",
+    "actual": "3a87023bfc80685a03018a17c10c3abf85eaf774f09097c8b624e606fe771ef1",
+    "bytes": 149523,
+    "restored": false,
+    "match": true
+  },
+  {
+    "file": "neso_gb_2025-10-01_daily.json",
+    "expected": "1781b4c7bb3d345cf6f689adec2993c27f324b07896ed51d6c2af540a2344f81",
+    "before": "1781b4c7bb3d345cf6f689adec2993c27f324b07896ed51d6c2af540a2344f81",
+    "actual": "1781b4c7bb3d345cf6f689adec2993c27f324b07896ed51d6c2af540a2344f81",
+    "bytes": 8502,
+    "restored": false,
+    "match": true
+  },
+  {
+    "file": "neso_regional_forecast_sample.json",
+    "expected": "5a998f8c190cedf9999e9a23d34f16655076d3d9342bd63c9c1aa53dddc77181",
+    "before": "5a998f8c190cedf9999e9a23d34f16655076d3d9342bd63c9c1aa53dddc77181",
+    "actual": "5a998f8c190cedf9999e9a23d34f16655076d3d9342bd63c9c1aa53dddc77181",
+    "bytes": 7407,
+    "restored": false,
+    "match": true
+  },
+  {
+    "file": "cuad_data.zip",
+    "expected": "f8161d18bea4e9c05e78fa6dda61c19c846fb8087ea969c172753bc2f45b999a",
+    "before": "f8161d18bea4e9c05e78fa6dda61c19c846fb8087ea969c172753bc2f45b999a",
+    "actual": "f8161d18bea4e9c05e78fa6dda61c19c846fb8087ea969c172753bc2f45b999a",
+    "bytes": 18309308,
+    "restored": false,
+    "match": true
+  },
+  {
+    "file": "lexglue-ledgar.tar.gz",
+    "expected": "f7507bcce46ce03e3e91b8aaa1b84ddf6e8f1d628c0d7fa351f97ce45366d5d8",
+    "before": "f7507bcce46ce03e3e91b8aaa1b84ddf6e8f1d628c0d7fa351f97ce45366d5d8",
+    "actual": "f7507bcce46ce03e3e91b8aaa1b84ddf6e8f1d628c0d7fa351f97ce45366d5d8",
+    "bytes": 16255623,
+    "restored": false,
+    "match": true
+  },
+  {
+    "file": "alibaba-gpu-v2026-download-guide.md",
+    "expected": "69e3db5f6219eb9c457d4f3718d203f974027a2ad96d68f6ef4d446ece960704",
+    "before": "69e3db5f6219eb9c457d4f3718d203f974027a2ad96d68f6ef4d446ece960704",
+    "actual": "69e3db5f6219eb9c457d4f3718d203f974027a2ad96d68f6ef4d446ece960704",
+    "bytes": 1939,
+    "restored": false,
+    "match": true
+  },
+  {
+    "file": "google-power-data-2019-guide.md",
+    "expected": "a00c9d4cd97171b3bbee8641028a3b719a1ff4daad95d69b2a659df54fd2cd49",
+    "before": "a00c9d4cd97171b3bbee8641028a3b719a1ff4daad95d69b2a659df54fd2cd49",
+    "actual": "a00c9d4cd97171b3bbee8641028a3b719a1ff4daad95d69b2a659df54fd2cd49",
+    "bytes": 1843,
+    "restored": false,
+    "match": true
+  },
+  {
+    "file": "google-borg-cluster-data-2019-guide.md",
+    "expected": "6209413ba5dc94e45b9dda811871b7eab406980aab5279466fa9eb48578ff6e3",
+    "before": "6209413ba5dc94e45b9dda811871b7eab406980aab5279466fa9eb48578ff6e3",
+    "actual": "6209413ba5dc94e45b9dda811871b7eab406980aab5279466fa9eb48578ff6e3",
+    "bytes": 2323,
+    "restored": false,
+    "match": true
+  },
+  {
+    "file": "contract-nli.zip",
+    "expected": "e03fc77bbf8b53e2976a250e81d8a294bc3d5e5fb014521e477dee9340d6287b",
+    "before": "e03fc77bbf8b53e2976a250e81d8a294bc3d5e5fb014521e477dee9340d6287b",
+    "actual": "e03fc77bbf8b53e2976a250e81d8a294bc3d5e5fb014521e477dee9340d6287b",
+    "bytes": 65362913,
+    "restored": false,
+    "match": true
+  }
+]

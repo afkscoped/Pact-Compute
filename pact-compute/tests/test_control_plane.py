@@ -1030,3 +1030,23 @@ def test_research_holdouts_and_groq_fallback(monkeypatch):
     assert method == 'deterministic-fallback/provider_rate_limited'
     assert suggest(EXAMPLE)[2] == 'deterministic-fallback/provider_budget'
     assert len(calls) == 1
+
+
+def test_evidence_export_keeps_the_end_of_a_large_job_history(client):
+    from pact.db import record
+    policy = approve(client, 'Jobs require at least 1 GiB VRAM.')
+    response = client.post('/api/v1/jobs', headers={'Idempotency-Key': 'large-shadow-history'},
+                           json={'policy_id': policy, 'title': 'Large evidence history', 'mode': 'shadow'})
+    assert response.status_code == 201
+    job = response.json()
+    with session(write=True) as db:
+        from pact.db import Job
+        row = db.get(Job, job['id'])
+        for ordinal in range(1005):
+            record(db, row.org_id, 'job', row.id, 'EvidenceObservation', ordinal=ordinal)
+        record(db, row.org_id, 'job', row.id, 'EvidenceComplete', expected_observations=1005)
+    exported = client.get('/api/v1/jobs/' + job['id'] + '/evidence.json').json()
+    history = exported['manifest']['job']['events']
+    assert history[-1]['kind'] == 'EvidenceComplete'
+    assert sum(event['kind'] == 'EvidenceObservation' for event in history) == 1005
+    assert sign(exported['manifest']) == exported['hmac_sha256']

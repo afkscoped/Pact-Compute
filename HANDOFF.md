@@ -1,5 +1,17 @@
 # HANDOFF.md (live status — keep current)
 
+## Current validation — 13 November 2026
+
+Start with the [RC release assessment](reports/release-candidate/RELEASE_ASSESSMENT.md), [RC progress](reports/release-candidate/PROGRESS.md) and [hosted staging procedure](reports/release-candidate/HOSTED_STAGING_VERIFICATION.md). The completed milestone remains in [FINAL_RELEASE_ASSESSMENT.md](reports/final-validation/FINAL_RELEASE_ASSESSMENT.md). These supersede historical totals and unfinished-work claims below. Work remains local on `sasha-work`: **do not push, merge or modify production** under this assignment. Existing private environment files were preserved.
+
+RC preparation adds Docker context isolation/deterministic packaging, keyboard focus handling for mobile navigation, API/worker process supervision and reliable Windows build-output capture. Current regression: 265 backend passes (6 skips), 33 frontend passes, clean build, two expanded accessibility browser tests, and packaged Linux/API/storage/supervisor smoke. Actual container image build, manual accessibility and hosted verification remain gated. No commit was made; see the explicit local commit plan in the RC reports.
+
+The validation patch fixes bounded SSE replay, long evidence exports, PostgreSQL commit ordering, corrupt artifact retries and repeat-test isolation. It adds real local browser/role/accessibility checks, physical GPU verification, disposable PostgreSQL and matched restore tooling, dependency locks/audits, research manifests/figures and CI source. Exact results and remaining external/manual gates are linked above. Team invitations and self-service runner enrollment are implemented; reviewer CLI provisioning is an alternative, not the sole onboarding path.
+
+PostgreSQL writers now serialize before acquiring other application locks. Drain all older writers before rollout. No hosted rollout was performed. Use the current README's Python 3.12 and separate GPU lock; older Python/Node/GPU instructions below describe earlier runs.
+
+## Historical handoff follows
+
 ## START HERE (for Nithesh)
 
 **(a) What this is.** PACT-Compute is a private GPU exchange: producers publish GPU capacity, consumers reserve it under reviewer-approved service agreements, and a native runner executes an image-embedding job and records a shared usage receipt.

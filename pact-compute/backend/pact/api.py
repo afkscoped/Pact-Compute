@@ -393,8 +393,11 @@ def event_view(event):
 
 
 def event_rows(db, org, entity_type, entity_id, since=0):
+    # Evidence and independent monitoring require the complete ordered trace.
+    # A silent list limit could omit terminal/reconciliation evidence while
+    # still signing the truncated export as if it were complete.
     return list(db.scalars(select(Event).where(Event.org_id == org, Event.entity_type == entity_type,
-                                             Event.entity_id == entity_id, Event.seq > since).order_by(Event.seq).limit(1000)))
+                                             Event.entity_id == entity_id, Event.seq > since).order_by(Event.seq)))
 
 
 def job_view(job, detailed=False):

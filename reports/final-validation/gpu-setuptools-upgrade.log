@@ -1,0 +1,9 @@
+Collecting setuptools<85,>=84.1
+  Using cached setuptools-84.2.1-py3-none-any.whl.metadata (6.6 kB)
+Using cached setuptools-84.2.1-py3-none-any.whl (876 kB)
+Installing collected packages: setuptools
+  Attempting uninstall: setuptools
+    Found existing installation: setuptools 78.1.0
+    Uninstalling setuptools-78.1.0:
+      Successfully uninstalled setuptools-78.1.0
+Successfully installed setuptools-84.2.1

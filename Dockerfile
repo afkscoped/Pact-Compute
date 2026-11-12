@@ -1,6 +1,6 @@
 # Build from the repo root:  docker build -t pact-compute .
 # Single container: API (serves built frontend) + research worker. GPU runner is NOT in this image.
-FROM node:22-slim AS web
+FROM node:24-slim AS web
 WORKDIR /web
 COPY pact-compute/frontend/package.json pact-compute/frontend/package-lock.json ./
 RUN npm ci
@@ -11,8 +11,8 @@ FROM python:3.12-slim
 ENV PYTHONUNBUFFERED=1 PYTHONPATH=/app/pact-compute/backend PACT_STATE_DIR=/data \
     PACT_SOURCE_DIR=/app/PACT-Compute-data-preflight
 WORKDIR /app/pact-compute
-COPY pact-compute/requirements.txt pact-compute/requirements-s3.txt ./
-RUN pip install --no-cache-dir -r requirements.txt -r requirements-s3.txt
+COPY pact-compute/requirements-runtime-py312.lock.txt ./
+RUN python -m pip install --no-cache-dir pip==26.3 && python -m pip install --no-cache-dir -r requirements-runtime-py312.lock.txt
 COPY pact-compute/backend ./backend
 COPY pact-compute/alembic.ini ./
 COPY --from=web /web/dist ./frontend/dist

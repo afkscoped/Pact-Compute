@@ -1,0 +1,19 @@
+{
+  "whitespace": {
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "dataset_content_diff": {
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "executable_source_matches_final_regression": true,
+  "source_fingerprint": "772472e23d5ac3fc885b525083abcdc65b72c31fab2291618ac43e517617502c",
+  "rc_document_links_valid": true,
+  "secret_scan_files": 302,
+  "secret_format_findings": 0,
+  "private_env_read": false,
+  "no_commit_push_merge_or_production_mutation": true
+}

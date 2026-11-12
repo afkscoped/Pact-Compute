@@ -1,0 +1,43 @@
+candidate,slicing,slice,n,coverage,wilson_low,wilson_high,median_width_s,median_upper_over_lower,indicative_only
+global_median + global conformal,gpu_model_request,T4,11,1.0,0.7412,1.0,495353.1,15480.78,True
+global_median + global conformal,gpu_model_request,all,46,0.9565,0.8547,0.988,495353.1,15480.78,False
+global_median + global conformal,gpu_model_request,other or multiple models,12,0.9167,0.6461,0.9851,495353.1,15480.78,True
+global_median + global conformal,gpu_model_request,unconstrained model,23,0.9565,0.7901,0.9923,495353.1,15480.78,False
+global_median + global conformal,gpu_count,all,46,0.9565,0.8547,0.988,495353.1,15480.78,False
+global_median + global conformal,gpu_count,multi-GPU,2,1.0,0.3424,1.0,495353.1,15480.78,True
+global_median + global conformal,gpu_count,single GPU,44,0.9545,0.8486,0.9874,495353.1,15480.78,False
+global_median + per-slice conformal,gpu_model_request,T4,11,1.0,0.7412,1.0,495353.1,15480.78,True
+global_median + per-slice conformal,gpu_model_request,all,46,0.9565,0.8547,0.988,564710.5,20422.25,False
+global_median + per-slice conformal,gpu_model_request,other or multiple models,12,0.9167,0.6461,0.9851,428404.1,11579.49,True
+global_median + per-slice conformal,gpu_model_request,unconstrained model,23,0.9565,0.7901,0.9923,634067.9,25363.72,False
+global_median + per-slice conformal,gpu_count,all,46,0.9565,0.8547,0.988,564710.5,20422.25,False
+global_median + per-slice conformal,gpu_count,multi-GPU,2,1.0,0.3424,1.0,531236.0,18471.6,True
+global_median + per-slice conformal,gpu_count,single GPU,44,0.9545,0.8486,0.9874,564710.5,20422.25,False
+linear_log + global conformal,gpu_model_request,T4,11,0.9091,0.6226,0.9838,155128.5,2248.18,True
+linear_log + global conformal,gpu_model_request,all,46,0.9348,0.825,0.9776,112381.5,2248.18,False
+linear_log + global conformal,gpu_model_request,other or multiple models,12,1.0,0.7575,1.0,111179.5,2248.18,True
+linear_log + global conformal,gpu_model_request,unconstrained model,23,0.913,0.732,0.9758,134833.8,2248.18,False
+linear_log + global conformal,gpu_count,all,46,0.9348,0.825,0.9776,112381.5,2248.18,False
+linear_log + global conformal,gpu_count,multi-GPU,2,1.0,0.3424,1.0,3917638.7,2248.18,True
+linear_log + global conformal,gpu_count,single GPU,44,0.9318,0.8177,0.9765,111179.5,2248.18,False
+linear_log + per-slice conformal,gpu_model_request,T4,11,0.9091,0.6226,0.9838,155128.5,2248.18,True
+linear_log + per-slice conformal,gpu_model_request,all,46,0.9565,0.8547,0.988,132164.9,3054.47,False
+linear_log + per-slice conformal,gpu_model_request,other or multiple models,12,1.0,0.7575,1.0,111179.5,2248.18,True
+linear_log + per-slice conformal,gpu_model_request,unconstrained model,23,0.9565,0.7901,0.9923,176726.0,3860.77,False
+linear_log + per-slice conformal,gpu_count,all,46,0.9565,0.8547,0.988,132164.9,3054.47,False
+linear_log + per-slice conformal,gpu_count,multi-GPU,2,1.0,0.3424,1.0,4584751.4,3054.47,True
+linear_log + per-slice conformal,gpu_count,single GPU,44,0.9545,0.8486,0.9874,132164.9,3054.47,False
+slice_median + global conformal,gpu_model_request,T4,11,1.0,0.7412,1.0,513305.5,16041.8,True
+slice_median + global conformal,gpu_model_request,all,46,0.9783,0.8866,0.9962,490753.2,16041.8,False
+slice_median + global conformal,gpu_model_request,other or multiple models,12,1.0,0.7575,1.0,503345.9,16041.8,True
+slice_median + global conformal,gpu_model_request,unconstrained model,23,0.9565,0.7901,0.9923,478160.6,16041.8,False
+slice_median + global conformal,gpu_count,all,46,0.9783,0.8866,0.9962,490753.2,16041.8,False
+slice_median + global conformal,gpu_count,multi-GPU,2,1.0,0.3424,1.0,490753.2,16041.8,True
+slice_median + global conformal,gpu_count,single GPU,44,0.9773,0.8819,0.996,490753.2,16041.8,False
+slice_median + per-slice conformal,gpu_model_request,T4,11,1.0,0.7412,1.0,513305.5,16041.8,True
+slice_median + per-slice conformal,gpu_model_request,all,46,0.9565,0.8547,0.988,541728.1,19424.41,False
+slice_median + per-slice conformal,gpu_model_request,other or multiple models,12,0.9167,0.6461,0.9851,426869.2,11538.0,True
+slice_median + per-slice conformal,gpu_model_request,unconstrained model,23,0.9565,0.7901,0.9923,570150.8,22807.03,False
+slice_median + per-slice conformal,gpu_count,all,46,0.9565,0.8547,0.988,541728.1,19424.41,False
+slice_median + per-slice conformal,gpu_count,multi-GPU,2,1.0,0.3424,1.0,498510.0,17172.52,True
+slice_median + per-slice conformal,gpu_count,single GPU,44,0.9545,0.8486,0.9874,541728.1,19424.41,False

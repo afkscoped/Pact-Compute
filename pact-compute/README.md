@@ -1,5 +1,7 @@
 # PACT-Compute
 
+Current RC preparation (13 November 2026): [release assessment](../reports/release-candidate/RELEASE_ASSESSMENT.md), [validation commands](../reports/release-candidate/VALIDATION.md), [hosted staging procedure](../reports/release-candidate/HOSTED_STAGING_VERIFICATION.md) and [local commit plan](../reports/release-candidate/COMMIT_PLAN.md) are the current release index. The completed milestone and [technical inventory](../reports/final-validation/FINAL_TECHNICAL_REPORT.md) remain in reports/final-validation. No commit, push, merge or production change was performed.
+
 PACT-Compute is a GPU job control plane with a React console, FastAPI API, independent worker, and native GPU runner. A reviewer turns an agreement into an approved policy. The control plane checks it at admission and dispatch. The runner executes a pretrained image embedding model and returns a checksummed artifact. An independent monitor reconstructs policy outcomes from execution events.
 
 Research Lab replays Alibaba GPU workload demand against NESO Great Britain carbon history. It compares posted-offer agents, rolling OR-Tools CP-SAT allocation, and a finite-state pricing-pattern audit. Live jobs and research runs each have downloadable evidence.
@@ -10,7 +12,7 @@ The GPU Exchange lets a producer publish a runner and availability window. A con
 
 On the sign-in screen, choose **Create account**. Select **Producer** or **Consumer**, then enter an organization name, username, and password. Signup creates a separate workspace and opens its guide in **Explainable AI**. The first step shows the workspace ID to share with an operator.
 
-An operator uses the workspace ID to enroll a producer runner or provision a reviewer for a consumer agreement. Run the relevant command from the project folder and replace the example IDs.
+Producers can enroll a runner in **Compute capacity** and receive its token once. Consumers can use **Team** to invite a reviewer, who redeems the invitation in a separate session. Approval remains a separate role. Operator CLI provisioning is also available; run the relevant command from the project folder and replace the example IDs.
 
 ~~~powershell
 $env:PYTHONPATH = 'backend'
@@ -49,11 +51,12 @@ Use `.\scripts\stop.ps1` to stop the launched processes. Logs are in `.local/log
 
 ### Fresh setup
 
-Use Python 3.14 and Node.js 24. The reference environment used Python 3.14.4 and Node.js 24.15. Python 3.11.9 and Node 25 were also verified (235 backend tests, frontend build and 33 node tests pass). Clone to a short path on Windows: very long paths make pip drop files and one S3 test then fails. After the install, `npm.cmd test` in `frontend` runs the node tests.
+The validated Windows environment uses Python 3.12.14, Node 24.11.1 and npm 11.6.2. Earlier Python 3.11/3.14 results are historical. Use a short checkout path and the Python 3.12 lock. Run `npm.cmd test` in `frontend` for Node tests. See the [environment manifest](../reports/final-validation/ENVIRONMENT_MANIFEST.md) if Python is not on PATH.
 
 ~~~powershell
 python -m venv .venv
-& .\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+& .\.venv\Scripts\python.exe -m pip install --upgrade "pip==26.3"
+& .\.venv\Scripts\python.exe -m pip install -r requirements-win-py312.lock.txt
 Push-Location frontend
 npm.cmd ci
 npm.cmd run build
@@ -63,8 +66,11 @@ Pop-Location
 The API and research worker can run without PyTorch. The default GPU runner uses PyTorch to load and preprocess the pretrained model and the installed NVIDIA driver to execute GPU kernels.
 
 ~~~powershell
-& .\.venv\Scripts\python.exe -m pip install --index-url https://download.pytorch.org/whl/cpu "torch==2.12.0" "torchvision==0.27.0"
-& .\.venv\Scripts\python.exe backend/pact/gpu_task.py prepare --engine driver
+python -m venv .gpu-venv
+& .\.gpu-venv\Scripts\python.exe -m pip install --upgrade "pip==26.3"
+& .\.gpu-venv\Scripts\python.exe -m pip install --extra-index-url https://download.pytorch.org/whl/cpu -r requirements-gpu-win-py312.lock.txt
+$env:PACT_GPU_PYTHON = (Resolve-Path .\.gpu-venv\Scripts\python.exe).Path
+& .\.gpu-venv\Scripts\python.exe backend/pact/gpu_task.py prepare --engine driver
 .\scripts\start.ps1
 ~~~
 
@@ -125,7 +131,7 @@ The first launch bootstraps an operator account. Existing SQLite jobs and polici
 
 Put `GROQ_API_KEY` in the project's `.env` and optionally set `GROQ_MODEL`. Restart the API. The default model is `openai/gpt-oss-20b`. Use **Ask Groq to rank guidance** in Explainable AI to send a question and public step titles. The console's booking and job evidence stays local. Choosing model extraction in Agreements sends the source agreement for that draft only. Every candidate still goes through source verification and review.
 
-The single-process gateway allows one provider request at a time, caps requests to four per minute, caches successful responses for 15 minutes and follows a bounded `Retry-After` cooldown. Invalid, throttled or unavailable responses fall back to local guidance and compilation. For a multi-process deployment use a shared rate limiter before increasing concurrency. [Groq API reference](https://console.groq.com/docs/api-reference) · [Groq rate limits](https://console.groq.com/docs/rate-limits)
+The gateway shares its database-backed request budget, single-flight and cooldown across API processes. It caps requests to four per minute and caches successful responses locally for 15 minutes. Invalid, throttled or unavailable responses fall back to local guidance and compilation. Multiple processes still need measured throughput and service supervision. [Groq API reference](https://console.groq.com/docs/api-reference) · [Groq rate limits](https://console.groq.com/docs/rate-limits)
 
 ## Reproduce the publication study
 
@@ -153,4 +159,4 @@ Pop-Location
 
 The browser tests expect the console and GPU runner on localhost, the local market accounts, and the generated publication study. They verify a live job and its output hash, a rejected placement, a five-arm replay, producer and consumer isolation, a real last-slot race, shared receipts and mobile layout. They save evidence to `.local/verified/`. The API schema is available at `/api/docs` only when `PACT_API_DOCS=1` is set (off by default because it lists every route).
 
-This is a private installation with an enrolled runner. A customer pilot needs authorized capacity, a real job queue, a verified grid zone, TLS, secret storage, backups, retention settings, and an operator rollback plan. Hosted deployment, OIDC, Kubernetes, paid provider billing, and marketplace settlement remain follow-on integrations. The pricing auditor flags observable patterns for review. Commercial outcomes need a customer pilot.
+This is a private installation with an enrolled runner. Hosted deployment is recorded in the historical handoff but remains unverified for this local patch. A customer pilot needs authorized capacity, a real queue, a verified grid zone, TLS, secret storage, recovery and retention. OIDC, Kubernetes, paid billing and marketplace settlement remain future integrations. The pricing auditor flags observed patterns for review; commercial outcomes need a customer pilot.

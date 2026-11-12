@@ -1,0 +1,162 @@
+Collecting absl-py==2.5.1 (from -r requirements-runtime-py312.lock.txt (line 2))
+  Downloading absl_py-2.5.1-py3-none-any.whl.metadata (3.3 kB)
+Collecting alembic==1.20.1 (from -r requirements-runtime-py312.lock.txt (line 3))
+  Downloading alembic-1.20.1-py3-none-any.whl.metadata (7.3 kB)
+Collecting annotated-doc==0.0.6 (from -r requirements-runtime-py312.lock.txt (line 4))
+  Downloading annotated_doc-0.0.6-py3-none-any.whl.metadata (6.5 kB)
+Collecting annotated-types==0.8.0 (from -r requirements-runtime-py312.lock.txt (line 5))
+  Downloading annotated_types-0.8.0-py3-none-any.whl.metadata (15 kB)
+Collecting anyio==4.16.0 (from -r requirements-runtime-py312.lock.txt (line 6))
+  Downloading anyio-4.16.0-py3-none-any.whl.metadata (4.7 kB)
+Collecting asn1crypto==1.5.1 (from -r requirements-runtime-py312.lock.txt (line 7))
+  Downloading asn1crypto-1.5.1-py2.py3-none-any.whl.metadata (13 kB)
+Collecting boto3==1.44.1 (from -r requirements-runtime-py312.lock.txt (line 8))
+  Downloading boto3-1.44.1-py3-none-any.whl.metadata (6.6 kB)
+Collecting botocore==1.44.1 (from -r requirements-runtime-py312.lock.txt (line 9))
+  Downloading botocore-1.44.1-py3-none-any.whl.metadata (5.6 kB)
+Collecting certifi==2026.10.23 (from -r requirements-runtime-py312.lock.txt (line 10))
+  Downloading certifi-2026.10.23-py3-none-any.whl.metadata (2.5 kB)
+Collecting click==8.5.1 (from -r requirements-runtime-py312.lock.txt (line 11))
+  Downloading click-8.5.1-py3-none-any.whl.metadata (2.6 kB)
+Collecting fastapi==0.162.5 (from -r requirements-runtime-py312.lock.txt (line 12))
+  Downloading fastapi-0.162.5-py3-none-any.whl.metadata (27 kB)
+Collecting greenlet==3.5.6 (from -r requirements-runtime-py312.lock.txt (line 13))
+  Downloading greenlet-3.5.6-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl.metadata (3.8 kB)
+Collecting h11==0.16.0 (from -r requirements-runtime-py312.lock.txt (line 14))
+  Downloading h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+Collecting httpcore==1.0.9 (from -r requirements-runtime-py312.lock.txt (line 15))
+  Downloading httpcore-1.0.9-py3-none-any.whl.metadata (21 kB)
+Collecting httpx==0.28.1 (from -r requirements-runtime-py312.lock.txt (line 16))
+  Downloading httpx-0.28.1-py3-none-any.whl.metadata (7.1 kB)
+Collecting idna==3.20 (from -r requirements-runtime-py312.lock.txt (line 17))
+  Downloading idna-3.20-py3-none-any.whl.metadata (7.2 kB)
+Collecting immutabledict==4.3.1 (from -r requirements-runtime-py312.lock.txt (line 18))
+  Downloading immutabledict-4.3.1-py3-none-any.whl.metadata (3.5 kB)
+Collecting jmespath==1.1.0 (from -r requirements-runtime-py312.lock.txt (line 19))
+  Downloading jmespath-1.1.0-py3-none-any.whl.metadata (7.6 kB)
+Collecting mako==1.4.3 (from -r requirements-runtime-py312.lock.txt (line 20))
+  Downloading mako-1.4.3-py3-none-any.whl.metadata (2.9 kB)
+Collecting markupsafe==3.0.4 (from -r requirements-runtime-py312.lock.txt (line 21))
+  Downloading markupsafe-3.0.4-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.7 kB)
+Collecting numpy==2.5.4 (from -r requirements-runtime-py312.lock.txt (line 22))
+  Downloading numpy-2.5.4-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (6.6 kB)
+Collecting opentelemetry-api==1.45.2 (from -r requirements-runtime-py312.lock.txt (line 23))
+  Downloading opentelemetry_api-1.45.2-py3-none-any.whl.metadata (1.4 kB)
+Collecting ortools==9.15.6755 (from -r requirements-runtime-py312.lock.txt (line 24))
+  Downloading ortools-9.15.6755-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (3.3 kB)
+Collecting pandas==3.1.1 (from -r requirements-runtime-py312.lock.txt (line 25))
+  Downloading pandas-3.1.1-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl.metadata (16 kB)
+Collecting pg8000==1.31.6 (from -r requirements-runtime-py312.lock.txt (line 26))
+  Downloading pg8000-1.31.6-py3-none-any.whl.metadata (88 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 88.8/88.8 kB 1.1 MB/s eta 0:00:00
+Collecting pillow==13.0.0 (from -r requirements-runtime-py312.lock.txt (line 27))
+  Downloading pillow-13.0.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (9.1 kB)
+Collecting protobuf==6.33.6 (from -r requirements-runtime-py312.lock.txt (line 28))
+  Downloading protobuf-6.33.6-cp39-abi3-manylinux2014_x86_64.whl.metadata (593 bytes)
+Collecting pyarrow==26.0.1 (from -r requirements-runtime-py312.lock.txt (line 29))
+  Downloading pyarrow-26.0.1-cp312-cp312-manylinux_2_28_x86_64.whl.metadata (3.0 kB)
+Collecting pydantic==2.14.3 (from -r requirements-runtime-py312.lock.txt (line 30))
+  Downloading pydantic-2.14.3-py3-none-any.whl.metadata (141 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 141.5/141.5 kB 1.9 MB/s eta 0:00:00
+Collecting pydantic-core==2.50.4 (from -r requirements-runtime-py312.lock.txt (line 31))
+  Downloading pydantic_core-2.50.4-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (6.6 kB)
+Collecting python-dateutil==2.9.0.post0 (from -r requirements-runtime-py312.lock.txt (line 32))
+  Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl.metadata (8.4 kB)
+Collecting python-dotenv==1.2.4 (from -r requirements-runtime-py312.lock.txt (line 33))
+  Downloading python_dotenv-1.2.4-py3-none-any.whl.metadata (29 kB)
+Collecting s3transfer==0.19.3 (from -r requirements-runtime-py312.lock.txt (line 34))
+  Downloading s3transfer-0.19.3-py3-none-any.whl.metadata (1.7 kB)
+Collecting scramp==1.5.0 (from -r requirements-runtime-py312.lock.txt (line 35))
+  Downloading scramp-1.5.0-py3-none-any.whl.metadata (34 kB)
+Collecting six==1.17.0 (from -r requirements-runtime-py312.lock.txt (line 36))
+  Downloading six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
+Collecting sqlalchemy==2.0.57 (from -r requirements-runtime-py312.lock.txt (line 37))
+  Downloading sqlalchemy-2.0.57-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (9.6 kB)
+Collecting starlette==1.10.0 (from -r requirements-runtime-py312.lock.txt (line 38))
+  Downloading starlette-1.10.0-py3-none-any.whl.metadata (6.6 kB)
+Collecting typing-extensions==4.16.0 (from -r requirements-runtime-py312.lock.txt (line 39))
+  Downloading typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+Collecting typing-inspection==0.4.5 (from -r requirements-runtime-py312.lock.txt (line 40))
+  Downloading typing_inspection-0.4.5-py3-none-any.whl.metadata (2.6 kB)
+Collecting tzdata==2026.6 (from -r requirements-runtime-py312.lock.txt (line 41))
+  Downloading tzdata-2026.6-py2.py3-none-any.whl.metadata (1.4 kB)
+Collecting urllib3==2.8.0 (from -r requirements-runtime-py312.lock.txt (line 42))
+  Downloading urllib3-2.8.0-py3-none-any.whl.metadata (7.4 kB)
+Collecting uvicorn==0.54.0 (from -r requirements-runtime-py312.lock.txt (line 43))
+  Downloading uvicorn-0.54.0-py3-none-any.whl.metadata (6.6 kB)
+Downloading absl_py-2.5.1-py3-none-any.whl (137 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 137.7/137.7 kB 1.8 MB/s eta 0:00:00
+Downloading alembic-1.20.1-py3-none-any.whl (270 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 270.4/270.4 kB 3.6 MB/s eta 0:00:00
+Downloading annotated_doc-0.0.6-py3-none-any.whl (5.3 kB)
+Downloading annotated_types-0.8.0-py3-none-any.whl (13 kB)
+Downloading anyio-4.16.0-py3-none-any.whl (134 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 134.5/134.5 kB 1.8 MB/s eta 0:00:00
+Downloading asn1crypto-1.5.1-py2.py3-none-any.whl (105 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 105.0/105.0 kB 1.4 MB/s eta 0:00:00
+Downloading boto3-1.44.1-py3-none-any.whl (140 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 140.2/140.2 kB 1.7 MB/s eta 0:00:00
+Downloading botocore-1.44.1-py3-none-any.whl (16.3 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.3/16.3 MB 3.6 MB/s eta 0:00:00
+Downloading certifi-2026.10.23-py3-none-any.whl (135 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 135.1/135.1 kB 1.4 MB/s eta 0:00:00
+Downloading click-8.5.1-py3-none-any.whl (126 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 126.2/126.2 kB 1.4 MB/s eta 0:00:00
+Downloading fastapi-0.162.5-py3-none-any.whl (151 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 151.8/151.8 kB 1.7 MB/s eta 0:00:00
+Downloading greenlet-3.5.6-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (621 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 621.4/621.4 kB 4.2 MB/s eta 0:00:00
+Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+Downloading httpcore-1.0.9-py3-none-any.whl (78 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 78.8/78.8 kB 1.1 MB/s eta 0:00:00
+Downloading httpx-0.28.1-py3-none-any.whl (73 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 73.5/73.5 kB 834.1 kB/s eta 0:00:00
+Downloading idna-3.20-py3-none-any.whl (69 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 69.6/69.6 kB 677.8 kB/s eta 0:00:00
+Downloading immutabledict-4.3.1-py3-none-any.whl (5.0 kB)
+Downloading jmespath-1.1.0-py3-none-any.whl (20 kB)
+Downloading mako-1.4.3-py3-none-any.whl (80 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 80.2/80.2 kB 735.9 kB/s eta 0:00:00
+Downloading markupsafe-3.0.4-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (22 kB)
+Downloading numpy-2.5.4-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (16.7 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.7/16.7 MB 3.6 MB/s eta 0:00:00
+Downloading opentelemetry_api-1.45.2-py3-none-any.whl (60 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 60.3/60.3 kB 625.8 kB/s eta 0:00:00
+Downloading ortools-9.15.6755-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (29.8 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 29.8/29.8 MB 3.4 MB/s eta 0:00:00
+Downloading pandas-3.1.1-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (12.0 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 12.0/12.0 MB 3.7 MB/s eta 0:00:00
+Downloading pg8000-1.31.6-py3-none-any.whl (57 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 57.9/57.9 kB 656.2 kB/s eta 0:00:00
+Downloading pillow-13.0.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (7.1 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 7.1/7.1 MB 3.9 MB/s eta 0:00:00
+Downloading protobuf-6.33.6-cp39-abi3-manylinux2014_x86_64.whl (323 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 323.4/323.4 kB 2.2 MB/s eta 0:00:00
+Downloading pyarrow-26.0.1-cp312-cp312-manylinux_2_28_x86_64.whl (55.0 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 55.0/55.0 MB 3.3 MB/s eta 0:00:00
+Downloading pydantic-2.14.3-py3-none-any.whl (494 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 494.1/494.1 kB 2.8 MB/s eta 0:00:00
+Downloading pydantic_core-2.50.4-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (2.3 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.3/2.3 MB 4.1 MB/s eta 0:00:00
+Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 229.9/229.9 kB 1.9 MB/s eta 0:00:00
+Downloading python_dotenv-1.2.4-py3-none-any.whl (23 kB)
+Downloading s3transfer-0.19.3-py3-none-any.whl (90 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 90.3/90.3 kB 846.6 kB/s eta 0:00:00
+Downloading scramp-1.5.0-py3-none-any.whl (20 kB)
+Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
+Downloading sqlalchemy-2.0.57-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (3.5 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.5/3.5 MB 3.8 MB/s eta 0:00:00
+Downloading starlette-1.10.0-py3-none-any.whl (80 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 80.6/80.6 kB 816.0 kB/s eta 0:00:00
+Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 45.6/45.6 kB 498.6 kB/s eta 0:00:00
+Downloading typing_inspection-0.4.5-py3-none-any.whl (14 kB)
+Downloading tzdata-2026.6-py2.py3-none-any.whl (348 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 348.2/348.2 kB 2.4 MB/s eta 0:00:00
+Downloading urllib3-2.8.0-py3-none-any.whl (135 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 135.7/135.7 kB 1.4 MB/s eta 0:00:00
+Downloading uvicorn-0.54.0-py3-none-any.whl (87 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 87.4/87.4 kB 934.3 kB/s eta 0:00:00
+Installing collected packages: asn1crypto, urllib3, tzdata, typing-extensions, six, scramp, python-dotenv, pyarrow, protobuf, pillow, numpy, markupsafe, jmespath, immutabledict, idna, h11, greenlet, click, certifi, annotated-types, annotated-doc, absl-py, uvicorn, typing-inspection, sqlalchemy, python-dateutil, pydantic-core, opentelemetry-api, mako, httpcore, anyio, starlette, pydantic, pg8000, pandas, httpx, botocore, alembic, s3transfer, ortools, fastapi, boto3
+Successfully installed absl-py-2.5.1 alembic-1.20.1 annotated-doc-0.0.6 annotated-types-0.8.0 anyio-4.16.0 asn1crypto-1.5.1 boto3-1.44.1 botocore-1.44.1 certifi-2026.10.23 click-8.5.1 fastapi-0.162.5 greenlet-3.5.6 h11-0.16.0 httpcore-1.0.9 httpx-0.28.1 idna-3.20 immutabledict-4.3.1 jmespath-1.1.0 mako-1.4.3 markupsafe-3.0.4 numpy-2.5.4 opentelemetry-api-1.45.2 ortools-9.15.6755 pandas-3.1.1 pg8000-1.31.6 pillow-13.0.0 protobuf-6.33.6 pyarrow-26.0.1 pydantic-2.14.3 pydantic-core-2.50.4 python-dateutil-2.9.0.post0 python-dotenv-1.2.4 s3transfer-0.19.3 scramp-1.5.0 six-1.17.0 sqlalchemy-2.0.57 starlette-1.10.0 typing-extensions-4.16.0 typing-inspection-0.4.5 tzdata-2026.6 urllib3-2.8.0 uvicorn-0.54.0

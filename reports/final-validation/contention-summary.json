@@ -1,0 +1,24 @@
+{
+  "revision": "4bbc1d7077f3d3084df9eb1337b734880ee79181",
+  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+  "suite": "contention",
+  "results": [
+    {
+      "name": "capacity-1000",
+      "command": [
+        "C:\\Users\\nithe\\Pact-Compute\\pact-compute\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "tests/test_capacity_contention.py",
+        "-q",
+        "-ra",
+        "-p",
+        "no:cacheprovider"
+      ],
+      "cwd": "C:\\Users\\nithe\\Pact-Compute\\pact-compute",
+      "exit_code": 0,
+      "seconds": 49.39,
+      "log": "contention-capacity-1000.log"
+    }
+  ]
+}

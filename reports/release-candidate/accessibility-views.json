@@ -1,0 +1,27 @@
+{
+  "consumer/": [],
+  "consumer/market": [],
+  "consumer/bookings": [],
+  "consumer/jobs": [],
+  "consumer/agreements": [],
+  "consumer/team": [],
+  "producer/capacity": [],
+  "producer/market": [],
+  "reviewer/agreements": [],
+  "operator/incidents": [],
+  "researcher/research": [],
+  "researcher/data": [],
+  "researcher/explain": [],
+  "pricingCharts": [],
+  "runtimeCharts": [],
+  "reflow320": {
+    "documentWidth": 320,
+    "viewport": 320
+  },
+  "reducedMotion": true,
+  "cssZoom200": {
+    "kind": "CSS zoom reflow proxy, not native browser zoom",
+    "documentWidth": 1280,
+    "viewport": 1280
+  }
+}

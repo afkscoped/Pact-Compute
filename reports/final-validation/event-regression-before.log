@@ -1,0 +1,38 @@
+FF                                                                       [100%]
+================================== FAILURES ===================================
+_________ test_reconnect_drains_all_pages_without_cross_tenant_events _________
+
+event_store = Engine(sqlite:///C:/Users/nithe/AppData/Local/Temp/pytest-of-nithe/pytest-43/test_reconnect_drains_all_page0/events.db)
+
+    def test_reconnect_drains_all_pages_without_cross_tenant_events(event_store):
+        append(event_store, 0, 2505)
+        expected = [i for i in range(2505) if i % 11]
+        stream = outbox.entity_stream('events-a', 'job', 'stream-job', window=0)
+        lines = list(stream)
+>       assert ordinals(lines) == expected
+E       assert [1, 2, 3, 4, 5, 6, ...] == [1, 2, 3, 4, 5, 6, ...]
+E         
+E         Right contains 1277 more items, first extra item: 1101
+E         Use -v to get more diff
+
+tests\test_event_delivery.py:50: AssertionError
+____________ test_live_delivery_drains_burst_larger_than_one_batch ____________
+
+event_store = Engine(sqlite:///C:/Users/nithe/AppData/Local/Temp/pytest-of-nithe/pytest-43/test_live_delivery_drains_burs0/events.db)
+
+    def test_live_delivery_drains_burst_larger_than_one_batch(event_store):
+        stream = outbox.entity_stream('events-a', 'job', 'stream-job', window=1, pause=0)
+        assert next(stream).startswith(': keepalive')
+        append(event_store, 0, 2505)
+>       assert ordinals(stream) == [i for i in range(2505) if i % 11]
+E       assert [1, 2, 3, 4, 5, 6, ...] == [1, 2, 3, 4, 5, 6, ...]
+E         
+E         At index 1000 diff: 2000 != 1101
+E         Right contains 818 more items, first extra item: 1605
+E         Use -v to get more diff
+
+tests\test_event_delivery.py:61: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_event_delivery.py::test_reconnect_drains_all_pages_without_cross_tenant_events
+FAILED tests/test_event_delivery.py::test_live_delivery_drains_burst_larger_than_one_batch
+2 failed in 2.18s

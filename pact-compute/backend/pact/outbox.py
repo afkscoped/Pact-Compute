@@ -5,10 +5,12 @@ session), so an event exists if and only if its change committed. Sequence numbe
 allocated before commit: a slower transaction can commit seq 41 after seq 42 is already visible.
 A reader that simply advanced its cursor to 42 would never see 41.
 
-`horizon()` returns the highest sequence that is safe to deliver: every number up to it is either
-visible or a gap older than `GAP_GRACE` seconds (a rolled-back transaction leaves a permanent gap).
-Readers deliver only up to the horizon, so late commits are delivered in order, and a reconnecting
-client resumes from its `Last-Event-ID`.
+All application writers now acquire a transaction-scoped lock in db.session BEFORE
+writing. SQLite uses BEGIN IMMEDIATE; PostgreSQL uses an advisory lock. This makes
+event sequence order agree with visibility order. A finite gap timer ALONE cannot
+provide this guarantee. horizon() retains a short delay for rolled-back sequence
+gaps. Reads stay concurrent. Deployment must drain writers from older revisions.
+Reconnecting clients resume from Last-Event-ID and drain every scoped page.
 """
 import json
 import time
@@ -20,6 +22,7 @@ from .db import Event, session
 GAP_GRACE = 3.0
 MAX_SCAN = 2000
 MAX_GAP = 5000
+PAGE_SIZE = 1000
 
 
 def horizon(db, cursor: int, gaps: dict, now: float | None = None, grace: float = GAP_GRACE) -> int:
@@ -44,7 +47,7 @@ def newest(db) -> int:
     return db.scalar(select(Event.seq).order_by(Event.seq.desc()).limit(1)) or 0
 
 
-def entity_events(db, org, entity_type, entity_id, since, upto=None, limit=1000):
+def entity_events(db, org, entity_type, entity_id, since, upto=None, limit=PAGE_SIZE):
     stmt = select(Event).where(Event.org_id == org, Event.entity_type == entity_type,
                                Event.entity_id == entity_id, Event.seq > since)
     if upto is not None:
@@ -58,16 +61,25 @@ def entity_stream(org, entity_type, entity_id, last_event_id=0, window=22.0, pau
     cursor, gaps = last_event_id, {}
     with session() as db:
         guard = max(newest(db), cursor)
-        replay = entity_events(db, org, entity_type, entity_id, cursor, upto=guard)
-    for row in replay:
-        yield f'id: {row.seq}\ndata: {json.dumps(view(row))}\n\n'
+    # A global snapshot tip is not the last delivered row. Drain every scoped page
+    # before advancing to it, including when reconnecting to a large backlog.
+    while cursor < guard:
+        with session() as db:
+            replay = entity_events(db, org, entity_type, entity_id, cursor, upto=guard)
+        for row in replay:
+            yield f'id: {row.seq}\ndata: {json.dumps(view(row))}\n\n'
+            cursor = row.seq
+        if len(replay) < PAGE_SIZE:
+            break
     cursor = guard
     until = time.monotonic() + window
     while time.monotonic() < until:
         with session() as db:
             safe = horizon(db, cursor, gaps)
             batch = entity_events(db, org, entity_type, entity_id, cursor, upto=safe) if safe > cursor else []
-        cursor = max(cursor, safe)
+        # A full page may leave more authorized events below `safe`. Advancing
+        # past those rows silently lost committed events in the previous code.
+        cursor = batch[-1].seq if len(batch) == PAGE_SIZE else max(cursor, safe)
         if batch:
             for row in batch:
                 yield f'id: {row.seq}\ndata: {json.dumps(view(row))}\n\n'

@@ -1,0 +1,93 @@
+{
+  "revision": "4bbc1d7077f3d3084df9eb1337b734880ee79181",
+  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+  "suite": "research",
+  "results": [
+    {
+      "name": "import",
+      "command": [
+        "C:\\Users\\nithe\\Pact-Compute\\pact-compute\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pact.cli",
+        "import"
+      ],
+      "cwd": "C:\\Users\\nithe\\Pact-Compute\\pact-compute",
+      "exit_code": 0,
+      "seconds": 2.859,
+      "log": "research-repeat-import.log"
+    },
+    {
+      "name": "extraction",
+      "command": [
+        "C:\\Users\\nithe\\Pact-Compute\\pact-compute\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pact.cli",
+        "benchmark"
+      ],
+      "cwd": "C:\\Users\\nithe\\Pact-Compute\\pact-compute",
+      "exit_code": 0,
+      "seconds": 1.688,
+      "log": "research-repeat-extraction.log"
+    },
+    {
+      "name": "support",
+      "command": [
+        "C:\\Users\\nithe\\Pact-Compute\\pact-compute\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pact.cli",
+        "support-benchmark"
+      ],
+      "cwd": "C:\\Users\\nithe\\Pact-Compute\\pact-compute",
+      "exit_code": 0,
+      "seconds": 1.671,
+      "log": "research-repeat-support.log"
+    },
+    {
+      "name": "runtime",
+      "command": [
+        "C:\\Users\\nithe\\Pact-Compute\\pact-compute\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pact.cli",
+        "runtime-baselines"
+      ],
+      "cwd": "C:\\Users\\nithe\\Pact-Compute\\pact-compute",
+      "exit_code": 0,
+      "seconds": 2.734,
+      "log": "research-repeat-runtime.log"
+    },
+    {
+      "name": "scheduler",
+      "command": [
+        "C:\\Users\\nithe\\Pact-Compute\\pact-compute\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pact.cli",
+        "scheduler-baselines",
+        "--seeds",
+        "20",
+        "--jobs",
+        "90"
+      ],
+      "cwd": "C:\\Users\\nithe\\Pact-Compute\\pact-compute",
+      "exit_code": 0,
+      "seconds": 64.016,
+      "log": "research-repeat-scheduler.log"
+    },
+    {
+      "name": "publication",
+      "command": [
+        "C:\\Users\\nithe\\Pact-Compute\\pact-compute\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pact.cli",
+        "publication-study",
+        "--seeds",
+        "20",
+        "--jobs",
+        "90"
+      ],
+      "cwd": "C:\\Users\\nithe\\Pact-Compute\\pact-compute",
+      "exit_code": 0,
+      "seconds": 114.922,
+      "log": "research-repeat-publication.log"
+    }
+  ]
+}

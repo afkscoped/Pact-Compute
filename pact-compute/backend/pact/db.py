@@ -281,6 +281,14 @@ def session(write: bool = False):
     with Session(engine, expire_on_commit=False) as db:
         if write and sqlite:
             db.execute(text('BEGIN IMMEDIATE'))
+        elif write and engine.dialect.name == 'postgresql':
+            # Event sequences are allocated before commit. Serialize writers
+            # BEFORE taking any application locks or assigning event IDs so a
+            # later ID cannot commit first, regardless of transaction duration.
+            # The two-int advisory namespace is separate from rate-limit locks.
+            # This intentionally trades write throughput for correctness in the
+            # current small private installation; reads remain concurrent.
+            db.execute(text('SELECT pg_advisory_xact_lock(1346454356, 1)'))
         yield db
         if write:
             db.commit()

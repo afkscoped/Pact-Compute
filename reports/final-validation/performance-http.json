@@ -1,0 +1,45 @@
+{
+  "platform": "Windows-11-10.0.26200-SP0",
+  "database": "isolated SQLite WAL",
+  "scope": "Warm loopback API with small local fixture; no WAN, production or long-duration throughput claim",
+  "measurements": [
+    {
+      "endpoint": "/api/v1/jobs?limit=20",
+      "name": "jobs-read",
+      "samples": 100,
+      "concurrency": 4,
+      "p50_s": 0.027591800084337592,
+      "p95_s": 0.04494190006516874,
+      "max_s": 0.08781199995428324,
+      "target_p95_s": 2,
+      "gate": "PASS"
+    },
+    {
+      "endpoint": "/api/v1/jobs/preview",
+      "name": "placement-preview",
+      "samples": 100,
+      "concurrency": 4,
+      "p50_s": 0.03154879994690418,
+      "p95_s": 0.040646999957971275,
+      "max_s": 0.0445275999372825,
+      "target_p95_s": 2,
+      "gate": "PASS"
+    },
+    {
+      "endpoint": "/api/v1/market/quotes",
+      "name": "quote-generation",
+      "samples": 100,
+      "concurrency": 4,
+      "p50_s": 0.013386399950832129,
+      "p95_s": 0.11922810005489737,
+      "max_s": 0.45752380008343607,
+      "target_p95_s": 2,
+      "gate": "PASS"
+    }
+  ],
+  "artifact_transfer": {
+    "bytes": 44252,
+    "seconds": 0.006328599993139505,
+    "hash_verified": true
+  }
+}

@@ -1,0 +1,25 @@
+
+> pact-compute-console@0.1.0 build
+> tsc --noEmit && node build.mjs
+
+node:events:486
+      throw er; // Unhandled 'error' event
+      ^
+
+RangeError: Invalid array length
+    at Array.push (<anonymous>)
+    at writeOrBuffer (node:internal/streams/writable:557:27)
+    at _write (node:internal/streams/writable:499:10)
+    at Writable.write (node:internal/streams/writable:508:10)
+    at fs.writeSync (C:\Users\nithe\Pact-Compute\pact-compute\frontend\node_modules\esbuild-wasm\bin\esbuild:69:55)
+    at SyncWriteStream._write (node:internal/fs/sync_write_stream:27:5)
+    at doWrite (node:internal/streams/writable:596:12)
+    at clearBuffer (node:internal/streams/writable:781:7)
+    at onwrite (node:internal/streams/writable:651:7)
+    at SyncWriteStream._write (node:internal/fs/sync_write_stream:32:3)
+Emitted 'error' event on SyncWriteStream instance at:
+    at emitErrorNT (node:internal/streams/destroy:170:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:129:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+
+Node.js v24.11.1

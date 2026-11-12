@@ -1,0 +1,126 @@
+........................................................................ [ 30%]
+........................................................................ [ 60%]
+..................................s............F........................ [ 90%]
+.F.........F......F.....                                                 [100%]
+================================== FAILURES ===================================
+___________ test_import_subcommand_runs_against_the_bundled_dataset ___________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001EE6B2CE3C0>
+capsys = <_pytest.capture.CaptureFixture object at 0x000001EE6A35C200>
+
+    def test_import_subcommand_runs_against_the_bundled_dataset(monkeypatch, capsys):
+        # Regression: a function-local `import_sources` import in another branch of main() made the name local to the whole
+        # function, so `pact.cli import` (run by the deploy entrypoint) crashed with UnboundLocalError.
+>       run_cli(monkeypatch, 'import')
+
+tests\test_cli.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_cli.py:12: in run_cli
+    cli.main()
+backend\pact\cli.py:54: in main
+    card = import_sources()
+           ^^^^^^^^^^^^^^^^
+backend\pact\datasets.py:131: in import_sources
+    return normalize(source_index())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\pact\datasets.py:61: in normalize
+    raw = {name: verified_file(index, name) for name in (PODS, DEFAULT, NODES, CARBON)}
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+index = {'openb_pod_list_default.csv': {'file': 'openb_pod_list_default.csv', 'url': 'https://raw.githubusercontent.com/alibab...10-01T00:00Z/2025-10-29T00:00Z', 'retrieved_at_utc': '2026-11-12T10:22:33.6851301Z', 'status': 'downloaded', ...}, ...}
+name = 'openb_pod_list_gpuspec33.csv'
+
+    def verified_file(index, name):
+        entry = index[name]
+        data = (DATA / name).read_bytes()
+        if sha(data) != entry['sha256']:
+>           raise ValueError(f'Source checksum changed for {name}.')
+E           ValueError: Source checksum changed for openb_pod_list_gpuspec33.csv.
+
+backend\pact\datasets.py:39: ValueError
+_______________ test_source_import_and_reproducible_experiment ________________
+
+client = <starlette.testclient.TestClient object at 0x000001EE6A2A9DF0>
+
+    def test_source_import_and_reproducible_experiment(client):
+        result = client.post('/api/v1/datasets/import')
+>       assert result.status_code == 200, result.text
+E       AssertionError: {"detail":"Import failed: Source checksum changed for openb_pod_list_gpuspec33.csv."}
+E       assert 422 == 200
+E        +  where 422 = <Response [422 Unprocessable Entity]>.status_code
+
+tests\test_control_plane.py:867: AssertionError
+_______ test_real_snapshot_artifacts_are_reproducible_and_hash_verified _______
+
+tmp_path = WindowsPath('C:/Users/nithe/AppData/Local/Temp/pytest-of-nithe/pytest-42/test_real_snapshot_artifacts_a0')
+
+    def test_real_snapshot_artifacts_are_reproducible_and_hash_verified(tmp_path):
+        from pact import datasets
+>       card = datasets.import_sources()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_runtime_baselines.py:70: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+backend\pact\datasets.py:131: in import_sources
+    return normalize(source_index())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\pact\datasets.py:61: in normalize
+    raw = {name: verified_file(index, name) for name in (PODS, DEFAULT, NODES, CARBON)}
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+index = {'openb_pod_list_default.csv': {'file': 'openb_pod_list_default.csv', 'url': 'https://raw.githubusercontent.com/alibab...10-01T00:00Z/2025-10-29T00:00Z', 'retrieved_at_utc': '2026-11-12T10:22:33.6851301Z', 'status': 'downloaded', ...}, ...}
+name = 'openb_pod_list_gpuspec33.csv'
+
+    def verified_file(index, name):
+        entry = index[name]
+        data = (DATA / name).read_bytes()
+        if sha(data) != entry['sha256']:
+>           raise ValueError(f'Source checksum changed for {name}.')
+E           ValueError: Source checksum changed for openb_pod_list_gpuspec33.csv.
+
+backend\pact\datasets.py:39: ValueError
+___ test_real_replay_is_deterministic_uses_shared_inputs_and_hash_verified ____
+
+tmp_path = WindowsPath('C:/Users/nithe/AppData/Local/Temp/pytest-of-nithe/pytest-42/test_real_replay_is_determinis0')
+
+    def test_real_replay_is_deterministic_uses_shared_inputs_and_hash_verified(tmp_path):
+        from pact import datasets
+>       card = datasets.import_sources()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_scheduler_baselines.py:84: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+backend\pact\datasets.py:131: in import_sources
+    return normalize(source_index())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\pact\datasets.py:61: in normalize
+    raw = {name: verified_file(index, name) for name in (PODS, DEFAULT, NODES, CARBON)}
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+index = {'openb_pod_list_default.csv': {'file': 'openb_pod_list_default.csv', 'url': 'https://raw.githubusercontent.com/alibab...10-01T00:00Z/2025-10-29T00:00Z', 'retrieved_at_utc': '2026-11-12T10:22:33.6851301Z', 'status': 'downloaded', ...}, ...}
+name = 'openb_pod_list_gpuspec33.csv'
+
+    def verified_file(index, name):
+        entry = index[name]
+        data = (DATA / name).read_bytes()
+        if sha(data) != entry['sha256']:
+>           raise ValueError(f'Source checksum changed for {name}.')
+E           ValueError: Source checksum changed for openb_pod_list_gpuspec33.csv.
+
+backend\pact\datasets.py:39: ValueError
+============================== warnings summary ===============================
+.venv\Lib\site-packages\fastapi\testclient.py:1
+  C:\Users\nithe\Pact-Compute\pact-compute\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_authorization_matrix.py:316: covered by test_switching_into_a_foreign_workspace_is_refused
+FAILED tests/test_cli.py::test_import_subcommand_runs_against_the_bundled_dataset
+FAILED tests/test_control_plane.py::test_source_import_and_reproducible_experiment
+FAILED tests/test_runtime_baselines.py::test_real_snapshot_artifacts_are_reproducible_and_hash_verified
+FAILED tests/test_scheduler_baselines.py::test_real_replay_is_deterministic_uses_shared_inputs_and_hash_verified
+4 failed, 235 passed, 1 skipped, 1 warning in 46.86s

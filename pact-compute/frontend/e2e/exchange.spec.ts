@@ -3,7 +3,7 @@ import path from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
 
 test('producer and consumers share a live booking and inspect its protocol', async ({ browser, baseURL }) => {
-  const state = path.resolve('..', '.local');
+  const state = process.env.PACT_STATE_DIR || path.resolve('..', '.local');
   const passwords = JSON.parse(await readFile(path.join(state, 'market-credentials.json'), 'utf8'));
   const contexts = await Promise.all([1, 2, 3].map(() => browser.newContext({ baseURL })));
   const [producer, consumer, rival] = await Promise.all(contexts.map(context => context.newPage()));
@@ -15,11 +15,27 @@ test('producer and consumers share a live booking and inspect its protocol', asy
     await page.getByLabel('Username', { exact: true }).fill(username);
     await page.getByLabel('Password', { exact: true }).fill(passwords[username]);
     await page.getByRole('button', { name: 'Sign in', exact: true }).click();
-    await expect(page.getByRole('heading', { name: role === 'producer' ? 'Producer exchange' : 'GPU exchange', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: role === 'producer' ? 'Producer exchange' : 'Welcome, ' + username, exact: true })).toBeVisible();
+    if (role === 'consumer') await page.goto('/#/market');
   }
   try {
     await Promise.all([signIn(producer, 'producer', 'demo-producer'), signIn(consumer, 'consumer', 'demo-consumer'),
       signIn(rival, 'consumer', 'demo-consumer-2')]);
+    const policies = new Map<Page, string>();
+    if (process.env.PACT_TEST_VRAM_GIB) {
+      for (const [buyer, username] of [[consumer, 'demo-reviewer'], [rival, 'demo-reviewer-2']] as const) {
+        const reviewer = await browser.newContext({ baseURL });
+        const login = await reviewer.request.post('/api/v1/session', { data: { username, password: passwords[username] } });
+        expect(login.ok()).toBeTruthy();
+        const config = await (await reviewer.request.get('/api/v1/config')).json();
+        const draft = await (await reviewer.request.post('/api/v1/policies', { data: { title: 'Verified local GPU policy',
+          source: config.example_contract.replace('4 GiB', process.env.PACT_TEST_VRAM_GIB + ' GiB') } })).json();
+        expect((await reviewer.request.post('/api/v1/policies/' + draft.id + '/approve')).ok()).toBeTruthy();
+        policies.set(buyer, draft.id);
+        await reviewer.close();
+      }
+      await Promise.all([consumer.reload(), rival.reload()]);
+    }
     await expect(producer.getByText('GPU connected', { exact: true })).toBeVisible({ timeout: 75_000 });
     await expect(consumer.getByText('Live updates', { exact: true })).toBeVisible();
     const offer = 'Shared RTX slot ' + Date.now();
@@ -29,7 +45,8 @@ test('producer and consumers share a live booking and inspect its protocol', asy
     const requestQuote = async (page: Page) => {
       const listing = page.locator('article').filter({ hasText: offer });
       await expect(listing).toBeVisible();
-      await listing.getByRole('button', { name: 'Request quote', exact: true }).click();
+      await listing.getByRole('button', { name: 'Request quote for ' + offer, exact: true }).click();
+      if (policies.has(page)) await page.getByRole('combobox', { name: /^Agreement/ }).selectOption(policies.get(page)!);
       await page.getByRole('button', { name: 'Get quote', exact: true }).click();
       await expect(page.getByRole('button', { name: 'Confirm reservation', exact: true })).toBeEnabled();
     };

@@ -1,0 +1,9 @@
+No broken requirements found.
+Control-plane data initialized.
+cef391f551a78f615750faa6814321d2eb8c2350a0c7c2ea114294f8c1f4befd: 7064 GPU pods and 1344 carbon intervals.
+/mnt/c/Users/nithe/Pact-Compute/pact-compute/.local/rc-linux-runtime/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+  from starlette.testclient import TestClient as TestClient  # noqa
+worker exited unexpectedly (status 0); stopping the service
+worker exited unexpectedly (status 7); stopping the service
+Linux API authentication, health and artifact hash checks passed
+Linux child exit and requested-shutdown supervision checks passed

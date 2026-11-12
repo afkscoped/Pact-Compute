@@ -1,0 +1,317 @@
+
+> pact-compute-console@0.1.0 test:e2e
+> playwright test --reporter=json
+
+{
+  "config": {
+    "argv": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "C:\\Users\\nithe\\Pact-Compute\\pact-compute\\frontend\\node_modules\\@playwright\\test\\cli.js",
+      "test",
+      "--reporter=json"
+    ],
+    "configFile": "C:\\Users\\nithe\\Pact-Compute\\pact-compute\\frontend\\playwright.config.ts",
+    "rootDir": "C:/Users/nithe/Pact-Compute/pact-compute/frontend/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Users/nithe/Pact-Compute/pact-compute/frontend/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "C:/Users/nithe/Pact-Compute/pact-compute/frontend/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 210000
+      }
+    ],
+    "filteredProjects": [
+      {
+        "grep": {},
+        "grepInvert": null,
+        "outputDir": "C:\\Users\\nithe\\Pact-Compute\\pact-compute\\frontend\\test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "name": "",
+        "testDir": "C:\\Users\\nithe\\Pact-Compute\\pact-compute\\frontend\\e2e",
+        "snapshotDir": "C:\\Users\\nithe\\Pact-Compute\\pact-compute\\frontend\\e2e",
+        "testIgnore": [],
+        "testMatch": "**/*.@(spec|test).?(c|m)[jt]s?(x)",
+        "timeout": 210000,
+        "use": {
+          "baseURL": "http://127.0.0.1:8766",
+          "channel": "msedge",
+          "viewport": {
+            "width": 1440,
+            "height": 1050
+          },
+          "screenshot": "only-on-failure",
+          "actionTimeout": 12000
+        },
+        "dependencies": [],
+        "ignoreSnapshots": false,
+        "__projectId": ""
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "default",
+    "updateSourceMethod": "patch",
+    "version": "1.65.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "exchange.spec.ts",
+      "file": "exchange.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "producer and consumers share a live booking and inspect its protocol",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 210000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 18799,
+                  "error": {
+                    "message": "TimeoutError: locator.click: Timeout 12000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('article').filter({ hasText: 'Shared RTX slot 1794509616346' }).getByRole('button', { name: 'Request quote', exact: true })\u001b[22m\n",
+                    "stack": "TimeoutError: locator.click: Timeout 12000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('article').filter({ hasText: 'Shared RTX slot 1794509616346' }).getByRole('button', { name: 'Request quote', exact: true })\u001b[22m\n\n    at requestQuote (C:\\Users\\nithe\\Pact-Compute\\pact-compute\\frontend\\e2e\\exchange.spec.ts:48:81)\n    at C:\\Users\\nithe\\Pact-Compute\\pact-compute\\frontend\\e2e\\exchange.spec.ts:53:5",
+                    "location": {
+                      "file": "C:\\Users\\nithe\\Pact-Compute\\pact-compute\\frontend\\e2e\\exchange.spec.ts",
+                      "column": 81,
+                      "line": 48
+                    },
+                    "snippet": " \u001b[90m 46 |\u001b[39m       \u001b[36mconst\u001b[39m listing \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'article'\u001b[39m)\u001b[33m.\u001b[39mfilter({ hasText\u001b[33m:\u001b[39m offer })\u001b[33m;\u001b[39m\n \u001b[90m 47 |\u001b[39m       \u001b[36mawait\u001b[39m expect(listing)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 48 |\u001b[39m       \u001b[36mawait\u001b[39m listing\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[32m'Request quote'\u001b[39m\u001b[33m,\u001b[39m exact\u001b[33m:\u001b[39m \u001b[36mtrue\u001b[39m })\u001b[33m.\u001b[39mclick()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                                                                 \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 49 |\u001b[39m       \u001b[36mif\u001b[39m (policies\u001b[33m.\u001b[39mhas(page)) \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgetByLabel(\u001b[32m'Agreement'\u001b[39m\u001b[33m,\u001b[39m { exact\u001b[33m:\u001b[39m \u001b[36mtrue\u001b[39m })\u001b[33m.\u001b[39mselectOption(policies\u001b[33m.\u001b[39mget(page)\u001b[33m!\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 50 |\u001b[39m       \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[32m'Get quote'\u001b[39m\u001b[33m,\u001b[39m exact\u001b[33m:\u001b[39m \u001b[36mtrue\u001b[39m })\u001b[33m.\u001b[39mclick()\u001b[33m;\u001b[39m\n \u001b[90m 51 |\u001b[39m       \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[32m'Confirm reservation'\u001b[39m\u001b[33m,\u001b[39m exact\u001b[33m:\u001b[39m \u001b[36mtrue\u001b[39m }))\u001b[33m.\u001b[39mtoBeEnabled()\u001b[33m;\u001b[39m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "C:\\Users\\nithe\\Pact-Compute\\pact-compute\\frontend\\e2e\\exchange.spec.ts",
+                        "column": 81,
+                        "line": 48
+                      },
+                      "message": "TimeoutError: locator.click: Timeout 12000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('article').filter({ hasText: 'Shared RTX slot 1794509616346' }).getByRole('button', { name: 'Request quote', exact: true })\u001b[22m\n\n\n  46 |       const listing = page.locator('article').filter({ hasText: offer });\n  47 |       await expect(listing).toBeVisible();\n> 48 |       await listing.getByRole('button', { name: 'Request quote', exact: true }).click();\n     |                                                                                 ^\n  49 |       if (policies.has(page)) await page.getByLabel('Agreement', { exact: true }).selectOption(policies.get(page)!);\n  50 |       await page.getByRole('button', { name: 'Get quote', exact: true }).click();\n  51 |       await expect(page.getByRole('button', { name: 'Confirm reservation', exact: true })).toBeEnabled();\n    at requestQuote (C:\\Users\\nithe\\Pact-Compute\\pact-compute\\frontend\\e2e\\exchange.spec.ts:48:81)\n    at C:\\Users\\nithe\\Pact-Compute\\pact-compute\\frontend\\e2e\\exchange.spec.ts:53:5"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-12T18:53:29.755Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "C:\\Users\\nithe\\Pact-Compute\\pact-compute\\frontend\\test-results\\exchange-producer-and-cons-5fd19-ng-and-inspect-its-protocol\\test-failed-1.png"
+                    },
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "C:\\Users\\nithe\\Pact-Compute\\pact-compute\\frontend\\test-results\\exchange-producer-and-cons-5fd19-ng-and-inspect-its-protocol\\test-failed-2.png"
+                    },
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "C:\\Users\\nithe\\Pact-Compute\\pact-compute\\frontend\\test-results\\exchange-producer-and-cons-5fd19-ng-and-inspect-its-protocol\\test-failed-3.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "C:\\Users\\nithe\\Pact-Compute\\pact-compute\\frontend\\test-results\\exchange-producer-and-cons-5fd19-ng-and-inspect-its-protocol\\error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "C:\\Users\\nithe\\Pact-Compute\\pact-compute\\frontend\\e2e\\exchange.spec.ts",
+                    "column": 81,
+                    "line": 48
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "24d6aa13145a20c0e77c-eeb838b601b8b0ac745d",
+          "file": "exchange.spec.ts",
+          "line": 5,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "roles.spec.ts",
+      "file": "roles.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "consumer signup, reviewer invitation and inbox approval work across isolated sessions",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 210000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 14814,
+                  "error": {
+                    "message": "TimeoutError: locator.focus: Timeout 12000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Skip to content' })\u001b[22m\n",
+                    "stack": "TimeoutError: locator.focus: Timeout 12000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Skip to content' })\u001b[22m\n\n    at C:\\Users\\nithe\\Pact-Compute\\pact-compute\\frontend\\e2e\\roles.spec.ts:46:65",
+                    "location": {
+                      "file": "C:\\Users\\nithe\\Pact-Compute\\pact-compute\\frontend\\e2e\\roles.spec.ts",
+                      "column": 65,
+                      "line": 46
+                    },
+                    "snippet": " \u001b[90m 44 |\u001b[39m     \u001b[90m// Keyboard skip navigation and narrow-screen layout are actual browser checks.\u001b[39m\n \u001b[90m 45 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mkeyboard\u001b[33m.\u001b[39mpress(\u001b[32m'Tab'\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 46 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[32m'Skip to content'\u001b[39m })\u001b[33m.\u001b[39mfocus()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                                                 \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 47 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mkeyboard\u001b[33m.\u001b[39mpress(\u001b[32m'Enter'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 48 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'main'\u001b[39m))\u001b[33m.\u001b[39mtoBeFocused()\u001b[33m;\u001b[39m\n \u001b[90m 49 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39msetViewportSize({ width\u001b[33m:\u001b[39m \u001b[35m390\u001b[39m\u001b[33m,\u001b[39m height\u001b[33m:\u001b[39m \u001b[35m844\u001b[39m })\u001b[33m;\u001b[39m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "C:\\Users\\nithe\\Pact-Compute\\pact-compute\\frontend\\e2e\\roles.spec.ts",
+                        "column": 65,
+                        "line": 46
+                      },
+                      "message": "TimeoutError: locator.focus: Timeout 12000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Skip to content' })\u001b[22m\n\n\n  44 |     // Keyboard skip navigation and narrow-screen layout are actual browser checks.\n  45 |     await page.keyboard.press('Tab');\n> 46 |     await page.getByRole('button', { name: 'Skip to content' }).focus();\n     |                                                                 ^\n  47 |     await page.keyboard.press('Enter');\n  48 |     await expect(page.locator('main')).toBeFocused();\n  49 |     await page.setViewportSize({ width: 390, height: 844 });\n    at C:\\Users\\nithe\\Pact-Compute\\pact-compute\\frontend\\e2e\\roles.spec.ts:46:65"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-12T18:53:49.887Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "C:\\Users\\nithe\\Pact-Compute\\pact-compute\\frontend\\test-results\\roles-consumer-signup-revi-57a5a-rk-across-isolated-sessions\\test-failed-1.png"
+                    },
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "C:\\Users\\nithe\\Pact-Compute\\pact-compute\\frontend\\test-results\\roles-consumer-signup-revi-57a5a-rk-across-isolated-sessions\\test-failed-2.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "C:\\Users\\nithe\\Pact-Compute\\pact-compute\\frontend\\test-results\\roles-consumer-signup-revi-57a5a-rk-across-isolated-sessions\\error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "C:\\Users\\nithe\\Pact-Compute\\pact-compute\\frontend\\e2e\\roles.spec.ts",
+                    "column": 65,
+                    "line": 46
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "7a25b8aaa0fcc60dba5a-e768d8027fcaf93fa8c8",
+          "file": "roles.spec.ts",
+          "line": 6,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "workspace.spec.ts",
+      "file": "workspace.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "approves an agreement, executes a real GPU job, and runs the trace benchmark",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 210000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 14115,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-12T18:54:05.768Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "b163ed09f68681248ada-57bedd07a0d7d3c2c5c3",
+          "file": "workspace.spec.ts",
+          "line": 6,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-12T18:53:28.909Z",
+    "duration": 53638.255,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 2,
+    "flaky": 0
+  }
+}

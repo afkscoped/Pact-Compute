@@ -1,0 +1,257 @@
+table,arm_or_pair,metric,label,mean_or_delta,ci95_low,ci95_high,n_or_pairs,verdict
+arm,fcfs,admitted_fraction,simulated,0.995556,0.993333,0.997778,20,
+arm,fcfs,completed_fraction,simulated,0.931667,0.920556,0.941667,20,
+arm,fcfs,on_time_fraction,simulated,0.931667,0.92,0.941667,20,
+arm,fcfs,wait_p50_min,simulated,0,0,0,20,
+arm,fcfs,wait_p95_min,simulated,0,0,0,20,
+arm,fcfs,bounded_slowdown_mean,simulated,1,1,1,20,
+arm,fcfs,bounded_slowdown_p95,simulated,1,1,1,20,
+arm,fcfs,gpu_utilization,simulated,0.149056,0.141902,0.156238,20,
+arm,fcfs,cost_credits,modeled,112.325,107.328,118.171,20,
+arm,fcfs,cost_per_completed,modeled,1.34099,1.27752,1.40965,20,
+arm,fcfs,carbon_g,modeled,2061.98,1602.88,2510.35,20,
+arm,fcfs,carbon_g_per_completed,modeled,24.4954,18.868,30.5657,20,
+arm,fcfs,energy_kwh,modeled,14.4157,13.6633,15.2003,20,
+arm,fcfs,not_admitted,simulated,0.4,0.2,0.6,20,
+arm,fcfs,overruns,simulated,5.75,4.9,6.75,20,
+arm,fcfs,policy_violations,simulated,0,0,0,20,
+arm,edf,admitted_fraction,simulated,0.995556,0.993333,0.997778,20,
+arm,edf,completed_fraction,simulated,0.931667,0.92,0.941667,20,
+arm,edf,on_time_fraction,simulated,0.931667,0.921111,0.941667,20,
+arm,edf,wait_p50_min,simulated,0,0,0,20,
+arm,edf,wait_p95_min,simulated,0,0,0,20,
+arm,edf,bounded_slowdown_mean,simulated,1,1,1,20,
+arm,edf,bounded_slowdown_p95,simulated,1,1,1,20,
+arm,edf,gpu_utilization,simulated,0.149056,0.142871,0.155975,20,
+arm,edf,cost_credits,modeled,112.181,107.118,117.848,20,
+arm,edf,cost_per_completed,modeled,1.33929,1.27543,1.41154,20,
+arm,edf,carbon_g,modeled,2054.16,1589.82,2541.69,20,
+arm,edf,carbon_g_per_completed,modeled,24.4016,19.1216,30.0637,20,
+arm,edf,energy_kwh,modeled,14.3526,13.6168,15.2636,20,
+arm,edf,not_admitted,simulated,0.4,0.2,0.6,20,
+arm,edf,overruns,simulated,5.75,4.95,6.75,20,
+arm,edf,policy_violations,simulated,0,0,0,20,
+arm,policy_only,admitted_fraction,simulated,0.995556,0.992778,0.997778,20,
+arm,policy_only,completed_fraction,simulated,0.931667,0.92,0.941667,20,
+arm,policy_only,on_time_fraction,simulated,0.931667,0.919444,0.941667,20,
+arm,policy_only,wait_p50_min,simulated,0,0,0,20,
+arm,policy_only,wait_p95_min,simulated,21,7.5,37.5,20,
+arm,policy_only,bounded_slowdown_mean,simulated,1.04728,1.02149,1.07722,20,
+arm,policy_only,bounded_slowdown_p95,simulated,1.28333,1.1,1.5,20,
+arm,policy_only,gpu_utilization,simulated,0.149056,0.14214,0.156348,20,
+arm,policy_only,cost_credits,modeled,111.564,106.493,117.161,20,
+arm,policy_only,cost_per_completed,modeled,1.3317,1.26827,1.40502,20,
+arm,policy_only,carbon_g,modeled,2020.85,1557.29,2502,20,
+arm,policy_only,carbon_g_per_completed,modeled,24.0025,18.7082,29.5028,20,
+arm,policy_only,energy_kwh,modeled,14.1622,13.5036,14.8246,20,
+arm,policy_only,not_admitted,simulated,0.4,0.2,0.6,20,
+arm,policy_only,overruns,simulated,5.75,4.85,6.65,20,
+arm,policy_only,policy_violations,simulated,0,0,0,20,
+arm,carbon_aware,admitted_fraction,simulated,0.995556,0.992778,0.997778,20,
+arm,carbon_aware,completed_fraction,simulated,0.931667,0.920556,0.942222,20,
+arm,carbon_aware,on_time_fraction,simulated,0.931667,0.920556,0.942222,20,
+arm,carbon_aware,wait_p50_min,simulated,0,0,0,20,
+arm,carbon_aware,wait_p95_min,simulated,46.5,24,72,20,
+arm,carbon_aware,bounded_slowdown_mean,simulated,1.11274,1.06918,1.16356,20,
+arm,carbon_aware,bounded_slowdown_p95,simulated,1.7,1.35,2.16667,20,
+arm,carbon_aware,gpu_utilization,simulated,0.149056,0.142125,0.156037,20,
+arm,carbon_aware,cost_credits,modeled,114.735,110.007,120.794,20,
+arm,carbon_aware,cost_per_completed,modeled,1.36927,1.30744,1.43635,20,
+arm,carbon_aware,carbon_g,modeled,1855.1,1459.73,2253.38,20,
+arm,carbon_aware,carbon_g_per_completed,modeled,22.0437,17.0727,26.9334,20,
+arm,carbon_aware,energy_kwh,modeled,13.2275,12.5385,13.9501,20,
+arm,carbon_aware,not_admitted,simulated,0.4,0.2,0.65,20,
+arm,carbon_aware,overruns,simulated,5.75,4.9,6.65,20,
+arm,carbon_aware,policy_violations,simulated,0,0,0,20,
+arm,unconstrained,admitted_fraction,simulated,0.995556,0.992778,0.997778,20,
+arm,unconstrained,completed_fraction,simulated,0.931667,0.92,0.941667,20,
+arm,unconstrained,on_time_fraction,simulated,0.931667,0.92,0.942222,20,
+arm,unconstrained,wait_p50_min,simulated,0,0,0,20,
+arm,unconstrained,wait_p95_min,simulated,21,7.5,37.5,20,
+arm,unconstrained,bounded_slowdown_mean,simulated,1.04728,1.02084,1.07987,20,
+arm,unconstrained,bounded_slowdown_p95,simulated,1.28333,1.1,1.5,20,
+arm,unconstrained,gpu_utilization,simulated,0.149056,0.142703,0.156458,20,
+arm,unconstrained,cost_credits,modeled,111.564,106.936,117.156,20,
+arm,unconstrained,cost_per_completed,modeled,1.3317,1.26738,1.40446,20,
+arm,unconstrained,carbon_g,modeled,2020.85,1565.05,2545.22,20,
+arm,unconstrained,carbon_g_per_completed,modeled,24.0025,18.5058,29.5782,20,
+arm,unconstrained,energy_kwh,modeled,14.1622,13.5316,14.9451,20,
+arm,unconstrained,not_admitted,simulated,0.4,0.2,0.6,20,
+arm,unconstrained,overruns,simulated,5.75,4.95,6.7,20,
+arm,unconstrained,policy_violations,simulated,0,0,0,20,
+arm,easy_backfill,admitted_fraction,simulated,0.995556,0.993333,0.997778,20,
+arm,easy_backfill,completed_fraction,simulated,0.931667,0.918889,0.942778,20,
+arm,easy_backfill,on_time_fraction,simulated,0.931667,0.919444,0.941667,20,
+arm,easy_backfill,wait_p50_min,simulated,0,0,0,20,
+arm,easy_backfill,wait_p95_min,simulated,0,0,0,20,
+arm,easy_backfill,bounded_slowdown_mean,simulated,1,1,1,20,
+arm,easy_backfill,bounded_slowdown_p95,simulated,1,1,1,20,
+arm,easy_backfill,gpu_utilization,simulated,0.149056,0.142554,0.156247,20,
+arm,easy_backfill,cost_credits,modeled,112.325,107.553,117.903,20,
+arm,easy_backfill,cost_per_completed,modeled,1.34099,1.27644,1.41108,20,
+arm,easy_backfill,carbon_g,modeled,2061.98,1612.84,2551.91,20,
+arm,easy_backfill,carbon_g_per_completed,modeled,24.4954,19.0257,30.6458,20,
+arm,easy_backfill,energy_kwh,modeled,14.4157,13.6978,15.2408,20,
+arm,easy_backfill,not_admitted,simulated,0.4,0.2,0.6,20,
+arm,easy_backfill,overruns,simulated,5.75,4.85,6.7,20,
+arm,easy_backfill,policy_violations,simulated,0,0,0,20,
+arm,edf_aging,admitted_fraction,simulated,0.995556,0.992778,0.997778,20,
+arm,edf_aging,completed_fraction,simulated,0.931667,0.919444,0.941667,20,
+arm,edf_aging,on_time_fraction,simulated,0.931667,0.92,0.942222,20,
+arm,edf_aging,wait_p50_min,simulated,0,0,0,20,
+arm,edf_aging,wait_p95_min,simulated,0,0,0,20,
+arm,edf_aging,bounded_slowdown_mean,simulated,1,1,1,20,
+arm,edf_aging,bounded_slowdown_p95,simulated,1,1,1,20,
+arm,edf_aging,gpu_utilization,simulated,0.149056,0.142167,0.156309,20,
+arm,edf_aging,cost_credits,modeled,112.181,107.318,118.052,20,
+arm,edf_aging,cost_per_completed,modeled,1.33929,1.27652,1.41121,20,
+arm,edf_aging,carbon_g,modeled,2054.16,1569.67,2539.15,20,
+arm,edf_aging,carbon_g_per_completed,modeled,24.4016,19.2202,29.9801,20,
+arm,edf_aging,energy_kwh,modeled,14.3526,13.6356,15.1565,20,
+arm,edf_aging,not_admitted,simulated,0.4,0.2,0.6,20,
+arm,edf_aging,overruns,simulated,5.75,4.9,6.7,20,
+arm,edf_aging,policy_violations,simulated,0,0,0,20,
+paired,easy_backfill minus fcfs,admitted_fraction,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus fcfs,completed_fraction,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus fcfs,on_time_fraction,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus fcfs,wait_p50_min,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus fcfs,wait_p95_min,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus fcfs,bounded_slowdown_mean,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus fcfs,bounded_slowdown_p95,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus fcfs,gpu_utilization,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus fcfs,cost_credits,modeled,0,0,0,20,no clear difference
+paired,easy_backfill minus fcfs,cost_per_completed,modeled,0,0,0,20,no clear difference
+paired,easy_backfill minus fcfs,carbon_g,modeled,0,0,0,20,no clear difference
+paired,easy_backfill minus fcfs,carbon_g_per_completed,modeled,0,0,0,20,no clear difference
+paired,easy_backfill minus fcfs,energy_kwh,modeled,0,0,0,20,no clear difference
+paired,easy_backfill minus fcfs,not_admitted,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus fcfs,overruns,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus fcfs,policy_violations,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus edf,admitted_fraction,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus edf,completed_fraction,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus edf,on_time_fraction,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus edf,wait_p50_min,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus edf,wait_p95_min,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus edf,bounded_slowdown_mean,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus edf,bounded_slowdown_p95,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus edf,gpu_utilization,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus edf,cost_credits,modeled,0.143,0.0435,0.2705,20,worse
+paired,easy_backfill minus edf,cost_per_completed,modeled,0.00169455,0.000420558,0.003141,20,worse
+paired,easy_backfill minus edf,carbon_g,modeled,7.81915,3.83812,12.5547,20,worse
+paired,easy_backfill minus edf,carbon_g_per_completed,modeled,0.0938345,0.0422468,0.149325,20,worse
+paired,easy_backfill minus edf,energy_kwh,modeled,0.0631138,0.0296513,0.0967663,20,worse
+paired,easy_backfill minus edf,not_admitted,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus edf,overruns,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus edf,policy_violations,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus policy_only,admitted_fraction,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus policy_only,completed_fraction,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus policy_only,on_time_fraction,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus policy_only,wait_p50_min,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus policy_only,wait_p95_min,simulated,-21,-37.5,-7.5,20,better
+paired,easy_backfill minus policy_only,bounded_slowdown_mean,simulated,-0.0472848,-0.07641,-0.0196414,20,better
+paired,easy_backfill minus policy_only,bounded_slowdown_p95,simulated,-0.283333,-0.516667,-0.0833333,20,better
+paired,easy_backfill minus policy_only,gpu_utilization,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus policy_only,cost_credits,modeled,0.761,0.3605,1.184,20,worse
+paired,easy_backfill minus policy_only,cost_per_completed,modeled,0.00928879,0.00460754,0.0145206,20,worse
+paired,easy_backfill minus policy_only,carbon_g,modeled,41.1362,16.4313,77.4864,20,worse
+paired,easy_backfill minus policy_only,carbon_g_per_completed,modeled,0.492869,0.210764,0.925739,20,worse
+paired,easy_backfill minus policy_only,energy_kwh,modeled,0.253559,0.115578,0.424239,20,worse
+paired,easy_backfill minus policy_only,not_admitted,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus policy_only,overruns,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus policy_only,policy_violations,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus carbon_aware,admitted_fraction,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus carbon_aware,completed_fraction,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus carbon_aware,on_time_fraction,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus carbon_aware,wait_p50_min,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus carbon_aware,wait_p95_min,simulated,-46.5,-72,-25.5,20,better
+paired,easy_backfill minus carbon_aware,bounded_slowdown_mean,simulated,-0.112742,-0.166605,-0.0657637,20,better
+paired,easy_backfill minus carbon_aware,bounded_slowdown_p95,simulated,-0.7,-1.11667,-0.333333,20,better
+paired,easy_backfill minus carbon_aware,gpu_utilization,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus carbon_aware,cost_credits,modeled,-2.4105,-3.942,-1.0255,20,better
+paired,easy_backfill minus carbon_aware,cost_per_completed,modeled,-0.0282826,-0.0458996,-0.0114632,20,better
+paired,easy_backfill minus carbon_aware,carbon_g,modeled,206.879,138.066,289.971,20,worse
+paired,easy_backfill minus carbon_aware,carbon_g_per_completed,modeled,2.45169,1.57219,3.37429,20,worse
+paired,easy_backfill minus carbon_aware,energy_kwh,modeled,1.18816,0.919582,1.46776,20,worse
+paired,easy_backfill minus carbon_aware,not_admitted,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus carbon_aware,overruns,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus carbon_aware,policy_violations,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus fcfs,admitted_fraction,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus fcfs,completed_fraction,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus fcfs,on_time_fraction,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus fcfs,wait_p50_min,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus fcfs,wait_p95_min,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus fcfs,bounded_slowdown_mean,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus fcfs,bounded_slowdown_p95,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus fcfs,gpu_utilization,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus fcfs,cost_credits,modeled,-0.143,-0.2675,-0.039,20,better
+paired,edf_aging minus fcfs,cost_per_completed,modeled,-0.00169455,-0.00320474,-0.000439518,20,better
+paired,edf_aging minus fcfs,carbon_g,modeled,-7.81915,-12.6728,-3.77609,20,better
+paired,edf_aging minus fcfs,carbon_g_per_completed,modeled,-0.0938345,-0.150051,-0.0450543,20,better
+paired,edf_aging minus fcfs,energy_kwh,modeled,-0.0631138,-0.0954925,-0.0315138,20,better
+paired,edf_aging minus fcfs,not_admitted,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus fcfs,overruns,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus fcfs,policy_violations,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus edf,admitted_fraction,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus edf,completed_fraction,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus edf,on_time_fraction,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus edf,wait_p50_min,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus edf,wait_p95_min,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus edf,bounded_slowdown_mean,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus edf,bounded_slowdown_p95,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus edf,gpu_utilization,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus edf,cost_credits,modeled,0,0,0,20,no clear difference
+paired,edf_aging minus edf,cost_per_completed,modeled,0,0,0,20,no clear difference
+paired,edf_aging minus edf,carbon_g,modeled,0,0,0,20,no clear difference
+paired,edf_aging minus edf,carbon_g_per_completed,modeled,0,0,0,20,no clear difference
+paired,edf_aging minus edf,energy_kwh,modeled,0,0,0,20,no clear difference
+paired,edf_aging minus edf,not_admitted,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus edf,overruns,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus edf,policy_violations,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus policy_only,admitted_fraction,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus policy_only,completed_fraction,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus policy_only,on_time_fraction,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus policy_only,wait_p50_min,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus policy_only,wait_p95_min,simulated,-21,-36,-6,20,better
+paired,edf_aging minus policy_only,bounded_slowdown_mean,simulated,-0.0472848,-0.0809776,-0.0194636,20,better
+paired,edf_aging minus policy_only,bounded_slowdown_p95,simulated,-0.283333,-0.5,-0.0833333,20,better
+paired,edf_aging minus policy_only,gpu_utilization,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus policy_only,cost_credits,modeled,0.618,0.2405,1.0535,20,worse
+paired,edf_aging minus policy_only,cost_per_completed,modeled,0.00759425,0.00295403,0.0126233,20,worse
+paired,edf_aging minus policy_only,carbon_g,modeled,33.3171,10.6915,70.0619,20,worse
+paired,edf_aging minus policy_only,carbon_g_per_completed,modeled,0.399035,0.115989,0.802706,20,worse
+paired,edf_aging minus policy_only,energy_kwh,modeled,0.190445,0.0614037,0.381134,20,worse
+paired,edf_aging minus policy_only,not_admitted,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus policy_only,overruns,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus policy_only,policy_violations,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus carbon_aware,admitted_fraction,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus carbon_aware,completed_fraction,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus carbon_aware,on_time_fraction,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus carbon_aware,wait_p50_min,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus carbon_aware,wait_p95_min,simulated,-46.5,-72,-25.5,20,better
+paired,edf_aging minus carbon_aware,bounded_slowdown_mean,simulated,-0.112742,-0.16203,-0.0665383,20,better
+paired,edf_aging minus carbon_aware,bounded_slowdown_p95,simulated,-0.7,-1.18333,-0.333333,20,better
+paired,edf_aging minus carbon_aware,gpu_utilization,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus carbon_aware,cost_credits,modeled,-2.5535,-3.9405,-1.0555,20,better
+paired,edf_aging minus carbon_aware,cost_per_completed,modeled,-0.0299772,-0.0479529,-0.0121709,20,better
+paired,edf_aging minus carbon_aware,carbon_g,modeled,199.06,126.749,280.614,20,worse
+paired,edf_aging minus carbon_aware,carbon_g_per_completed,modeled,2.35786,1.45169,3.35553,20,worse
+paired,edf_aging minus carbon_aware,energy_kwh,modeled,1.12505,0.84127,1.42794,20,worse
+paired,edf_aging minus carbon_aware,not_admitted,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus carbon_aware,overruns,simulated,0,0,0,20,no clear difference
+paired,edf_aging minus carbon_aware,policy_violations,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus edf_aging,admitted_fraction,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus edf_aging,completed_fraction,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus edf_aging,on_time_fraction,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus edf_aging,wait_p50_min,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus edf_aging,wait_p95_min,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus edf_aging,bounded_slowdown_mean,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus edf_aging,bounded_slowdown_p95,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus edf_aging,gpu_utilization,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus edf_aging,cost_credits,modeled,0.143,0.0415,0.2655,20,worse
+paired,easy_backfill minus edf_aging,cost_per_completed,modeled,0.00169455,0.000520477,0.00312213,20,worse
+paired,easy_backfill minus edf_aging,carbon_g,modeled,7.81915,3.5052,12.8834,20,worse
+paired,easy_backfill minus edf_aging,carbon_g_per_completed,modeled,0.0938345,0.0411137,0.149267,20,worse
+paired,easy_backfill minus edf_aging,energy_kwh,modeled,0.0631138,0.0319875,0.0993075,20,worse
+paired,easy_backfill minus edf_aging,not_admitted,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus edf_aging,overruns,simulated,0,0,0,20,no clear difference
+paired,easy_backfill minus edf_aging,policy_violations,simulated,0,0,0,20,no clear difference

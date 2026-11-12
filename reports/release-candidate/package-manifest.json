@@ -1,0 +1,418 @@
+{
+  "format": "allowlisted-docker-context-v1",
+  "archive_sha256": "69b516ed31b5c7cf6115cd245e131c1664a75d4ce3b15e3f0c0154c2d5e05dc8",
+  "archive_bytes": 2037760,
+  "members": [
+    {
+      "path": ".dockerignore",
+      "sha256": "ec8a666ece07d53b3da5779c6dcdd1e3d857b8cecba312d9df996304c8bdf5d2",
+      "bytes": 375
+    },
+    {
+      "path": "Dockerfile",
+      "sha256": "6295d030e498645a52d61a984988161a7c52d81cdc14eac6c27affbe3be46a28",
+      "bytes": 1436
+    },
+    {
+      "path": "PACT-Compute-data-preflight/download-manifest.json",
+      "sha256": "e5c35064c609a7da12a9a8ba4e919164a7dc336b20e86449b73f429a14138e39",
+      "bytes": 4269
+    },
+    {
+      "path": "PACT-Compute-data-preflight/neso_gb_2025-10-01_to_2025-10-29.json",
+      "sha256": "3a87023bfc80685a03018a17c10c3abf85eaf774f09097c8b624e606fe771ef1",
+      "bytes": 149523
+    },
+    {
+      "path": "PACT-Compute-data-preflight/openb_node_list_gpu_node.csv",
+      "sha256": "2beca64b4d3dfa342036a34b56a495c6cef9225db836c81f541282cb1df320b5",
+      "bytes": 42353
+    },
+    {
+      "path": "PACT-Compute-data-preflight/openb_pod_list_default.csv",
+      "sha256": "1ee7ed79c27a3b0861cda8ddba86a004c6aba904caafa329a76ae93ca63834a8",
+      "bytes": 575468
+    },
+    {
+      "path": "PACT-Compute-data-preflight/openb_pod_list_gpuspec33.csv",
+      "sha256": "eca4f746db1e5b25864ad021b55ece3943e101a3ebd4574d09dcb95c46117652",
+      "bytes": 587467
+    },
+    {
+      "path": "deploy/entrypoint.sh",
+      "sha256": "06dd2e04904841d55cb55d2685a70ef23280cf01ce9c6f2e90b8fda5835cf12d",
+      "bytes": 681
+    },
+    {
+      "path": "pact-compute/alembic.ini",
+      "sha256": "7adf2aace6f4a8ef0b5cdfbaa818efc2715e493fbb2f9187da5d955d524a9a71",
+      "bytes": 116
+    },
+    {
+      "path": "pact-compute/backend/migrations/env.py",
+      "sha256": "48000fddbe40843cb37dbdec8d1ff7b0a05207b6bb683cd6b0682b5603b8a8a3",
+      "bytes": 509
+    },
+    {
+      "path": "pact-compute/backend/migrations/script.py.mako",
+      "sha256": "29a33ca0495490f045b3846836347ae894dcba95533d59a7aa100e9e5cba6510",
+      "bytes": 445
+    },
+    {
+      "path": "pact-compute/backend/migrations/versions/0001_initial_control_plane.py",
+      "sha256": "e57de510fa655b74cac2de0def4c44afb1a62160256f828fd7afe2fdf2285bac",
+      "bytes": 11411
+    },
+    {
+      "path": "pact-compute/backend/migrations/versions/0002_capacity_exchange.py",
+      "sha256": "ba6d90049590c768a390dc76ebf2cffcc1d74202fbba44e62ebc3bdccc2e1d9f",
+      "bytes": 4275
+    },
+    {
+      "path": "pact-compute/backend/migrations/versions/0003_memberships_invitations.py",
+      "sha256": "40a9101b6174ed4c50764e20eb36abeb024036b7bff6a3c1d7b7a03d2c5aadab",
+      "bytes": 2676
+    },
+    {
+      "path": "pact-compute/backend/migrations/versions/0004_rate_hits.py",
+      "sha256": "aac45bb4219a44101dcdbef08caa4c45ecbe7c5c76e49f56489d3f6afeab17eb",
+      "bytes": 745
+    },
+    {
+      "path": "pact-compute/backend/migrations/versions/0005_list_indexes.py",
+      "sha256": "e691ec72a58a1d92966d626d36ae2d96e4ec3b194f0d504aef263da1c46f54f1",
+      "bytes": 1181
+    },
+    {
+      "path": "pact-compute/backend/migrations/versions/0006_policy_decisions.py",
+      "sha256": "10c062b7a85d789bc4b33d05f42fc092c6574cef14c10be3777d4545e47f762c",
+      "bytes": 971
+    },
+    {
+      "path": "pact-compute/backend/migrations/versions/0007_incident_records.py",
+      "sha256": "ff3fd3104079d893bab8bd7e99db456a0930aee6eb94eafebe5a74ff1944bb8e",
+      "bytes": 1839
+    },
+    {
+      "path": "pact-compute/backend/pact/__init__.py",
+      "sha256": "e683ec4ad13a75a6f324d94ef559015268c1207fe36053a780f49bff7b5123cd",
+      "bytes": 35
+    },
+    {
+      "path": "pact-compute/backend/pact/access.py",
+      "sha256": "80689df13c730133e3dbdeb8706dea5403fa5937ad584af6c625b9bba6062f45",
+      "bytes": 1669
+    },
+    {
+      "path": "pact-compute/backend/pact/api.py",
+      "sha256": "fa4955a7f4e95e753e0e4720729fc2c36b904be88f269911b090b653e802d2f7",
+      "bytes": 32387
+    },
+    {
+      "path": "pact-compute/backend/pact/audit.py",
+      "sha256": "364bf0b97f17b2c3261c2c2e3931f50e87656f0cd788ee3d3dc9d5689be8665f",
+      "bytes": 8706
+    },
+    {
+      "path": "pact-compute/backend/pact/benchmark.py",
+      "sha256": "cc3b2ebc7db0f0aa15e467029de8c16ed46c6b4bbc538156e786d674c430b30f",
+      "bytes": 3722
+    },
+    {
+      "path": "pact-compute/backend/pact/carbon.py",
+      "sha256": "8096da7838d9db4a39e0a2adee07ec15b5e8e295d4747a7c7438c55f5e3b7eb8",
+      "bytes": 2448
+    },
+    {
+      "path": "pact-compute/backend/pact/cli.py",
+      "sha256": "58bf63bdf2c56d637b4bd671e74d4d6e80c77d509710489a2550446c9812038d",
+      "bytes": 7510
+    },
+    {
+      "path": "pact-compute/backend/pact/config.py",
+      "sha256": "709dc9fb70a82761ff675a1c4909f502df3139942a3169afe54e6f5591af3f6d",
+      "bytes": 1297
+    },
+    {
+      "path": "pact-compute/backend/pact/cuda_driver.py",
+      "sha256": "5f4db48555dbdc22003a7f5ee9749c8d5e4aa74a8cff610ffb9574a295a3759c",
+      "bytes": 8965
+    },
+    {
+      "path": "pact-compute/backend/pact/datasets.py",
+      "sha256": "92b07d7d340dd0b8a4e6d0019af6e18b536c24c7f9886a65b34c44bf6a5877c4",
+      "bytes": 6811
+    },
+    {
+      "path": "pact-compute/backend/pact/db.py",
+      "sha256": "e468bcbd8f844630370b43ccdfd1535baa21469cfaa330863e4f9174822109b4",
+      "bytes": 16287
+    },
+    {
+      "path": "pact-compute/backend/pact/demo.py",
+      "sha256": "8966a67067df974fba96d3e826c355a02536fb6d123a83e959651339099b1b73",
+      "bytes": 3283
+    },
+    {
+      "path": "pact-compute/backend/pact/explain.py",
+      "sha256": "1ae73fb400cd813ed9c49cbddbe90fe86c7813e8760158fb8d105315029059d4",
+      "bytes": 15342
+    },
+    {
+      "path": "pact-compute/backend/pact/gpu_task.py",
+      "sha256": "4307f89feacddf80e8b2f95c560156f7f4943f84b5f3061513c975726d16f902",
+      "bytes": 7434
+    },
+    {
+      "path": "pact-compute/backend/pact/incidents.py",
+      "sha256": "700b9c2f1dc21332e0150532fe20b69243c8300f93e2698769673cd45f8d1c77",
+      "bytes": 16223
+    },
+    {
+      "path": "pact-compute/backend/pact/live.py",
+      "sha256": "5879b02a97b905b5bae0f57c45cad2ed41f3805dfa69648ac859bfddb0252027",
+      "bytes": 33573
+    },
+    {
+      "path": "pact-compute/backend/pact/llm.py",
+      "sha256": "0e12cb0f0ec0c842b6be4410c2702a299e75728bcf4d64f4eb487faffcd8b507",
+      "bytes": 2953
+    },
+    {
+      "path": "pact-compute/backend/pact/market.py",
+      "sha256": "42fbcf0a0ddbb4d6b467eb0d3a39ce41c4e2e9114a0e329b5e2be35c150ce1a8",
+      "bytes": 13112
+    },
+    {
+      "path": "pact-compute/backend/pact/market_api.py",
+      "sha256": "f9ba461262fa1ee5f184ec429e9b3fc938c09d4ac32778dca9699ff7c6cc9f76",
+      "bytes": 5411
+    },
+    {
+      "path": "pact-compute/backend/pact/membership.py",
+      "sha256": "49a4e8620366dfae51a1e45d03e810ee4e58a68f72e31cf7d7e9b02c7d41b073",
+      "bytes": 7607
+    },
+    {
+      "path": "pact-compute/backend/pact/mobilenet.ptx",
+      "sha256": "411e482d8fb8c14a4ff0d26b7120d2d0bb168155dc314324bb97e0ff1f149f17",
+      "bytes": 6670
+    },
+    {
+      "path": "pact-compute/backend/pact/model_gateway.py",
+      "sha256": "08f4ffc920be12096e60f9546916f821e4c480ba396e9670749c1cd60fd087fa",
+      "bytes": 2775
+    },
+    {
+      "path": "pact-compute/backend/pact/outbox.py",
+      "sha256": "2a9e1d67f1c8dd518caf5d13685f597aec817cd6e34600d3f7684937c22573c9",
+      "bytes": 4279
+    },
+    {
+      "path": "pact-compute/backend/pact/pagination.py",
+      "sha256": "ee676f77f24430625296695c8536de40a5c11ad3e9d1c4a6f51f3ac778874275",
+      "bytes": 2225
+    },
+    {
+      "path": "pact-compute/backend/pact/policy.py",
+      "sha256": "3338b1e6fcf243633e12726f72c41880ed68330b9d00427f64d5c74221aed75a",
+      "bytes": 9303
+    },
+    {
+      "path": "pact-compute/backend/pact/pricing_model.py",
+      "sha256": "41054ede379e0e74c01e3c34fe283be64ed723c2dd1e23570d97eb4e1dabddc3",
+      "bytes": 12740
+    },
+    {
+      "path": "pact-compute/backend/pact/protocol.py",
+      "sha256": "f34495ac1ff27849ab3053fdaa8fa92bf5ff4d682191d46dc4455293fe36807d",
+      "bytes": 4491
+    },
+    {
+      "path": "pact-compute/backend/pact/publication.py",
+      "sha256": "abc9283d0130e2e8857cc3bf89a8b9e51075097a614a69ea2582fa31ab273e37",
+      "bytes": 8900
+    },
+    {
+      "path": "pact-compute/backend/pact/ratelimit.py",
+      "sha256": "53bf7d0eed509f2c6c7291509c3e91d055cc41eee5cf4c81935314081d6bd91d",
+      "bytes": 2290
+    },
+    {
+      "path": "pact-compute/backend/pact/research.py",
+      "sha256": "b34dec01a9ab7ec58285ab9cf8915919789ffe8fa0b0f0dc0bf7fed9bc5c9063",
+      "bytes": 27589
+    },
+    {
+      "path": "pact-compute/backend/pact/resilience.py",
+      "sha256": "34e7e2f3c00c55848003d90167ae3a349282038967ebf715e5c28055cc7f5516",
+      "bytes": 2021
+    },
+    {
+      "path": "pact-compute/backend/pact/runner.py",
+      "sha256": "9a0ea2b6c5aedd947787da53893c0cf8f47c53400a3b7f8f451bf71442f7c8ee",
+      "bytes": 9395
+    },
+    {
+      "path": "pact-compute/backend/pact/runtime_baselines.py",
+      "sha256": "69e02b1f4cf0d0890f038e4704044623b9e1e5a3603815765743c366698b7b5e",
+      "bytes": 11944
+    },
+    {
+      "path": "pact-compute/backend/pact/runtime_model.py",
+      "sha256": "c587e73f955168c64aefa6f1b6d211b601eaedaee1e50881c4485eb2ff7248b6",
+      "bytes": 4080
+    },
+    {
+      "path": "pact-compute/backend/pact/scheduler_baselines.py",
+      "sha256": "3076a7fbf4481a0b47e633b5dd2dbc23aececbd692ae7c2bdd2702035eb780a8",
+      "bytes": 12255
+    },
+    {
+      "path": "pact-compute/backend/pact/security.py",
+      "sha256": "dd338b4bdf312a08a695aceb6004e56e44f7281cae5b81aae2006fcfd26203d3",
+      "bytes": 2613
+    },
+    {
+      "path": "pact-compute/backend/pact/service.py",
+      "sha256": "dfa1d089cd7fa17ca2c4fa7b29c1c3064c7992844d98724e4d5fed93c1b06abe",
+      "bytes": 2068
+    },
+    {
+      "path": "pact-compute/backend/pact/storage.py",
+      "sha256": "822eee40e5fd31eb11c9df38174999c5c5bdb98e2cf5f63d5720971fe9e1d210",
+      "bytes": 6248
+    },
+    {
+      "path": "pact-compute/backend/pact/support.py",
+      "sha256": "5d9ce509923f92f5a2caca0364ee883621531a7ee12c1e66c3617b6b4a0c2d9f",
+      "bytes": 9451
+    },
+    {
+      "path": "pact-compute/backend/pact/support_bench.py",
+      "sha256": "6cf83bd93e232bfff44d20793b8a6f53ef124e637d6d361bec70dc6733279037",
+      "bytes": 15048
+    },
+    {
+      "path": "pact-compute/backend/pact/worker.py",
+      "sha256": "fa2bd7e8fa5fd29be1676276dde18c2a72c027762edd3f22a1e943ecc10ecf56",
+      "bytes": 5225
+    },
+    {
+      "path": "pact-compute/frontend/build.mjs",
+      "sha256": "d51d57f0791578d0966a5ffbc0da49c20bc4e06926b30c51d8ee1d98bdb673a1",
+      "bytes": 1034
+    },
+    {
+      "path": "pact-compute/frontend/index.html",
+      "sha256": "dde1ef2607fcf3c5115daad08225cc0859f818b7e4e29c014dcb6b1beca90e9f",
+      "bytes": 473
+    },
+    {
+      "path": "pact-compute/frontend/package-lock.json",
+      "sha256": "2a72362390fb88c332e180ce74a90357684956eeace2fcc10fce3f9f6d0c78b4",
+      "bytes": 29038
+    },
+    {
+      "path": "pact-compute/frontend/package.json",
+      "sha256": "a37c32d8a5103f468b4f9235a124532146704c7fd7bc26078c2ecd0311949db9",
+      "bytes": 658
+    },
+    {
+      "path": "pact-compute/frontend/src/counterfactual.ts",
+      "sha256": "e07c806cd6bb1fbfe8dc295bae2f9be1d46503d001c94d1ed1c7db0dbdad38dd",
+      "bytes": 3074
+    },
+    {
+      "path": "pact-compute/frontend/src/exchange.tsx",
+      "sha256": "1ef41700b2919a88888c07879d8b376e4c663f386b77d15bf3ad9d4661890f0b",
+      "bytes": 21440
+    },
+    {
+      "path": "pact-compute/frontend/src/explain.tsx",
+      "sha256": "4a2ace94232cecb25860b83369177e81923e9e79c5d079ad8c722b785c5bfd22",
+      "bytes": 21983
+    },
+    {
+      "path": "pact-compute/frontend/src/home.tsx",
+      "sha256": "594c2fe3d9832fd06147203de82508f4220d5ead10f5c5f48692d98baad6b4f4",
+      "bytes": 3360
+    },
+    {
+      "path": "pact-compute/frontend/src/inbox.ts",
+      "sha256": "380130fff34ffba91216bc2411a792343f3957da91df6b7e9f758ff4084d073c",
+      "bytes": 1714
+    },
+    {
+      "path": "pact-compute/frontend/src/incident-queue.tsx",
+      "sha256": "16b7df2ed48073aba1a7802398e64467f71f8a6484195e5dee0e2764fb8fa9c2",
+      "bytes": 5150
+    },
+    {
+      "path": "pact-compute/frontend/src/incidents.ts",
+      "sha256": "f7f437f54db669de2758cbb3e49623ee130636a01f3624f7187e1d3924698b92",
+      "bytes": 2031
+    },
+    {
+      "path": "pact-compute/frontend/src/journey.ts",
+      "sha256": "720a4e0c525bb9e0357180bde19647e097cca19682bdbe1c67fd3c5cc37e5694",
+      "bytes": 2685
+    },
+    {
+      "path": "pact-compute/frontend/src/main.tsx",
+      "sha256": "c657deef8e2d07d0b39e6da181e0a54e8d64409075d470fa1b0b86f1e9103335",
+      "bytes": 16843
+    },
+    {
+      "path": "pact-compute/frontend/src/offers.ts",
+      "sha256": "f51cd665c1144d608bcabb9c6f0ab7e1031c1b65ab146f740ebe1ba32d00455b",
+      "bytes": 4226
+    },
+    {
+      "path": "pact-compute/frontend/src/operations.tsx",
+      "sha256": "c0fb4810a00105e237e13a1186825a813627f228a1085ea67f6a92af94abc1b7",
+      "bytes": 40250
+    },
+    {
+      "path": "pact-compute/frontend/src/paging.ts",
+      "sha256": "6d04c69ecbf4265354352c5b2b3ba308dadc2401ff5c925c0051aac65c753dab",
+      "bytes": 1057
+    },
+    {
+      "path": "pact-compute/frontend/src/research.tsx",
+      "sha256": "e172daee27776a341c2d46a55890c1e591d375e52dad492b5cc500fc948a7b89",
+      "bytes": 21441
+    },
+    {
+      "path": "pact-compute/frontend/src/shared.tsx",
+      "sha256": "ad2809924160083e6b9b396c88380ef24009493bf55e37a3c8327d59bd9c1dbd",
+      "bytes": 15259
+    },
+    {
+      "path": "pact-compute/frontend/src/stages.ts",
+      "sha256": "be5733c693908882ea36ff51204db21869312fbe39d1b6c08e519286287bc7b4",
+      "bytes": 3059
+    },
+    {
+      "path": "pact-compute/frontend/src/style.css",
+      "sha256": "754ea31d4cf0c505aeffb3e8aa7fc95e3fca73cba1fb323784cb80980af90be5",
+      "bytes": 23323
+    },
+    {
+      "path": "pact-compute/frontend/src/team.tsx",
+      "sha256": "903dee685e086627527f38d8efea34067885dd0ba43a8c754497ad96bda41db9",
+      "bytes": 6201
+    },
+    {
+      "path": "pact-compute/frontend/tsconfig.json",
+      "sha256": "902191a1f184c91c01fa3a016792af7ad375409bb885e6ab5aef7263fcbe6e19",
+      "bytes": 314
+    },
+    {
+      "path": "pact-compute/requirements-runtime-py312.lock.txt",
+      "sha256": "8388f29072e5afe8617618c20c26492c766dc5a2a156689777093b279da7324d",
+      "bytes": 864
+    }
+  ],
+  "scope": "Exact build inputs only. No image build or hosted deployment implied."
+}

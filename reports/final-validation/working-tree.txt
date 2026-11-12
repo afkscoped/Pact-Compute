@@ -1,0 +1,48 @@
+ M .gitignore
+ M BACKUP_RESTORE.md
+ M CLAUDE.md
+ M DEPLOYMENT.md
+ M Dockerfile
+ M HANDOFF.md
+ M PACT-Compute-data-preflight/alibaba-gpu-v2026-download-guide.md
+ M PACT-Compute-data-preflight/google-borg-cluster-data-2019-guide.md
+ M PACT-Compute-data-preflight/google-power-data-2019-guide.md
+ M PACT-Compute-data-preflight/openb_node_list_gpu_node.csv
+ M PACT-Compute-data-preflight/openb_pod_list_default.csv
+ M PACT-Compute-data-preflight/openb_pod_list_gpuspec33.csv
+ M pact-compute/README.md
+ M pact-compute/RESEARCH_RESULTS.md
+ M pact-compute/backend/pact/api.py
+ M pact-compute/backend/pact/db.py
+ M pact-compute/backend/pact/demo.py
+ M pact-compute/backend/pact/outbox.py
+ M pact-compute/backend/pact/storage.py
+ M pact-compute/frontend/e2e/exchange.spec.ts
+ M pact-compute/frontend/e2e/workspace.spec.ts
+ M pact-compute/frontend/package-lock.json
+ M pact-compute/frontend/package.json
+ M pact-compute/tests/test_control_plane.py
+?? .github/
+?? PROJECT_STATUS_REPORT_2026-11-12.md
+?? pact-compute/frontend/e2e/roles.spec.ts
+?? pact-compute/requirements-gpu-win-py312.lock.txt
+?? pact-compute/requirements-runtime-py312.lock.txt
+?? pact-compute/requirements-validation-win-py312.lock.txt
+?? pact-compute/requirements-win-py312.lock.txt
+?? pact-compute/scripts/browser_validation.py
+?? pact-compute/scripts/export_research.py
+?? pact-compute/scripts/export_runtime_lock.py
+?? pact-compute/scripts/finalize_validation.py
+?? pact-compute/scripts/gpu_validation.py
+?? pact-compute/scripts/http_performance.py
+?? pact-compute/scripts/postgres_validation.py
+?? pact-compute/scripts/runtime_recovery.py
+?? pact-compute/scripts/security_scan.py
+?? pact-compute/scripts/validate.py
+?? pact-compute/scripts/validation_manifest.py
+?? pact-compute/tests/postgres/
+?? pact-compute/tests/test_capacity_contention.py
+?? pact-compute/tests/test_event_delivery.py
+?? pact-compute/tests/test_failure_recovery.py
+?? pact-compute/tests/test_release_recovery.py
+?? reports/

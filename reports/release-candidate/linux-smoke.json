@@ -1,0 +1,54 @@
+{
+  "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "python": "3.12.3",
+  "archive_sha256": "69b516ed31b5c7cf6115cd245e131c1664a75d4ce3b15e3f0c0154c2d5e05dc8",
+  "checks": [
+    {
+      "command": [
+        "-m",
+        "pip",
+        "check"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "sh",
+        "-n",
+        "/mnt/c/Users/nithe/Pact-Compute/pact-compute/.local/rc-linux-smoke-9ab2e228/source/deploy/entrypoint.sh"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "-m",
+        "alembic",
+        "upgrade",
+        "head"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "-m",
+        "pact.cli",
+        "init"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "-m",
+        "pact.cli",
+        "import"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": "isolated API/auth/storage and process supervision smoke",
+      "exit_code": 0
+    }
+  ],
+  "status": "PASS",
+  "scope": "Linux imports/migrations/API/storage, entrypoint syntax and subprocess supervision. No Docker daemon, OCI build or hosted deployment verified."
+}

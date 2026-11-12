@@ -8,5 +8,5 @@ if [ "${PACT_RUN_IMPORT:-1}" = "1" ]; then
   if python -m pact.cli import; then echo "dataset import ok";
   else code=$?; echo "ERROR: dataset import failed (exit $code); research snapshots are UNAVAILABLE until this is fixed" >&2; fi
 fi
-if [ "${PACT_RUN_WORKER:-1}" = "1" ]; then python -m pact.worker & fi
-exec python -m uvicorn pact.api:app --host 0.0.0.0 --port "${PORT:-8765}" --proxy-headers --forwarded-allow-ips='*'
+# Exit the container if either required process fails; forward termination to both.
+exec python -m pact.service

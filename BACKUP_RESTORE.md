@@ -1,5 +1,7 @@
 # Backup and restore
 
+Local validation on 13 November 2026 passed a disposable PostgreSQL dump/restore with matching artifacts and original evidence signatures. See [the drill report](reports/final-validation/BACKUP_RESTORE_VALIDATION.md). This does not certify production backups. Never restore over populated production data without a verified backup and explicit approval.
+
 PACT-Compute state lives in **three places**. A restore is only complete when all three match.
 
 | State | Where | Backed up by |
@@ -27,14 +29,14 @@ Default is local disk. On hosts with an ephemeral disk (Render free tier) use an
 Install the client with `pip install -r requirements-s3.txt` (the Docker image already includes it). Several providers offer a free storage tier; check each provider's current terms, some ask for a payment method at signup. Local MinIO is a fully free option for testing. Existing local artifacts are **not** migrated automatically: copy them with a tool such as `aws s3 sync artifacts/ s3://BUCKET/artifacts/ --endpoint-url URL` before switching, then run `artifacts-verify`.
 
 ## Back up
-1. **Database.** Neon: create a branch of the project (Console → Branches → Create branch) or use point-in-time restore within the plan's history window. Any PostgreSQL: `pg_dump --format=custom --file=pact-YYYYMMDD.dump "$PACT_DATABASE_URL"`. SQLite: stop the app, copy the `.db` file.
+1. **Database.** With owner authorization, use an approved Neon branch/snapshot or a PostgreSQL custom dump. Configure private libpq service/password files (or equivalent secret injection), select the intended `PGSERVICE`, then run `pg_dump --format=custom --file=pact-YYYYMMDD.dump`. Do not pass the application's password-bearing URL on the command line; a SQLAlchemy `+pg8000` URL is also not a libpq URL. Verify plan history/branch limits before creating resources. SQLite: stop the app, copy the `.db` file.
 2. **Artifacts.** Local: archive `$PACT_STATE_DIR/artifacts` (e.g. `tar czf artifacts-YYYYMMDD.tgz artifacts`). S3: enable bucket versioning and/or `aws s3 sync s3://BUCKET/artifacts ./artifacts-copy --endpoint-url URL`.
 3. **Secrets.** Store `PACT_SIGNING_SECRET` outside the repo (password manager). Without it, receipts and evidence signed earlier can no longer be verified.
-4. **Cadence.** Take the database and artifact backups together (artifact copy first, then database), so the database never references bytes the copy lacks.
+4. **Consistency.** Quiesce all writers for the matched backup interval, copy artifact/state bytes, then snapshot the database. Copying artifacts first while writers continue is insufficient: later database rows may reference uncopied bytes. An alternative is to pin a database snapshot and copy every object reachable from it under a suitable retention guarantee. Preserve signing material and regenerable study/dataset state separately.
 
 ## Restore
 1. Create an empty database (or restore the snapshot/branch) and set `PACT_DATABASE_URL`, `PACT_DB_TLS`.
-2. For a dump: `pg_restore --clean --if-exists --no-owner --dbname "$PACT_DATABASE_URL" pact-YYYYMMDD.dump`. **Never run this against a database you are not sure you want to overwrite.**
+2. For a dump, select a private `PGSERVICE` pointing to an explicitly approved **empty** restore target, then run `pg_restore --no-owner --exit-on-error pact-YYYYMMDD.dump`. Never restore over the populated production database as a routine drill. Replacing existing data requires a separate verified backup and explicit approval.
 3. Restore artifacts to the same backend location (extract the archive into `$PACT_STATE_DIR`, or sync the bucket back).
 4. Set the same `PACT_SIGNING_SECRET` as before.
 5. Apply any newer migrations: `python -m alembic upgrade head` (the Docker entrypoint does this on start).

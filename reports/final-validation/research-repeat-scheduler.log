@@ -1,0 +1,11 @@
+{
+  "version": "scheduler-baselines-1",
+  "snapshot_id": "cef391f551a78f615750faa6814321d2eb8c2350a0c7c2ea114294f8c1f4befd",
+  "seeds": 20,
+  "jobs": 90,
+  "seed": 6021,
+  "files": {
+    "scheduler-baselines.json": "1b48de2e5825198b6e6219dea52a6205a2195507e853ebff89520859ca59b777",
+    "scheduler-baselines.csv": "a90c60f72f9fe363d1cdce44cf3e613d1e1fb6e8d24625caced339fe6eab1e14"
+  }
+}

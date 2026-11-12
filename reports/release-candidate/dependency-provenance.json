@@ -1,0 +1,35 @@
+{
+  "scope": "Lock/source identity check; reuses timestamped advisory evidence, not a fresh feed scan",
+  "locks": [
+    {
+      "path": "pact-compute/requirements-runtime-py312.lock.txt",
+      "sha256": "8388f29072e5afe8617618c20c26492c766dc5a2a156689777093b279da7324d",
+      "matches_completed_milestone": true
+    },
+    {
+      "path": "pact-compute/requirements-win-py312.lock.txt",
+      "sha256": "5662102340939755230753c522e076686688bc42b8369c8b3b35d4a9c276e620",
+      "matches_completed_milestone": true
+    },
+    {
+      "path": "pact-compute/requirements-gpu-win-py312.lock.txt",
+      "sha256": "6b2fe086c2c84a8a0c46052a917099e6e6cca1ba28cdfced04cfbac662e09f12",
+      "matches_completed_milestone": true
+    },
+    {
+      "path": "pact-compute/requirements-validation-win-py312.lock.txt",
+      "sha256": "a9b5d80a120d0515ecc2b7d99a530cba81f824f225567cba09e48e4f0ec7174a",
+      "matches_completed_milestone": true
+    },
+    {
+      "path": "pact-compute/frontend/package.json",
+      "sha256": "a37c32d8a5103f468b4f9235a124532146704c7fd7bc26078c2ecd0311949db9",
+      "matches_completed_milestone": true
+    },
+    {
+      "path": "pact-compute/frontend/package-lock.json",
+      "sha256": "2a72362390fb88c332e180ce74a90357684956eeace2fcc10fce3f9f6d0c78b4",
+      "matches_completed_milestone": true
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 # PACT-Compute research results
 
+Reproduced locally on 13 November 2026: two independent frozen runs produced 12 byte-identical evaluation artifacts. See [current results](../reports/final-validation/RESEARCH_RESULTS_FINAL.md), [experiment hashes/configurations](../reports/final-validation/experiment-manifest.json) and [reproducibility report](../reports/final-validation/RESEARCH_REPRODUCIBILITY_REPORT.md). The numerical findings and limitations below remain unchanged; no independent human labels or real-world carbon reductions were added.
+
 Study version pact-study-2, generated 12 November 2026. The results below come from the runnable publication study. The research review documents the source methods and where the implementation adapts them.
 
 | Experiment | Test data | Baseline | PACT comparison |

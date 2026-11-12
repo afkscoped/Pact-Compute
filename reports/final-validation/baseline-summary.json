@@ -1,0 +1,45 @@
+{
+  "revision": "4bbc1d7077f3d3084df9eb1337b734880ee79181",
+  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+  "suite": "baseline",
+  "results": [
+    {
+      "name": "backend",
+      "command": [
+        "C:\\Users\\nithe\\Pact-Compute\\pact-compute\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "-ra",
+        "--junitxml=C:\\Users\\nithe\\Pact-Compute\\reports\\final-validation\\baseline-pytest.xml"
+      ],
+      "cwd": "C:\\Users\\nithe\\Pact-Compute\\pact-compute",
+      "exit_code": 1,
+      "seconds": 48.797,
+      "log": "baseline-backend.log"
+    },
+    {
+      "name": "frontend-unit",
+      "command": [
+        "npm.cmd",
+        "test"
+      ],
+      "cwd": "C:\\Users\\nithe\\Pact-Compute\\pact-compute\\frontend",
+      "exit_code": 0,
+      "seconds": 2.266,
+      "log": "baseline-frontend-unit.log"
+    },
+    {
+      "name": "frontend-build",
+      "command": [
+        "npm.cmd",
+        "run",
+        "build"
+      ],
+      "cwd": "C:\\Users\\nithe\\Pact-Compute\\pact-compute\\frontend",
+      "exit_code": 0,
+      "seconds": 20.968,
+      "log": "baseline-frontend-build.log"
+    }
+  ]
+}

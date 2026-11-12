@@ -1,0 +1,185 @@
+{
+  "revision": "4bbc1d7077f3d3084df9eb1337b734880ee79181",
+  "study_version": "pact-study-2",
+  "dataset": {
+    "id": "cef391f551a78f615750faa6814321d2eb8c2350a0c7c2ea114294f8c1f4befd",
+    "schema": "pact-dataset-1",
+    "pods": 8152,
+    "gpu_pods": 7064,
+    "gpu_nodes": 1213,
+    "gpu_devices": 6212,
+    "runtime_proxies": 185,
+    "carbon_intervals": 1344,
+    "carbon_zone": "GB",
+    "carbon_unit": "gCO2/kWh",
+    "carbon_range": [
+      1759276800,
+      1761696000
+    ],
+    "quarantined": [],
+    "sources": [
+      {
+        "file": "openb_pod_list_gpuspec33.csv",
+        "url": "https://raw.githubusercontent.com/alibaba/clusterdata/master/cluster-trace-gpu-v2023/csv/openb_pod_list_gpuspec33.csv",
+        "retrieved_at_utc": "2026-11-12T10:22:32.1249813Z",
+        "status": "downloaded",
+        "http": "200 587467",
+        "sha256": "eca4f746db1e5b25864ad021b55ece3943e101a3ebd4574d09dcb95c46117652"
+      },
+      {
+        "file": "openb_pod_list_default.csv",
+        "url": "https://raw.githubusercontent.com/alibaba/clusterdata/master/cluster-trace-gpu-v2023/csv/openb_pod_list_default.csv",
+        "retrieved_at_utc": "2026-11-12T10:22:31.4637011Z",
+        "status": "downloaded",
+        "http": "200 575468",
+        "sha256": "1ee7ed79c27a3b0861cda8ddba86a004c6aba904caafa329a76ae93ca63834a8"
+      },
+      {
+        "file": "openb_node_list_gpu_node.csv",
+        "url": "https://raw.githubusercontent.com/alibaba/clusterdata/master/cluster-trace-gpu-v2023/csv/openb_node_list_gpu_node.csv",
+        "retrieved_at_utc": "2026-11-12T10:22:32.5590538Z",
+        "status": "downloaded",
+        "http": "200 42353",
+        "sha256": "2beca64b4d3dfa342036a34b56a495c6cef9225db836c81f541282cb1df320b5"
+      },
+      {
+        "file": "neso_gb_2025-10-01_to_2025-10-29.json",
+        "url": "https://api.carbonintensity.org.uk/intensity/2025-10-01T00:00Z/2025-10-29T00:00Z",
+        "retrieved_at_utc": "2026-11-12T10:22:33.6851301Z",
+        "status": "downloaded",
+        "http": "200 149523",
+        "sha256": "3a87023bfc80685a03018a17c10c3abf85eaf774f09097c8b624e606fe771ef1"
+      }
+    ],
+    "origins": {
+      "arrivals": "Alibaba production pod trace",
+      "runtime": "modeled from earlier successful lifecycle proxies",
+      "grid": "NESO historical published actual series",
+      "market": "configured scenario inputs"
+    }
+  },
+  "files": [
+    {
+      "file": "policy-corpus.jsonl",
+      "sha256": "46be9a6d23a43f7fd311c00720a8dc3f5e0c8919c7b207cfe7359ecd97425958",
+      "bytes": 37867,
+      "repeat_identical": true
+    },
+    {
+      "file": "policy-evaluation.json",
+      "sha256": "7fb45fb57368730e075de533cce0f4f68238b757577816f49c027a83f48a1bab",
+      "bytes": 399,
+      "repeat_identical": true
+    },
+    {
+      "file": "publication-metrics.csv",
+      "sha256": "947873b5cbf9c3a5d7b484edc6eb5eacd2915e18be010000529f857d764a8703",
+      "bytes": 5643,
+      "repeat_identical": true
+    },
+    {
+      "file": "publication-seeds.csv",
+      "sha256": "d371377a89408c3bcecf6b918d2ddc7aedf4720e28beaba7bd6d0eb095d0db30",
+      "bytes": 17999,
+      "repeat_identical": true
+    },
+    {
+      "file": "publication-study.json",
+      "sha256": "3fef749e1f2a1a6e5eaaa7ab52877f9c0f2f2c4ee821a0b9da64eb951d0df871",
+      "bytes": 2315528,
+      "repeat_identical": true
+    },
+    {
+      "file": "runtime-baselines-manifest.json",
+      "sha256": "16efb4f4e6bba91ee2da1a4f7b3fef6eff9f0ebacf5348ebaaf0bc90e4817345",
+      "bytes": 342,
+      "repeat_identical": true
+    },
+    {
+      "file": "runtime-baselines-slices.csv",
+      "sha256": "ff3939486cbcba9e5737bdcc30bec7ae913db8bbe2c1d45d9a4e61af9627aa4c",
+      "bytes": 4459,
+      "repeat_identical": true
+    },
+    {
+      "file": "runtime-baselines.json",
+      "sha256": "bff6880dcad3d6fd0ddf4bf621d636c1fb6d2a340eaf38fa655ac43bd1496fd8",
+      "bytes": 24613,
+      "repeat_identical": true
+    },
+    {
+      "file": "scheduler-baselines-manifest.json",
+      "sha256": "152f2c8d02af98d01ae0ff5068c0dcac0e08e4260ffb3878835a308d651bb7a3",
+      "bytes": 386,
+      "repeat_identical": true
+    },
+    {
+      "file": "scheduler-baselines.csv",
+      "sha256": "a90c60f72f9fe363d1cdce44cf3e613d1e1fb6e8d24625caced339fe6eab1e14",
+      "bytes": 20019,
+      "repeat_identical": true
+    },
+    {
+      "file": "scheduler-baselines.json",
+      "sha256": "1b48de2e5825198b6e6219dea52a6205a2195507e853ebff89520859ca59b777",
+      "bytes": 157023,
+      "repeat_identical": true
+    },
+    {
+      "file": "support-benchmark.json",
+      "sha256": "96cb90ff2c3e68bf44e95a83c4bd0c26b8dcacd0508edb770c69d4f0f3ec0a6c",
+      "bytes": 1557,
+      "repeat_identical": true
+    }
+  ],
+  "configurations": {
+    "median": {
+      "title": "Publication replay median",
+      "dataset_id": "cef391f551a78f615750faa6814321d2eb8c2350a0c7c2ea114294f8c1f4befd",
+      "policy_id": null,
+      "jobs": 90,
+      "seeds": 20,
+      "seed": 6021,
+      "strategies": [
+        "cost_plus",
+        "scarcity",
+        "scripted_response",
+        "q_learning"
+      ],
+      "carbon_weight": 12,
+      "scarcity": 2,
+      "respect_gpu_models": false,
+      "controlled_undercut": true,
+      "carbon_mode": "lagged",
+      "cohort": "modeled",
+      "runtime_model": "median"
+    },
+    "calibrated": {
+      "title": "Publication replay calibrated",
+      "dataset_id": "cef391f551a78f615750faa6814321d2eb8c2350a0c7c2ea114294f8c1f4befd",
+      "policy_id": null,
+      "jobs": 90,
+      "seeds": 20,
+      "seed": 6021,
+      "strategies": [
+        "cost_plus",
+        "scarcity",
+        "scripted_response",
+        "q_learning"
+      ],
+      "carbon_weight": 12,
+      "scarcity": 2,
+      "respect_gpu_models": false,
+      "controlled_undercut": true,
+      "carbon_mode": "lagged",
+      "cohort": "modeled",
+      "runtime_model": "calibrated"
+    }
+  },
+  "scope": [
+    "Contract traces and pricing labels are controlled fixtures.",
+    "The runtime target is a successful-pod lifecycle proxy. It does not cover censored jobs.",
+    "Scheduling combines recorded arrivals and grid data with modeled duration, capacity, prices and power.",
+    "Paired results compare the same seeds. Availability and service still need partner validation."
+  ]
+}

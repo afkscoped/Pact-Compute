@@ -1,0 +1,1 @@
+{"device": "NVIDIA GeForce GTX 1650", "vram_mib": 4095, "torch": "2.15.0+cpu", "cuda": "13.1", "kernel_verified": true, "cpu_reference_cosine": 1.0, "cpu_reference_max_error": 4.991888999938965e-07, "kernels_sha256": "411e482d8fb8c14a4ff0d26b7120d2d0bb168155dc314324bb97e0ff1f149f17"}

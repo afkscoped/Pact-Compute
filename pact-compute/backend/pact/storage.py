@@ -64,6 +64,7 @@ class LocalStore:
         target = self.path(digest)
         target.parent.mkdir(parents=True, exist_ok=True)
         if target.exists():
+            self.get(digest)  # An idempotent retry must not bless corrupt stored bytes.
             return
         staging = target.with_suffix('.' + secrets.token_hex(6) + '.part')  # temporary key, then publish atomically
         with open(staging, 'wb') as stream:
@@ -104,6 +105,7 @@ class S3Store:
         verified(digest, data)
         try:
             if self.exists(digest):
+                self.get(digest)
                 return
             # Single-object PUT is atomic: the key becomes visible only when the whole body is stored.
             self.client.put_object(Bucket=self.bucket, Key=self.key(digest), Body=data, ContentType='application/json',

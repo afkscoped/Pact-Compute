@@ -1,0 +1,47 @@
+..F                                                                      [100%]
+================================== FAILURES ===================================
+________________ test_committed_event_order_under_slow_writer _________________
+
+postgres = Engine(postgresql+pg8000://pact_validation@127.0.0.1:57905/pact_validation_eae382998e4f)
+
+    def test_committed_event_order_under_slow_writer(postgres):
+        with db.session(write=True) as session:
+            session.add(db.Organization(id='event-order', name='Event order fixture'))
+        entered, release, second_done = threading.Event(), threading.Event(), threading.Event()
+        def first():
+            with db.session(write=True) as session:
+                db.record(session, 'event-order', 'job', 'slow-job', 'First')
+                session.flush()
+                entered.set()
+                assert release.wait(15)
+        def second():
+            assert entered.wait(5)
+            with db.session(write=True) as session:
+                db.record(session, 'event-order', 'job', 'slow-job', 'Second')
+            second_done.set()
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            a, b = pool.submit(first), pool.submit(second)
+            try:
+                assert entered.wait(5)
+                # A later sequence must not become visible while its predecessor is
+                # still uncommitted, even beyond the old finite gap grace.
+>               assert not second_done.wait(outbox.GAP_GRACE + .2)
+E               assert not True
+E                +  where True = wait((3.0 + 0.2))
+E                +    where wait = <threading.Event at 0x229a9ae9ca0: set>.wait
+E                +    and   3.0 = outbox.GAP_GRACE
+
+tests\postgres\test_postgres_integration.py:68: AssertionError
+============================== warnings summary ===============================
+.venv\Lib\site-packages\_pytest\cacheprovider.py:487
+  C:\Users\nithe\Pact-Compute\pact-compute\.venv\Lib\site-packages\_pytest\cacheprovider.py:487: PytestCacheWarning: could not create cache path C:\Users\nithe\Pact-Compute\pact-compute\.pytest_cache\v\cache\nodeids: [WinError 5] Access is denied: 'C:\\Users\\nithe\\Pact-Compute\\pact-compute\\.pytest_cache\\v\\cache'
+    config.cache.set("cache/nodeids", sorted(str(n) for n in self.cached_nodeids))
+
+.venv\Lib\site-packages\_pytest\cacheprovider.py:439
+  C:\Users\nithe\Pact-Compute\pact-compute\.venv\Lib\site-packages\_pytest\cacheprovider.py:439: PytestCacheWarning: could not create cache path C:\Users\nithe\Pact-Compute\pact-compute\.pytest_cache\v\cache\lastfailed: [WinError 5] Access is denied: 'C:\\Users\\nithe\\Pact-Compute\\pact-compute\\.pytest_cache\\v\\cache'
+    config.cache.set("cache/lastfailed", current_lastfailed)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/postgres/test_postgres_integration.py::test_committed_event_order_under_slow_writer
+1 failed, 2 passed, 2 warnings in 1.30s

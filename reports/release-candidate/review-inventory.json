@@ -1,0 +1,1107 @@
+[
+  {
+    "path": ".dockerignore",
+    "bytes": 375,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": ".github/workflows/validation.yml",
+    "bytes": 2027,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": ".gitignore",
+    "bytes": 549,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "BACKUP_RESTORE.md",
+    "bytes": 5651,
+    "category": "project documentation"
+  },
+  {
+    "path": "CLAUDE.md",
+    "bytes": 4152,
+    "category": "project documentation"
+  },
+  {
+    "path": "DEPLOYMENT.md",
+    "bytes": 4829,
+    "category": "project documentation"
+  },
+  {
+    "path": "Dockerfile",
+    "bytes": 1436,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "HANDOFF.md",
+    "bytes": 43220,
+    "category": "project documentation"
+  },
+  {
+    "path": "PROJECT_STATUS_REPORT_2026-11-12.md",
+    "bytes": 21672,
+    "category": "user-owned; preserve, exclude from plan"
+  },
+  {
+    "path": "deploy/entrypoint.sh",
+    "bytes": 693,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/README.md",
+    "bytes": 14905,
+    "category": "project documentation"
+  },
+  {
+    "path": "pact-compute/RESEARCH_RESULTS.md",
+    "bytes": 5170,
+    "category": "project documentation"
+  },
+  {
+    "path": "pact-compute/backend/pact/api.py",
+    "bytes": 32387,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/backend/pact/db.py",
+    "bytes": 16287,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/backend/pact/demo.py",
+    "bytes": 3283,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/backend/pact/outbox.py",
+    "bytes": 4279,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/backend/pact/service.py",
+    "bytes": 2068,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/backend/pact/storage.py",
+    "bytes": 6248,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/frontend/e2e/exchange.spec.ts",
+    "bytes": 7023,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/frontend/e2e/roles.spec.ts",
+    "bytes": 8794,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/frontend/e2e/workspace.spec.ts",
+    "bytes": 7415,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/frontend/package-lock.json",
+    "bytes": 29038,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/frontend/package.json",
+    "bytes": 658,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/frontend/playwright.rc.config.ts",
+    "bytes": 329,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/frontend/rc-e2e/accessibility.spec.ts",
+    "bytes": 5248,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/frontend/src/main.tsx",
+    "bytes": 16843,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/requirements-gpu-win-py312.lock.txt",
+    "bytes": 235,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/requirements-runtime-py312.lock.txt",
+    "bytes": 864,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/requirements-validation-win-py312.lock.txt",
+    "bytes": 1583,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/requirements-win-py312.lock.txt",
+    "bytes": 1074,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/scripts/browser_validation.py",
+    "bytes": 5079,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/scripts/export_research.py",
+    "bytes": 3885,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/scripts/export_runtime_lock.py",
+    "bytes": 1537,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/scripts/finalize_validation.py",
+    "bytes": 45505,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/scripts/gpu_validation.py",
+    "bytes": 4188,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/scripts/http_performance.py",
+    "bytes": 4228,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/scripts/postgres_validation.py",
+    "bytes": 4985,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/scripts/rc_browser.py",
+    "bytes": 4243,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/scripts/rc_linux_smoke.py",
+    "bytes": 4805,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/scripts/rc_package.py",
+    "bytes": 4123,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/scripts/rc_packaging_smoke.py",
+    "bytes": 2974,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/scripts/runtime_recovery.py",
+    "bytes": 4832,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/scripts/security_scan.py",
+    "bytes": 2267,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/scripts/validate.py",
+    "bytes": 6847,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/scripts/validation_manifest.py",
+    "bytes": 1439,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/tests/postgres/test_postgres_integration.py",
+    "bytes": 4915,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/tests/test_capacity_contention.py",
+    "bytes": 6392,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/tests/test_control_plane.py",
+    "bytes": 67795,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/tests/test_event_delivery.py",
+    "bytes": 2227,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/tests/test_failure_recovery.py",
+    "bytes": 5418,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/tests/test_rc_packaging.py",
+    "bytes": 2530,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/tests/test_release_recovery.py",
+    "bytes": 5958,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "pact-compute/tests/test_service.py",
+    "bytes": 1362,
+    "category": "source/test/build/dependency definition"
+  },
+  {
+    "path": "reports/final-validation/ACCESSIBILITY_REPORT.md",
+    "bytes": 1172,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/ANNOTATION_PROTOCOL.md",
+    "bytes": 1753,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/BACKUP_RESTORE_VALIDATION.md",
+    "bytes": 1815,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/BASELINE_TEST_REPORT.md",
+    "bytes": 1497,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/DATASET_INTEGRITY_REPORT.md",
+    "bytes": 1576,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/DEMONSTRATION_GUIDE.md",
+    "bytes": 2331,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/DEPENDENCY_AUDIT.md",
+    "bytes": 1740,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/DEPLOYMENT_RUNBOOK_FINAL.md",
+    "bytes": 2518,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/END_TO_END_WORKFLOW_REPORT.md",
+    "bytes": 2012,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/ENVIRONMENT_CONFIGURATION_CHECKLIST.md",
+    "bytes": 1840,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/ENVIRONMENT_MANIFEST.md",
+    "bytes": 2569,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/EXPERIMENT_MANIFEST.md",
+    "bytes": 1152,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/FINAL_PROJECT_STATUS.md",
+    "bytes": 2742,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/FINAL_RELEASE_ASSESSMENT.md",
+    "bytes": 7403,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/FINAL_TECHNICAL_REPORT.md",
+    "bytes": 5873,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/FINAL_TESTING_REPORT.md",
+    "bytes": 4705,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/FRONTEND_VALIDATION_REPORT.md",
+    "bytes": 1480,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/GPU_EXECUTION_VALIDATION.md",
+    "bytes": 1348,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/GPU_OUTPUT_VERIFICATION.md",
+    "bytes": 1354,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/IMPLEMENTATION_AUDIT.md",
+    "bytes": 5780,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/PERFORMANCE_VALIDATION.md",
+    "bytes": 1666,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/PROGRESS_TRACKER.md",
+    "bytes": 4108,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/RECOVERY_DRILL_REPORT.md",
+    "bytes": 1349,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/RELIABILITY_TEST_REPORT.md",
+    "bytes": 3675,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/RESEARCH_REPRODUCIBILITY_REPORT.md",
+    "bytes": 1353,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/RESEARCH_RESULTS_FINAL.md",
+    "bytes": 1824,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/SECURITY_REVIEW.md",
+    "bytes": 3674,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/accessibility-axe.json",
+    "bytes": 42,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/baseline-backend.log",
+    "bytes": 7095,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/baseline-frontend-build.log",
+    "bytes": 1102,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/baseline-frontend-unit.log",
+    "bytes": 2396,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/baseline-pytest.xml",
+    "bytes": 40923,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/baseline-summary.json",
+    "bytes": 1233,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/browser-e2e.log",
+    "bytes": 7415,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/browser-initial.json.log",
+    "bytes": 16723,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/browser-summary.json",
+    "bytes": 13841,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/clean-install-backend.log",
+    "bytes": 1752,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/clean-install-frontend-build.log",
+    "bytes": 1102,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/clean-install-frontend-unit.log",
+    "bytes": 2399,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/clean-install-pytest.xml",
+    "bytes": 40263,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/clean-install-summary.json",
+    "bytes": 14916,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/clean-install.log",
+    "bytes": 13963,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/contention-1000.json",
+    "bytes": 320,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/contention-1000.log",
+    "bytes": 101,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/contention-capacity-1000.log",
+    "bytes": 101,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/contention-postgres.json",
+    "bytes": 313,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/contention-smoke.log",
+    "bytes": 100,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/contention-summary.json",
+    "bytes": 664,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/dataset-check.json",
+    "bytes": 4464,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/dataset-restored.json",
+    "bytes": 4458,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/environment-final.resolved.txt",
+    "bytes": 1583,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/event-regression-after.log",
+    "bytes": 100,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/event-regression-before.log",
+    "bytes": 2061,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/evidence-before.log",
+    "bytes": 2260,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/experiment-manifest.json",
+    "bytes": 6448,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/failure-injection.log",
+    "bytes": 100,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/figure-dependencies.log",
+    "bytes": 1861,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/final-backend.log",
+    "bytes": 1730,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/final-frontend-build.log",
+    "bytes": 1102,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/final-frontend-unit.log",
+    "bytes": 2399,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/final-pytest.xml",
+    "bytes": 40264,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/final-repeat-backend.log",
+    "bytes": 1730,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/final-repeat-frontend-build.log",
+    "bytes": 1102,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/final-repeat-frontend-unit.log",
+    "bytes": 2400,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/final-repeat-pytest.xml",
+    "bytes": 39556,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/final-repeat-summary.json",
+    "bytes": 1290,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/final-summary.json",
+    "bytes": 14873,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/frontend-prebaseline.log",
+    "bytes": 2444,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/gpu-dependencies.log",
+    "bytes": 3575,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/gpu-environment.resolved.txt",
+    "bytes": 235,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/gpu-independent-verification.json",
+    "bytes": 746,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/gpu-independent.log",
+    "bytes": 81,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/gpu-pip-audit-before.json",
+    "bytes": 10321,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/gpu-pip-audit.json",
+    "bytes": 925,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/gpu-pip-audit.log",
+    "bytes": 32,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/gpu-pip-check.log",
+    "bytes": 31,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/gpu-pip-upgrade.log",
+    "bytes": 351,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/gpu-prepare.log",
+    "bytes": 286,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/gpu-setuptools-upgrade.log",
+    "bytes": 420,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/gpu-toolchain-upgrade.log",
+    "bytes": 2263,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/gpu-upgrade-resolution.log",
+    "bytes": 1630,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/hosted-health.json",
+    "bytes": 130,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/npm-audit.json",
+    "bytes": 361,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/performance-http.json",
+    "bytes": 1241,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/performance-http.log",
+    "bytes": 83,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/pip-audit-before.json",
+    "bytes": 11954,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/pip-audit-install.log",
+    "bytes": 6176,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/pip-audit.json",
+    "bytes": 4857,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/pip-audit.log",
+    "bytes": 32,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/pip-upgrade.log",
+    "bytes": 426,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/postgres-before.log",
+    "bytes": 3094,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/postgres-bootstrap.log",
+    "bytes": 1175,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/postgres-pytest.xml",
+    "bytes": 914,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/postgres-restore.log",
+    "bytes": 94,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/postgres-summary.json",
+    "bytes": 13929,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/postgres-tests.log",
+    "bytes": 100,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/publication-metrics.csv",
+    "bytes": 5643,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/publication-seeds.csv",
+    "bytes": 17999,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/recovery-after.log",
+    "bytes": 101,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/recovery-before.log",
+    "bytes": 1098,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/requirements-win-py312.resolved.txt",
+    "bytes": 1074,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/research-extraction.log",
+    "bytes": 420,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/research-import.log",
+    "bytes": 108,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/research-publication.log",
+    "bytes": 488,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/research-repeat-extraction.log",
+    "bytes": 420,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/research-repeat-import.log",
+    "bytes": 108,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/research-repeat-publication.log",
+    "bytes": 488,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/research-repeat-runtime.log",
+    "bytes": 351,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/research-repeat-scheduler.log",
+    "bytes": 398,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/research-repeat-summary.json",
+    "bytes": 2581,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/research-repeat-support.log",
+    "bytes": 68,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/research-runtime.log",
+    "bytes": 351,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/research-scheduler.log",
+    "bytes": 398,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/research-summary.json",
+    "bytes": 2539,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/research-support.log",
+    "bytes": 68,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/runtime-baselines-slices.csv",
+    "bytes": 4459,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/runtime-lock-resolution.log",
+    "bytes": 7202,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/runtime-negative-result.png",
+    "bytes": 86227,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/runtime-negative-result.svg",
+    "bytes": 54737,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/runtime-recovery.json",
+    "bytes": 448,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/scheduler-baselines.csv",
+    "bytes": 20019,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/scheduler-tradeoff.png",
+    "bytes": 75870,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/scheduler-tradeoff.svg",
+    "bytes": 52721,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/secret-scan.json",
+    "bytes": 274,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/source-manifest.json",
+    "bytes": 13504,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/test-isolation-before.log",
+    "bytes": 1829637,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/final-validation/working-tree.txt",
+    "bytes": 1960,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/COMMIT_PLAN.md",
+    "bytes": 5012,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/EXTERNAL_REQUIREMENTS.md",
+    "bytes": 3648,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/HOSTED_STAGING_VERIFICATION.md",
+    "bytes": 13952,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/PATCH_REVIEW.md",
+    "bytes": 5662,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/PROGRESS.md",
+    "bytes": 2927,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/RELEASE_ASSESSMENT.md",
+    "bytes": 7444,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/VALIDATION.md",
+    "bytes": 6669,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/accessibility-browser.log",
+    "bytes": 4943,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/accessibility-summary.json",
+    "bytes": 15494,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/accessibility-views.json",
+    "bytes": 611,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/dataset-identity.json",
+    "bytes": 1901,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/dependency-provenance.json",
+    "bytes": 1367,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/frontend-build.log",
+    "bytes": 188,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/linux-installed.json",
+    "bytes": 1381,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/linux-pip-upgrade.log",
+    "bytes": 496,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/linux-runtime-install.log",
+    "bytes": 16011,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/linux-smoke.json",
+    "bytes": 1160,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/linux-smoke.log",
+    "bytes": 723,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/package-manifest.json",
+    "bytes": 15027,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/packaged-frontend-before.log",
+    "bytes": 377,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/packaged-frontend.log",
+    "bytes": 416,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/packaging-before.json",
+    "bytes": 470,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/packaging-summary.json",
+    "bytes": 16354,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/packaging-tests.log",
+    "bytes": 100,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/rc-backend.log",
+    "bytes": 1740,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/rc-final-backend.log",
+    "bytes": 1730,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/rc-final-frontend-build.log",
+    "bytes": 179,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/rc-final-frontend-unit.log",
+    "bytes": 2400,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/rc-final-pytest.xml",
+    "bytes": 40891,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/rc-final-summary.json",
+    "bytes": 16983,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/rc-frontend-build-before.log",
+    "bytes": 1102,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/rc-frontend-build.log",
+    "bytes": 1102,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/rc-frontend-frontend-build.log",
+    "bytes": 179,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/rc-frontend-frontend-unit.log",
+    "bytes": 2396,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/rc-frontend-summary.json",
+    "bytes": 16286,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/rc-frontend-unit.log",
+    "bytes": 2396,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/rc-pytest.xml",
+    "bytes": 40892,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/rc-summary.json",
+    "bytes": 16628,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/rc-unit.log",
+    "bytes": 100,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/secret-scan.json",
+    "bytes": 274,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  },
+  {
+    "path": "reports/release-candidate/source-manifest.json",
+    "bytes": 16519,
+    "category": "intentional generated evidence/documentation; separate reviewed evidence group"
+  }
+]

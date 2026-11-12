@@ -4,7 +4,7 @@ import path from 'node:path';
 import { expect, test } from '@playwright/test';
 
 test('approves an agreement, executes a real GPU job, and runs the trace benchmark', async ({ page }) => {
-  const workspace = path.resolve('..', '.local');
+  const workspace = process.env.PACT_STATE_DIR || path.resolve('..', '.local');
   const credentials = JSON.parse(await readFile(path.join(workspace, 'local-credentials.json'), 'utf8'));
   const evidence = path.join(workspace, 'verified');
   await mkdir(evidence, { recursive: true });
@@ -17,6 +17,12 @@ test('approves an agreement, executes a real GPU job, and runs the trace benchma
   await expect(page.getByText('GPU connected', { exact: true })).toBeVisible({ timeout: 75_000 });
   await page.getByRole('link', { name: 'Agreements', exact: true }).click();
   await page.getByRole('button', { name: 'Load example' }).click();
+  // Driver-visible VRAM may be below the nominal board capacity. Declare a
+  // genuinely feasible policy rather than changing hardware inventory.
+  if (process.env.PACT_TEST_VRAM_GIB) {
+    const input = page.getByLabel('Service agreement');
+    await input.fill((await input.inputValue()).replace('4 GiB', process.env.PACT_TEST_VRAM_GIB + ' GiB'));
+  }
   await page.getByRole('button', { name: 'Extract rules' }).click();
   await expect(page.getByText('6 source-linked rules')).toBeVisible();
   await page.getByRole('button', { name: 'Approve policy' }).click();

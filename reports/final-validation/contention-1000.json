@@ -1,0 +1,11 @@
+{
+  "cases": 1000,
+  "confirmations": 2000,
+  "duplicate_retries": 1000,
+  "double_bookings": 0,
+  "reservation_inventory": "controlled test fixture, no GPU execution",
+  "database": "SQLite WAL",
+  "concurrency": 2,
+  "confirmation_p50_s": 0.01610340003389865,
+  "confirmation_p95_s": 0.031136299949139357
+}

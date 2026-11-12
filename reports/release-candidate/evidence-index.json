@@ -1,0 +1,30 @@
+{
+  "source_fingerprint": "772472e23d5ac3fc885b525083abcdc65b72c31fab2291618ac43e517617502c",
+  "accepted_regression": "rc-final-summary.json",
+  "backend": {
+    "tests": 271,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 6,
+    "passed": 265
+  },
+  "browser_product_inputs_still_match_current": true,
+  "browser_original_fingerprint": "60df7eb651d5de13d769939c36747c6e2fe982c5a580004b340d6c224e078796",
+  "browser_source_unchanged_during_run": true,
+  "archive_sha256": "69b516ed31b5c7cf6115cd245e131c1664a75d4ce3b15e3f0c0154c2d5e05dc8",
+  "packaging_source_matches_current": true,
+  "linux_archive_matches_packaging": true,
+  "dataset_hashes_match": 12,
+  "review_inventory_paths": 221,
+  "rc_markdown_links_resolve": true,
+  "milestone_markdown_reports_read": 27,
+  "invalidated_evidence": [
+    {
+      "file": "rc-summary.json",
+      "portion": "initial frontend-build zero-exit result",
+      "reason": "Fatal esbuild child output; replaced by corrected capture and rc-final run"
+    }
+  ],
+  "hosted_mutations_performed": false,
+  "push_merge_production_changes_performed": false
+}

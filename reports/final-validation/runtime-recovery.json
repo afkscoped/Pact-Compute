@@ -1,0 +1,10 @@
+{
+  "actual_local_processes": true,
+  "cancel_during_workload_startup": "PASS",
+  "cancellation_acknowledged_and_capacity_released": true,
+  "runner_process_restart_then_physical_execution": "PASS",
+  "attempt_count_after_restart": 1,
+  "api_process_restart_session_persistence": "PASS",
+  "sse_last_event_id_after_restart": "PASS",
+  "scope": "Managed loopback processes and local GPU only; no pre-existing service or hosted mutation"
+}

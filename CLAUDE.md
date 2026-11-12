@@ -1,5 +1,7 @@
 # CLAUDE.md — PACT-Compute
 
+Current review assignment (13 November 2026): remain on `sasha-work`, do not push/merge or change production. Current RC assessment, commands, commit plan and external blockers are in reports/release-candidate/RELEASE_ASSESSMENT.md and PROGRESS.md. The prior milestone is retained in reports/final-validation; older totals below are historical. No commit has been made. Use fresh isolated databases and preserve private env files. Do not regenerate old evidence against changed source.
+
 Private GPU exchange: React+TS frontend, FastAPI backend, SQLAlchemy/Alembic (PostgreSQL or SQLite), research worker, native GPU runner, research experiments.
 
 ## Layout

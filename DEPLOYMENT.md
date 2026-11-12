@@ -1,52 +1,45 @@
-# DEPLOYMENT.md — PACT-Compute
+# PACT-Compute deployment
 
-Status: plan + repo files written (`Dockerfile`, `deploy/entrypoint.sh`, `.dockerignore`). **Not yet built or deployed.** Docker is not installed on Sasha's machine, so the image build is untested; Render builds it remotely on first deploy. Values below are placeholders — enter real secrets only in the host dashboard, never in git or chat.
+Current RC status, 13 November 2026: local regression, clean source packaging and Linux startup checks passed. **The actual Docker image and current hosted deployment remain unverified.** No push, production migration, cloud-resource creation or deployment change was performed.
 
-## Components and where they run
-| Component | Where | Why | Cost |
-| --- | --- | --- | --- |
-| Frontend (built React) | Served by the API container (`frontend/dist`) | App already serves it; one origin means cookies/CSRF checks just work | free |
-| API + research worker | One Docker container (Render free Web Service) | Entry script runs migrations, init, import, worker (background), then uvicorn | free tier (sleeps after ~15 min idle, cold start ~1 min; verify current limits on render.com/pricing) |
-| Database | Neon PostgreSQL (already configured) | Already used | free tier |
-| HTTPS | Provided by the host (`*.onrender.com`) | Needed for `PACT_SECURE_COOKIE=1` | free |
-| Artifacts / experiment files | `PACT_STATE_DIR=/data` | **RISK:** free Render disk is ephemeral; artifacts, dataset snapshots and study outputs vanish on restart/redeploy. DB rows would then point at missing files. Persistent disks are paid. Acceptable for a demo; for real use move to object storage (backlog #6) or a paid disk | free (risky) |
-| GPU runner | Your own NVIDIA machine (Windows) outside the container | Needs real GPU/driver; connects out to the deployed URL | free |
-| Groq | Already configured | Optional assistance | free tier |
+Read the [RC assessment](reports/release-candidate/RELEASE_ASSESSMENT.md), [exact hosted staging procedure](reports/release-candidate/HOSTED_STAGING_VERIFICATION.md) and [external requirements](reports/release-candidate/EXTERNAL_REQUIREMENTS.md) before any release action. The completed local milestone is retained in [reports/final-validation](reports/final-validation/FINAL_RELEASE_ASSESSMENT.md).
 
-Alternative for a faculty demo that needs persistent files and the GPU on the same box: run locally (`scripts/start.ps1`) and expose with a Cloudflare quick tunnel (`cloudflared tunnel --url http://127.0.0.1:8765`, free, no account, URL changes each run, HTTPS). Set `PACT_URL` to the tunnel URL and `PACT_SECURE_COOKIE=1`.
+## Existing deployment reference
 
-## Environment variables for the host (names only)
-| Name | Value / note |
+Historical HANDOFF records Render Docker service `pact-compute-sasha` at `https://pact-compute-sasha.onrender.com`, linked to the fork's `sasha-work` branch, and Neon project `pact-deploy` in aws-us-east-2. Current deploy SHA, dashboard settings, schema and actual storage backend require owner verification. Do not create replacement infrastructure or touch the teammate's database. The checked-out RC is uncommitted and cannot already be the hosted source.
+
+## Runtime layout
+
+| Component | Current source behavior |
 | --- | --- |
-| `PACT_DATABASE_URL` | Neon connection URL (secret) |
-| `PACT_DB_TLS` | `1` |
-| `PACT_URL` | Public https origin of the deployment (used by origin checks and runners) |
-| `PACT_SECURE_COOKIE` | `1` |
-| `PACT_SIGNING_SECRET` | **Required.** Random 64-hex string you generate once and keep. Without it a new secret is generated on each restart of an ephemeral disk, invalidating newly issued runner tokens and receipt/evidence signatures |
-| `PACT_ADMIN_PASSWORD` | Only used if the `admin` user does not exist yet in the database; if it exists, the existing password still applies |
-| `GROQ_API_KEY` | Secret, optional |
-| `PACT_RUN_MIGRATIONS` / `PACT_RUN_IMPORT` / `PACT_RUN_WORKER` | Defaults `1`; set `PACT_RUN_MIGRATIONS=0` on any extra replica. Run a single replica: rate limits and Groq budget are process-local |
-| `PACT_ARTIFACT_BACKEND` and `PACT_S3_*`, `AWS_*` | Optional S3-compatible artifact storage so artifacts survive restarts; see BACKUP_RESTORE.md. Values are secrets: enter them only in the dashboard |
-| `PORT` | Set by Render automatically |
+| Frontend | Node 24 build stage; API serves bundled React/TypeScript files |
+| API + research worker | Python 3.12 image with pinned runtime/S3 dependencies. Entrypoint optionally migrates/imports, then `pact.service` supervises worker and uvicorn; unexpected child exit stops the service |
+| Database | PostgreSQL for hosting; SQLite for isolated local checks. Current schema head `0007` |
+| GPU runner | Separate owner-controlled NVIDIA host with its own pinned GPU environment, scoped enrollment token and model digest; not part of the API image |
+| Artifacts | Local `$PACT_STATE_DIR/artifacts` or implemented S3-compatible backend. Hosting requires verified durable storage and matching backups |
+| Research/data state | Dataset snapshots and evaluation files under state directory; regenerable/importable separately from content-addressed artifacts |
 
-## Decisions made
-- Public deployment uses its own new free Neon project `pact-deploy` (aws-us-east-2), separate from the teammate's database. Its direct connection string lives only in the gitignored `pact-compute/deploy.env` (create/refresh with neonctl; never commit or print).
-- Code is deployed from the fork `sashank-talapaneni/Pact-Compute`, branch `sasha-work` (remote `fork`; `origin` is the upstream where this account has no write access).
-- Migrations applied to `pact-deploy` and a 9-step API smoke test passed locally against it (leaves two `Smoke ...` orgs/users in that DB; harmless).
+Render free-service files are ephemeral and shell/one-off-job access is unavailable; local `/data` is not durable merely because the Dockerfile declares a volume. Use existing approved private object storage or a verified persistent disk on a supporting plan. No storage plan or free-tier entitlement is assumed. [Render limitations](https://render.com/docs/free), [persistent disks](https://render.com/docs/disks).
 
-## Steps
-Repo-side (done in this branch): Dockerfile, entrypoint, dockerignore, health check at `/api/health`.
+## Configuration - names only
 
-Manual steps (need Sasha's accounts — Claude will give click-by-click instructions at that point and wait for "done"):
-1. Done: branch pushed to the fork.
-2. Create a Render account (sign in with GitHub). New + Web Service → connect the repo → branch `sasha-work` → Runtime: Docker, Dockerfile path `./Dockerfile`, context `.`, instance type Free.
-3. In the Render service → Environment, add the variables above by hand (generate `PACT_SIGNING_SECRET` locally with `python -c "import secrets;print(secrets.token_hex(32))"` and paste it only into the dashboard).
-4. Set the Health Check Path to `/api/health`. Deploy. Open the URL, create a producer account, enroll a runner under **Compute capacity**.
-5. On the GPU machine: set `PACT_URL` to the Render URL, `PACT_RUNNER_ID` to the new runner id and `PACT_RUNNER_TOKEN` to the token shown once in the UI (put them in that machine's `.env`, not the repo), then run `python -m pact.runner` (see README for GPU prerequisites).
-6. Smoke test: sign in, publish capacity, quote/confirm as a consumer with a reviewer-approved agreement (reviewer accounts still need `pact.cli member ... reviewer --org WORKSPACE_ID` run against that database).
+| Variables | Purpose |
+| --- | --- |
+| `PACT_DATABASE_URL`, `PACT_DB_TLS=1` | Approved hosted PostgreSQL target and TLS |
+| `PACT_URL`, `PACT_SECURE_COOKIE=1` | Exact HTTPS origin and secure browser session cookie |
+| `PACT_SIGNING_SECRET` | Stable secret-store value retained across restarts and backed up for evidence verification |
+| `PACT_ADMIN_PASSWORD` | Initial bootstrap only; not an existing-user password reset |
+| `PACT_ARTIFACT_BACKEND`, `PACT_S3_BUCKET`, `PACT_S3_PREFIX`, optional endpoint/region, `AWS_*` | Private durable artifact backend and scoped credentials |
+| `PACT_RUN_MIGRATIONS` | Set `0` after a dedicated approved migration step; avoid concurrent rollout migrations |
+| `PACT_RUN_IMPORT`, `PACT_RUN_WORKER` | Normally `1` for the demonstration; verify import and worker process outcomes |
+| `PACT_MODEL_WEIGHTS_SHA256` | Full approved model digest, shared with the staging runner |
+| `PORT` | Host-provided port honored by the service supervisor |
+| `GROQ_API_KEY` / configured provider variables | Optional authorized assistance; fallback works without live provider credentials |
 
-## Known deployment gaps
-- Ephemeral artifacts on free tier (above) unless an S3-compatible bucket is configured (implemented; see BACKUP_RESTORE.md). Backups of the DB alone are incomplete.
-- No monitoring/alerting, no restore drill, single replica only.
-- `pact.cli member` for reviewers must be run with the deployment's `PACT_DATABASE_URL` (a local shell with that variable set, or Render Shell if available on the plan).
-- Image build untested locally (no Docker). Python 3.12 in the image vs 3.11 tested locally; tests ran on 3.11.
+Health at `/api/health` checks database access only. Verify worker activity, import/data availability, private storage, browser sessions and physical runner separately. PostgreSQL event ordering now serializes application writes: **drain every older writer before authorized rollout**, rather than mixing revisions in a normal rolling deploy.
+
+## Release and recovery
+
+Build from the allowlisted context and execute the [container gate](reports/release-candidate/VALIDATION.md) when an engine is available. Freeze source/image identities. Owner-approved staging must pass matched backup/restore, dedicated migration/drift check, exact-SHA deployment, storage across restart, role isolation and a physical hosted GPU transaction. Use [BACKUP_RESTORE.md](BACKUP_RESTORE.md) and the staged stop gates. A successful local simulation or public health response cannot replace those checks.
+
+A future source push may trigger the historical service's auto-deploy. It requires separate explicit authorization. Production changes additionally require the verified matched backup and owner approval. No action in this document authorizes either.

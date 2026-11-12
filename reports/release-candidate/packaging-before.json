@@ -1,0 +1,17 @@
+{
+  "archive_sha256": "69b516ed31b5c7cf6115cd245e131c1664a75d4ce3b15e3f0c0154c2d5e05dc8",
+  "deterministic_repeat_identical": true,
+  "members": 82,
+  "archive_bytes": 2037760,
+  "checks": [
+    {
+      "command": [
+        "npm.cmd",
+        "ci",
+        "--ignore-scripts"
+      ],
+      "exit_code": 1
+    }
+  ],
+  "scope": "Windows clean npm install/build using only the allowlisted archive. Linux backend smoke is separate. No OCI image build."
+}

@@ -1,0 +1,61 @@
+name: Local release regressions
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: pact-compute
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: python -m pip install -r requirements-win-py312.lock.txt
+      - run: npm.cmd ci --ignore-scripts
+        working-directory: pact-compute/frontend
+      - run: python scripts/validate.py datasets
+      - run: python scripts/validate.py final
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-validation
+          path: reports/final-validation/final-*
+  postgres:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: pact_validation
+          POSTGRES_DB: pact_validation_ci
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    defaults:
+      run:
+        working-directory: pact-compute
+    env:
+      PYTHONPATH: backend
+      PYTEST_DISABLE_PLUGIN_AUTOLOAD: '1'
+      PACT_DATABASE_URL: postgresql+pg8000://pact_validation@127.0.0.1:5432/pact_validation_ci
+      PACT_TEST_POSTGRES_URL: postgresql+pg8000://pact_validation@127.0.0.1:5432/pact_validation_ci
+      PACT_STATE_DIR: /tmp/pact-validation-state
+      PACT_DB_TLS: '0'
+      GROQ_API_KEY: ''
+      PACT_LLM_API_KEY: ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements-dev.txt
+      - run: python -m alembic upgrade 0002
+      - run: python -m alembic upgrade head
+      - run: python -m pytest tests/postgres -q -ra -p no:cacheprovider

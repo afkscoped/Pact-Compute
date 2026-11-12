@@ -1,0 +1,18 @@
+{
+  "device": "NVIDIA GeForce GTX 1650",
+  "cuda": "13.1",
+  "torch": "2.15.0+cpu",
+  "engine": "driver",
+  "weights_sha256": "5c1a416349c4cf298f2a6a5e2600ed0ee55e604713578f5e74e6bc8bcaef7997",
+  "kernels_sha256": "411e482d8fb8c14a4ff0d26b7120d2d0bb168155dc314324bb97e0ff1f149f17",
+  "inference_seconds": 0.026674,
+  "dimension": 960,
+  "rows": 2,
+  "artifact_sha256": "b9b60985c98da53d9c36603a43cbe8ce536494722ab68cd8b8ff4c279aa4a28f",
+  "input_hashes_verified": true,
+  "vectors_finite_and_unit_norm": true,
+  "timeout_exit_code": 124,
+  "invalid_input_rejected": true,
+  "invalid_model_rejected": true,
+  "scope": "Physical CUDA Driver API execution; GPU board energy is measured separately by the browser runner workflow"
+}
