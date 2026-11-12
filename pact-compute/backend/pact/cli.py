@@ -25,6 +25,9 @@ def main():
     sub.add_parser('artifacts-verify')
     sub.add_parser('support-benchmark')
     sub.add_parser('runtime-baselines')
+    baselines = sub.add_parser('scheduler-baselines')
+    baselines.add_argument('--seeds', type=int, default=20)
+    baselines.add_argument('--jobs', type=int, default=90)
     study = sub.add_parser('publication-study')
     study.add_argument('--seeds', type=int, default=20)
     study.add_argument('--jobs', type=int, default=90)
@@ -77,6 +80,14 @@ def main():
         card = import_sources()
         _, pods, _, _ = read_snapshot(card['id'])
         report, manifest = run(STATE / 'evaluations', pods, card['id'])
+        print(json.dumps(manifest, indent=2))
+    elif args.command == 'scheduler-baselines':
+        from .datasets import import_sources, read_snapshot
+        from .scheduler_baselines import run
+
+        card = import_sources()
+        _, pods, _, carbon = read_snapshot(card['id'])
+        report, manifest = run(STATE / 'evaluations', card, pods, carbon, seeds=args.seeds, jobs=args.jobs)
         print(json.dumps(manifest, indent=2))
     elif args.command == 'artifacts-verify':
         from .db import Artifact

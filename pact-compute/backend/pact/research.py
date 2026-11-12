@@ -18,6 +18,7 @@ from . import pricing_model, runtime_model
 ENGINE_VERSION = 'pact-replay-2'
 SLOT_SECONDS = 1800
 ARMS = ('fcfs', 'edf', 'policy_only', 'carbon_aware', 'unconstrained')
+BASELINE_ARMS = ('easy_backfill', 'edf_aging')  # practical baselines, replayed by scheduler_baselines.py; not part of ARMS
 STRATEGY = Literal['cost_plus', 'scarcity', 'scripted_response', 'q_learning']
 
 
@@ -211,6 +212,26 @@ def candidate_slots(job, tick, horizon, occupancy, provider_map, frame, carbon, 
     return options
 
 
+def conservative_backfill(options, tick):
+    """Conservative backfilling: every queued job, in arrival order, reserves its earliest feasible start given the running work and
+    the reservations of earlier jobs. A job starts now only if that earliest start is now, so no job can delay an earlier one."""
+    by_job = {}
+    for opt in options:
+        by_job.setdefault(opt['job']['id'], []).append(opt)
+    reserved = Counter()
+    selected = []
+    for items in sorted(by_job.values(), key=lambda variants: (variants[0]['job']['arrival'], variants[0]['job']['id'])):
+        for option in sorted(items, key=lambda opt: (opt['start'], opt['quote'], opt['provider']['id'], opt['devices'])):
+            pairs = [(option['provider']['id'], n, t) for n in option['devices'] for t in option['slots']]
+            if all(reserved[key] + option['job']['units'] <= 1000 - option['occupied'][key] for key in pairs):
+                for key in pairs:
+                    reserved[key] += option['job']['units']
+                if option['start'] == tick:
+                    selected.append(option)
+                break
+    return selected
+
+
 def greedy(options, tick, sort_mode):
     by_job = defaultdict(list)
     for opt in options:
@@ -218,6 +239,8 @@ def greedy(options, tick, sort_mode):
             by_job[opt['job']['id']].append(opt)
     if sort_mode == 'fcfs':
         rank = lambda row: (row['arrival'], row['id'])
+    elif sort_mode == 'edf_aging':  # waiting shortens the effective deadline by one slot per two slots waited
+        rank = lambda row: (row['due'] - (tick - row['arrival']) // 2, row['priority'] != 'urgent', row['arrival'], row['id'])
     else:
         rank = lambda row: (row['due'], row['priority'] != 'urgent', row['arrival'], row['id'])
     used = Counter()
@@ -296,15 +319,22 @@ def run_arm(jobs, providers, tape, carbon, anchor, config, approved, arm, seed):
                 outcomes['unallocated'] += 1
         pending = retained
         # Keep the solver's candidate space bounded. Queue age and deadline order select the batch.
-        rank = (lambda job: (job['arrival'], job['id'])) if arm == 'fcfs' else (lambda job: (job['due'], job['arrival'], job['id']))
+        if arm in ('fcfs', 'easy_backfill'):
+            rank = lambda job: (job['arrival'], job['id'])
+        elif arm == 'edf_aging':
+            rank = lambda job: (job['due'] - (tick - job['arrival']) // 2, job['arrival'], job['id'])
+        else:
+            rank = lambda job: (job['due'], job['arrival'], job['id'])
         batch = sorted(pending, key=rank)[:40]
-        horizon = 0 if arm in ('fcfs', 'edf') else 4
+        horizon = 0 if arm in ('fcfs', 'edf', 'edf_aging') else (8 if arm == 'easy_backfill' else 4)
         options = []
         for job in batch:
             for option in candidate_slots(job, tick, horizon, occupancy, provider_map, frame, carbon, anchor, config, hard_rules):
                 options.append({**option, 'occupied': occupancy})
-        if arm in ('fcfs', 'edf'):
+        if arm in ('fcfs', 'edf', 'edf_aging'):
             selected, status = greedy(options, tick, arm), arm
+        elif arm == 'easy_backfill':
+            selected, status = conservative_backfill(options, tick), arm
         else:
             selected, status = solve(options, tick, config.carbon_weight if arm == 'carbon_aware' else 0, seed)
         assigned = set()
