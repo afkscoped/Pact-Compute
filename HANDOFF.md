@@ -55,7 +55,7 @@ Get PACT-Compute running end-to-end on the configured PostgreSQL (Neon), do the 
 | Check | Result |
 | --- | --- |
 | Backend deps in `.venv` (Python 3.11.9; README says 3.14) | OK |
-| Backend tests on SQLite (`PYTEST_DISABLE_PLUGIN_AUTOLOAD=1`) | 235 passed, 1 skipped (also on a fresh clone with no `.env`) |
+| Backend tests on SQLite (`PYTEST_DISABLE_PLUGIN_AUTOLOAD=1`) | 239 passed, 1 skipped (235 + 4 CLI tests; the fresh-clone run had 235) |
 | Frontend `npm ci`, `npm run build`, `npm test` | OK; 33 node tests pass |
 | API on SQLite from a fresh clone, `GET /api/health` and `/` | 200 and 200 (live site returned 200 `postgresql` earlier) |
 | Playwright e2e, GPU runner, live job | NOT run (need demo accounts, GPU; this machine has no verified GPU runner) |
@@ -211,3 +211,9 @@ Items: 1 membership/onboarding, 2 reliability, 3 artifact storage. Items 4-5 and
 4. Decide on the five unchanged authorization observations in Run 4 item 1 (each loosens or changes behaviour, so it needs approval): restrict invitation revoke, trim `/api/health` and `/config` for anonymous callers, tighten the market notice stream, check policy before offer in quote creation.
 5. Scheduler research: re-run baselines at a heavier, separately disclosed load so backfilling and aging can differ; add fragmentation and fairness metrics; test calibrated vs median predictions with backfilling.
 6. Keyboard and screen-reader accessibility pass on the new screens.
+
+## Bug fix: `pact.cli import` crashed on Render (UnboundLocalError)
+- Symptom (Render startup log): `UnboundLocalError: cannot access local variable 'import_sources'` at `cli.py` `card = import_sources()`, then "dataset import failed; research snapshots unavailable". The app started anyway, so research snapshots were missing on the live site.
+- Cause: my `runtime-baselines` and `scheduler-baselines` branches in `main()` did a function-local `from .datasets import import_sources, read_snapshot`. Python then treats `import_sources` as local to ALL of `main()`, so the `import` branch (which uses the module-level import) read it before assignment. My tests missed it because they called the modules directly, not `pact.cli main()`.
+- Fix: the local imports now bring in only `read_snapshot`. `tests/test_cli.py` (new): runs `import` through `main()`, parses `--help` for every subcommand, runs `support-benchmark`, and an AST check that nothing bound inside `main()` shadows a module-level name. Verified that two of these fail on the old code. No other subcommand had the problem.
+- `deploy/entrypoint.sh`: a failed import now prints `ERROR: dataset import failed (exit N); research snapshots are UNAVAILABLE ...` to stderr (success prints `dataset import ok`). The API still starts. Check the Render log for that line after the next deploy.

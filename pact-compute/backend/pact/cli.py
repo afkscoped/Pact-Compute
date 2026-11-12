@@ -74,7 +74,7 @@ def main():
         print(f'{report["passed"]}/{report["cases"]} support cases passed. Report saved under .local/evaluations.')
         raise SystemExit(0 if report['passed'] == report['cases'] else 1)
     elif args.command == 'runtime-baselines':
-        from .datasets import import_sources, read_snapshot
+        from .datasets import read_snapshot
         from .runtime_baselines import run
 
         card = import_sources()
@@ -82,7 +82,7 @@ def main():
         report, manifest = run(STATE / 'evaluations', pods, card['id'])
         print(json.dumps(manifest, indent=2))
     elif args.command == 'scheduler-baselines':
-        from .datasets import import_sources, read_snapshot
+        from .datasets import read_snapshot
         from .scheduler_baselines import run
 
         card = import_sources()
