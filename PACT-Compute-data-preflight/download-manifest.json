@@ -1,0 +1,98 @@
+[
+  {
+    "file": "openb_pod_list_default.csv",
+    "url": "https://raw.githubusercontent.com/alibaba/clusterdata/master/cluster-trace-gpu-v2023/csv/openb_pod_list_default.csv",
+    "retrieved_at_utc": "2026-11-12T10:22:31.4637011Z",
+    "status": "downloaded",
+    "http": "200 575468",
+    "sha256": "1ee7ed79c27a3b0861cda8ddba86a004c6aba904caafa329a76ae93ca63834a8"
+  },
+  {
+    "file": "openb_pod_list_gpuspec33.csv",
+    "url": "https://raw.githubusercontent.com/alibaba/clusterdata/master/cluster-trace-gpu-v2023/csv/openb_pod_list_gpuspec33.csv",
+    "retrieved_at_utc": "2026-11-12T10:22:32.1249813Z",
+    "status": "downloaded",
+    "http": "200 587467",
+    "sha256": "eca4f746db1e5b25864ad021b55ece3943e101a3ebd4574d09dcb95c46117652"
+  },
+  {
+    "file": "openb_node_list_gpu_node.csv",
+    "url": "https://raw.githubusercontent.com/alibaba/clusterdata/master/cluster-trace-gpu-v2023/csv/openb_node_list_gpu_node.csv",
+    "retrieved_at_utc": "2026-11-12T10:22:32.5590538Z",
+    "status": "downloaded",
+    "http": "200 42353",
+    "sha256": "2beca64b4d3dfa342036a34b56a495c6cef9225db836c81f541282cb1df320b5"
+  },
+  {
+    "file": "neso_gb_2025-10-01_to_2025-10-29.json",
+    "url": "https://api.carbonintensity.org.uk/intensity/2025-10-01T00:00Z/2025-10-29T00:00Z",
+    "retrieved_at_utc": "2026-11-12T10:22:33.6851301Z",
+    "status": "downloaded",
+    "http": "200 149523",
+    "sha256": "3a87023bfc80685a03018a17c10c3abf85eaf774f09097c8b624e606fe771ef1"
+  },
+  {
+    "file": "neso_gb_2025-10-01_daily.json",
+    "url": "https://api.carbonintensity.org.uk/intensity/date/2025-10-01",
+    "retrieved_at_utc": "2026-11-12T10:22:34.3996912Z",
+    "status": "downloaded",
+    "http": "200 8502",
+    "sha256": "1781b4c7bb3d345cf6f689adec2993c27f324b07896ed51d6c2af540a2344f81"
+  },
+  {
+    "file": "neso_regional_forecast_sample.json",
+    "url": "https://api.neso.energy/api/3/action/datastore_search?resource_id=c16b0e19-c02a-44a8-ba05-4db2c0545a2a&limit=5",
+    "retrieved_at_utc": "2026-11-12T10:22:35.490877Z",
+    "status": "downloaded",
+    "http": "200 7407",
+    "sha256": "5a998f8c190cedf9999e9a23d34f16655076d3d9342bd63c9c1aa53dddc77181"
+  },
+  {
+    "file": "cuad_data.zip",
+    "url": "https://raw.githubusercontent.com/The-Atticus-Project/cuad/main/data.zip",
+    "retrieved_at_utc": "2026-11-12T10:22:40.955485Z",
+    "status": "downloaded",
+    "http": "200 18309308",
+    "sha256": "f8161d18bea4e9c05e78fa6dda61c19c846fb8087ea969c172753bc2f45b999a"
+  },
+  {
+    "file": "lexglue-ledgar.tar.gz",
+    "url": "https://zenodo.org/records/5532997/files/ledgar.tar.gz?download=1",
+    "retrieved_at_utc": "2026-11-12T10:24:58.9871369Z",
+    "status": "downloaded",
+    "http": "200 16255623",
+    "sha256": "f7507bcce46ce03e3e91b8aaa1b84ddf6e8f1d628c0d7fa351f97ce45366d5d8"
+  },
+  {
+    "file": "alibaba-gpu-v2026-download-guide.md",
+    "url": "https://raw.githubusercontent.com/alibaba/clusterdata/master/cluster-trace-gpu-v2026/docs/data_download.md",
+    "retrieved_at_utc": "2026-11-12T10:25:00.3609866Z",
+    "status": "downloaded",
+    "http": "200 1939",
+    "sha256": "69e3db5f6219eb9c457d4f3718d203f974027a2ad96d68f6ef4d446ece960704"
+  },
+  {
+    "file": "google-power-data-2019-guide.md",
+    "url": "https://raw.githubusercontent.com/google/cluster-data/master/PowerData2019.md",
+    "retrieved_at_utc": "2026-11-12T10:25:00.7712233Z",
+    "status": "downloaded",
+    "http": "200 1843",
+    "sha256": "a00c9d4cd97171b3bbee8641028a3b719a1ff4daad95d69b2a659df54fd2cd49"
+  },
+  {
+    "file": "google-borg-cluster-data-2019-guide.md",
+    "url": "https://raw.githubusercontent.com/google/cluster-data/master/ClusterData2019.md",
+    "retrieved_at_utc": "2026-11-12T10:25:01.2559641Z",
+    "status": "downloaded",
+    "http": "200 2323",
+    "sha256": "6209413ba5dc94e45b9dda811871b7eab406980aab5279466fa9eb48578ff6e3"
+  },
+  {
+    "file": "contract-nli.zip",
+    "url": "https://stanfordnlp.github.io/contract-nli/resources/contract-nli.zip",
+    "retrieved_at_utc": "2026-11-12T10:27:13.3242314Z",
+    "status": "downloaded",
+    "http": "200 65362913",
+    "sha256": "e03fc77bbf8b53e2976a250e81d8a294bc3d5e5fb014521e477dee9340d6287b"
+  }
+]

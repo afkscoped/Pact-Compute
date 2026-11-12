@@ -1,0 +1,204 @@
+.version 6.4
+.target sm_52
+.address_size 64
+
+// Each thread computes one NCHW output coordinate of a fused convolution.
+.visible .entry conv(
+    .param .u64 input, .param .u64 weights, .param .u64 bias, .param .u64 output,
+    .param .u32 count, .param .u32 ih, .param .u32 iw, .param .u32 oh, .param .u32 ow,
+    .param .u32 ic_group, .param .u32 oc_group, .param .u32 kh, .param .u32 kw,
+    .param .u32 sy, .param .u32 sx, .param .u32 py, .param .u32 px, .param .u32 activation
+)
+{
+    .reg .b64 %pointers<12>;
+    .reg .b32 %ints<45>;
+    .reg .pred %condition<12>;
+    .reg .f32 %floats<7>;
+
+    mov.u32 %ints1, %ctaid.x;
+    mov.u32 %ints2, %ntid.x;
+    mov.u32 %ints3, %tid.x;
+    mad.lo.u32 %ints0, %ints1, %ints2, %ints3;
+    ld.param.u32 %ints4, [count];
+    setp.ge.u32 %condition0, %ints0, %ints4;
+    @%condition0 bra conv_done;
+
+    ld.param.u64 %pointers0, [input];
+    ld.param.u64 %pointers1, [weights];
+    ld.param.u64 %pointers2, [bias];
+    ld.param.u64 %pointers3, [output];
+    ld.param.u32 %ints5, [ih];
+    ld.param.u32 %ints6, [iw];
+    ld.param.u32 %ints7, [oh];
+    ld.param.u32 %ints8, [ow];
+    ld.param.u32 %ints9, [ic_group];
+    ld.param.u32 %ints10, [oc_group];
+    ld.param.u32 %ints11, [kh];
+    ld.param.u32 %ints12, [kw];
+    ld.param.u32 %ints13, [sy];
+    ld.param.u32 %ints14, [sx];
+    ld.param.u32 %ints15, [py];
+    ld.param.u32 %ints16, [px];
+    ld.param.u32 %ints17, [activation];
+
+    // Recover output channel, output row, column and the input-group offset.
+    div.u32 %ints18, %ints0, %ints8;
+    rem.u32 %ints19, %ints0, %ints8;
+    div.u32 %ints20, %ints18, %ints7;
+    rem.u32 %ints21, %ints18, %ints7;
+    mul.lo.s32 %ints22, %ints21, %ints13;
+    sub.s32 %ints22, %ints22, %ints15;
+    mul.lo.s32 %ints23, %ints19, %ints14;
+    sub.s32 %ints23, %ints23, %ints16;
+    div.u32 %ints24, %ints20, %ints10;
+    mul.lo.u32 %ints24, %ints24, %ints9;
+    mul.wide.u32 %pointers4, %ints20, 4;
+    add.u64 %pointers5, %pointers2, %pointers4;
+    ld.global.f32 %floats0, [%pointers5];
+
+    mov.u32 %ints25, 0;
+conv_channel:
+    setp.ge.u32 %condition1, %ints25, %ints9;
+    @%condition1 bra conv_activate;
+    add.u32 %ints26, %ints24, %ints25;
+    mad.lo.u32 %ints27, %ints20, %ints9, %ints25;
+    mov.u32 %ints28, 0;
+conv_row:
+    setp.ge.u32 %condition2, %ints28, %ints11;
+    @%condition2 bra conv_next_channel;
+    add.s32 %ints29, %ints22, %ints28;
+    setp.lt.s32 %condition3, %ints29, 0;
+    setp.ge.s32 %condition4, %ints29, %ints5;
+    or.pred %condition5, %condition3, %condition4;
+    @%condition5 bra conv_next_row;
+    mad.lo.u32 %ints30, %ints26, %ints5, %ints29;
+    mad.lo.u32 %ints31, %ints27, %ints11, %ints28;
+    mov.u32 %ints32, 0;
+conv_column:
+    setp.ge.u32 %condition6, %ints32, %ints12;
+    @%condition6 bra conv_next_row;
+    add.s32 %ints33, %ints23, %ints32;
+    setp.lt.s32 %condition7, %ints33, 0;
+    setp.ge.s32 %condition8, %ints33, %ints6;
+    or.pred %condition9, %condition7, %condition8;
+    @%condition9 bra conv_next_column;
+    mad.lo.u32 %ints34, %ints30, %ints6, %ints33;
+    mad.lo.u32 %ints35, %ints31, %ints12, %ints32;
+    mul.wide.u32 %pointers6, %ints34, 4;
+    mul.wide.u32 %pointers7, %ints35, 4;
+    add.u64 %pointers8, %pointers0, %pointers6;
+    add.u64 %pointers9, %pointers1, %pointers7;
+    ld.global.f32 %floats1, [%pointers8];
+    ld.global.f32 %floats2, [%pointers9];
+    fma.rn.f32 %floats0, %floats1, %floats2, %floats0;
+conv_next_column:
+    add.u32 %ints32, %ints32, 1;
+    bra conv_column;
+conv_next_row:
+    add.u32 %ints28, %ints28, 1;
+    bra conv_row;
+conv_next_channel:
+    add.u32 %ints25, %ints25, 1;
+    bra conv_channel;
+
+conv_activate:
+    setp.eq.u32 %condition1, %ints17, 0;
+    @%condition1 bra conv_write;
+    setp.eq.u32 %condition1, %ints17, 1;
+    @!%condition1 bra conv_hard;
+    max.f32 %floats0, %floats0, 0f00000000;
+    bra conv_write;
+conv_hard:
+    add.f32 %floats3, %floats0, 0f40400000;
+    max.f32 %floats3, %floats3, 0f00000000;
+    min.f32 %floats3, %floats3, 0f40C00000;
+    mul.f32 %floats3, %floats3, 0f3E2AAAAB;
+    setp.eq.u32 %condition1, %ints17, 2;
+    @%condition1 mul.f32 %floats3, %floats3, %floats0;
+    mov.f32 %floats0, %floats3;
+conv_write:
+    mul.wide.u32 %pointers10, %ints0, 4;
+    add.u64 %pointers11, %pointers3, %pointers10;
+    st.global.f32 [%pointers11], %floats0;
+conv_done:
+    ret;
+}
+
+// Pool over the spatial axes of each channel.
+.visible .entry average(.param .u64 input, .param .u64 output, .param .u32 channels, .param .u32 plane)
+{
+    .reg .b64 %a<8>;
+    .reg .b32 %r<10>;
+    .reg .pred %p<2>;
+    .reg .f32 %f<4>;
+    mov.u32 %r1, %ctaid.x;
+    mov.u32 %r2, %ntid.x;
+    mov.u32 %r3, %tid.x;
+    mad.lo.u32 %r0, %r1, %r2, %r3;
+    ld.param.u32 %r4, [channels];
+    setp.ge.u32 %p0, %r0, %r4;
+    @%p0 bra avg_done;
+    ld.param.u64 %a0, [input];
+    ld.param.u64 %a1, [output];
+    ld.param.u32 %r5, [plane];
+    mul.lo.u32 %r6, %r0, %r5;
+    mov.u32 %r7, 0;
+    mov.f32 %f0, 0f00000000;
+avg_loop:
+    setp.ge.u32 %p1, %r7, %r5;
+    @%p1 bra avg_write;
+    add.u32 %r8, %r6, %r7;
+    mul.wide.u32 %a2, %r8, 4;
+    add.u64 %a3, %a0, %a2;
+    ld.global.f32 %f1, [%a3];
+    add.f32 %f0, %f0, %f1;
+    add.u32 %r7, %r7, 1;
+    bra avg_loop;
+avg_write:
+    cvt.rn.f32.u32 %f2, %r5;
+    div.rn.f32 %f3, %f0, %f2;
+    mul.wide.u32 %a4, %r0, 4;
+    add.u64 %a5, %a1, %a4;
+    st.global.f32 [%a5], %f3;
+avg_done:
+    ret;
+}
+
+// Apply channel scaling for squeeze/excitation or add a residual branch.
+.visible .entry combine(
+    .param .u64 left, .param .u64 right, .param .u64 output,
+    .param .u32 count, .param .u32 plane, .param .u32 scale
+)
+{
+    .reg .b64 %a<9>;
+    .reg .b32 %r<10>;
+    .reg .pred %p<2>;
+    .reg .f32 %f<3>;
+    mov.u32 %r1, %ctaid.x;
+    mov.u32 %r2, %ntid.x;
+    mov.u32 %r3, %tid.x;
+    mad.lo.u32 %r0, %r1, %r2, %r3;
+    ld.param.u32 %r4, [count];
+    setp.ge.u32 %p0, %r0, %r4;
+    @%p0 bra combine_done;
+    ld.param.u64 %a0, [left];
+    ld.param.u64 %a1, [right];
+    ld.param.u64 %a2, [output];
+    ld.param.u32 %r5, [plane];
+    ld.param.u32 %r6, [scale];
+    setp.ne.u32 %p1, %r6, 0;
+    mov.u32 %r7, %r0;
+    @%p1 div.u32 %r7, %r0, %r5;
+    mul.wide.u32 %a3, %r0, 4;
+    mul.wide.u32 %a4, %r7, 4;
+    add.u64 %a5, %a0, %a3;
+    add.u64 %a6, %a1, %a4;
+    add.u64 %a7, %a2, %a3;
+    ld.global.f32 %f0, [%a5];
+    ld.global.f32 %f1, [%a6];
+    @%p1 mul.f32 %f2, %f0, %f1;
+    @!%p1 add.f32 %f2, %f0, %f1;
+    st.global.f32 [%a7], %f2;
+combine_done:
+    ret;
+}

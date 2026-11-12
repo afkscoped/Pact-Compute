@@ -1,0 +1,42 @@
+# Environment & secrets
+.env
+*.env
+.env.local
+
+# Virtual Environments
+.venv/
+.gpu-venv/
+venv/
+ENV/
+env/
+
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+test-results/
+
+# Node / Frontend
+node_modules/
+**/node_modules/
+frontend/dist/
+frontend/build/
+.npm
+npm-debug.log*
+
+# Local state, runtime artifacts, DBs & sensitive local configs
+.local/
+**/.local/
+*.db
+*.db-shm
+*.db-wal
+local-credentials.json
+market-credentials.json
+
+# IDE / OS metadata
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
