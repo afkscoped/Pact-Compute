@@ -15,10 +15,12 @@ Get PACT-Compute running end-to-end on the configured PostgreSQL (Neon), do the 
 ## Done
 - Orientation, env setup, `.gitattributes` (`PACT-Compute-data-preflight/** -text`), CLAUDE.md, this file.
 
+- Task 3a: `POST /api/v1/runners` (producer/operator/admin) enrolls a runner in the caller's org and returns its token once; "Enroll a GPU host" form on Compute capacity page; test added (9/9 pass, build OK). Consumer self-approval NOT added (reviewer separation kept on purpose); reviewer provisioning still needs `pact.cli member`.
+
 ## Prioritized tasks (cost: S/M/L)
 1. [DONE] Fix data checksum failure: data files restored to committed bytes, 8/8 tests pass.
 2. [S] Authenticated end-to-end smoke on PostgreSQL (register producer+consumer via API, read lists) — tell user first; minimal data.
-3. [M] Close the onboarding gap: after signup a producer/consumer needs an operator CLI to enroll runner / provision reviewer (plan backlog #2/#4). Candidate: self-service runner enrollment for producers + consumer self-review option (config-gated).
+3. [PARTLY DONE] Close the onboarding gap: after signup a producer/consumer needs an operator CLI to enroll runner / provision reviewer (plan backlog #2/#4). Candidate: self-service runner enrollment for producers + consumer self-review option (config-gated).
 4. [M] Deployment artifacts: Dockerfile (API+worker, serves built frontend), health checks, start scripts, env var docs (Step 2).
 5. [M] Shared/persistent rate limits & artifact storage risk (artifacts live in `.local`; needs persistent disk or object storage).
 6. [L] Outbox events, object storage, pagination (plan backlog #6/#7).

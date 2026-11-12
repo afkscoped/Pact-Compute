@@ -81,6 +81,12 @@ class ReviewInput(BaseModel):
     note: str = Field(min_length=5, max_length=1200)
 
 
+class RunnerEnrollment(BaseModel):
+    name: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=100)]
+    zone: str | None = Field(default=None, pattern=r'^[A-Z0-9_-]{2,20}$')
+    rate_cents: int = Field(default=250, ge=0, le=100000)
+
+
 class DispatchToggle(BaseModel):
     paused: bool
 
@@ -293,6 +299,20 @@ def runner_view(runner):
 def runners(member: User):
     with session() as db:
         return [runner_view(runner) for runner in db.scalars(select(Runner).where(Runner.org_id == member.org_id))]
+
+
+@app.post('/api/v1/runners', status_code=201)
+def enroll_runner(body: RunnerEnrollment, member: User):
+    require(member, 'admin', 'operator', 'producer')
+    runner_id = 'rn-' + secrets.token_hex(8)
+    token = sign({'purpose': 'runner-enrollment-v1', 'runner': runner_id})
+    with session(write=True) as db:
+        runner = Runner(id=runner_id, org_id=member.org_id, name=body.name, token_digest=sha(token),
+                        zone=body.zone, rate_cents=body.rate_cents)
+        db.add(runner)
+        db.flush()
+        record(db, member.org_id, 'runner', runner.id, 'RunnerEnrolled', actor=member.id)
+        return {**runner_view(runner), 'token': token}
 
 
 @app.patch('/api/v1/runners/{runner_id}/dispatch')

@@ -333,14 +333,33 @@ export function JobView({ id, user, onChange }: { id: string; user: User; onChan
   </Page>;
 }
 
-export function Capacity({ runners, onChange }: { runners: Runner[]; onChange: () => void }) {
+export function Capacity({ runners, onChange, canEnroll = false }: { runners: Runner[]; onChange: () => void; canEnroll?: boolean }) {
   const [error, setError] = useState('');
+  const [name, setName] = useState('');
+  const [zone, setZone] = useState('');
+  const [issued, setIssued] = useState<{ id: string; token: string } | null>(null);
+  async function enroll(event: FormEvent) {
+    event.preventDefault();
+    setError('');
+    try {
+      const created = await api<{ id: string; token: string }>('/runners', { method: 'POST', body: JSON.stringify({ name, zone: zone.trim() ? zone.trim().toUpperCase() : null }) });
+      setIssued({ id: created.id, token: created.token }); setName(''); setZone(''); onChange();
+    } catch (failure) { setError(message(failure)); }
+  }
   async function toggle(runner: Runner) {
     try { await api('/runners/' + runner.id + '/dispatch', { method: 'PATCH', body: JSON.stringify({ paused: !runner.paused }) }); onChange(); }
     catch (failure) { setError(message(failure)); }
   }
   return <Page title="Compute capacity" subtitle="Check runner health and control new dispatches.">
     {error && <Notice>{error}</Notice>}
+    {canEnroll && <Panel title="Enroll a GPU host" subtitle="Creates a runner in your workspace and shows its token once">
+      <form className="stack" onSubmit={enroll}>
+        <label>Runner name<input value={name} onChange={event => setName(event.target.value)} maxLength={100} required placeholder="Lab workstation" /></label>
+        <label>Grid zone (optional, e.g. GB)<input value={zone} onChange={event => setZone(event.target.value)} maxLength={20} pattern="[A-Za-z0-9_-]{2,20}" /></label>
+        <div className="button-row"><button className="button" type="submit"><Plus size={15} />Enroll runner</button></div>
+      </form>
+      {issued && <Notice type="success">Runner <b>{issued.id}</b> created. Copy this token now into the GPU host's runner configuration; it will not be shown again: <code>{issued.token}</code></Notice>}
+    </Panel>}
     <div className="content-grid">{runners.map(runner => <Panel key={runner.id} title={runner.name} subtitle={runner.device} action={<Status value={runner.paused ? 'paused' : runner.online ? 'online' : 'offline'} />}>
       <div className="form-facts"><span>Reported VRAM <b>{num(runner.vram_mib / 1024)} GiB</b></span><span>Grid zone <b>{runner.zone ?? 'Unconfigured'}</b></span>
         <span>Last heartbeat <b>{date(runner.last_seen)}</b></span><span>Hourly rate <b>{money(runner.rate_cents)}</b></span></div>

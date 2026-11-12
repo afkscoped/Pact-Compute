@@ -93,6 +93,28 @@ def test_registration_isolates_workspaces_and_handles_duplicate_usernames(client
         assert member.password != body['password']
 
 
+def test_producer_self_service_runner_enrollment():
+    body = {'username': 'enroll-producer', 'password': 'sample-registration-password',
+            'organization': 'Enroll labs', 'role': 'producer'}
+    with TestClient(app) as producer, TestClient(app) as consumer:
+        assert producer.post('/api/v1/accounts', json=body).status_code == 201
+        assert consumer.post('/api/v1/accounts', json={**body, 'username': 'enroll-consumer', 'role': 'consumer'}).status_code == 201
+        assert consumer.post('/api/v1/runners', json={'name': 'Nope'}).status_code == 403
+        assert producer.post('/api/v1/runners', json={'name': ' ', 'zone': 'gb'}).status_code == 422
+        result = producer.post('/api/v1/runners', json={'name': 'Lab GPU', 'zone': 'GB', 'rate_cents': 300})
+        assert result.status_code == 201, result.text
+        runner = result.json()
+        assert runner['token'] and runner['ready'] is False and runner['rate_cents'] == 300
+        assert 'token' not in producer.get('/api/v1/runners').json()[0]
+        assert [item['id'] for item in producer.get('/api/v1/runners').json()] == [runner['id']]
+        assert consumer.get('/api/v1/runners').json() == []
+        heartbeat = producer.post('/api/v1/runners/' + runner['id'] + '/heartbeat',
+                                  headers={'Authorization': 'Bearer ' + runner['token']},
+                                  json={'device': 'Enrolled GPU', 'vram_mib': 8192, 'ready': True})
+        assert heartbeat.status_code == 200, heartbeat.text
+        assert producer.get('/api/v1/runners').json()[0]['device'] == 'Enrolled GPU'
+
+
 def test_unresolved_approval_and_tenant_isolation(client):
     draft = client.post('/api/v1/policies', json={'title': 'Missing timezone', 'source': 'Jobs must finish by 17:00.'}).json()
     assert client.post('/api/v1/policies/' + draft['id'] + '/approve').status_code == 409

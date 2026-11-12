@@ -147,7 +147,7 @@ function Shell({ user, logout }: { user: User; logout: () => void }) {
     else if (route.startsWith('/jobs/') && id) screen = <JobView key={id} id={id} user={user} onChange={refresh} />;
     else if (route === '/agreements') screen = <Agreements policies={policies} config={config} onChange={refresh} />;
     else if (route.startsWith('/agreements/') && id) screen = <AgreementView key={id} id={id} onChange={refresh} />;
-    else if (route === '/capacity') screen = <Capacity runners={runners} onChange={refresh} />;
+    else if (route === '/capacity') screen = <Capacity runners={runners} onChange={refresh} canEnroll={['producer', 'operator', 'admin'].includes(user.role)} />;
     else if (route === '/research') screen = <Research {...{ datasets, policies, runs }} onChange={refresh} />;
     else if (route.startsWith('/research/') && id) screen = <ResearchResult key={id} id={id} user={user} />;
     else if (route === '/data') screen = <DataSources datasets={datasets} onChange={refresh} />;
