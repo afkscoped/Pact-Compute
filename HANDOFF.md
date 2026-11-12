@@ -21,7 +21,7 @@ Get PACT-Compute running end-to-end on the configured PostgreSQL (Neon), do the 
 1. [DONE] Fix data checksum failure: data files restored to committed bytes, 8/8 tests pass.
 2. [DONE] API smoke test on PostgreSQL, run against the NEW `pact-deploy` Neon project only (9/9). User instructed: never touch the teammate's DB again.
 3. [PARTLY DONE] Close the onboarding gap: after signup a producer/consumer needs an operator CLI to enroll runner / provision reviewer (plan backlog #2/#4). Candidate: self-service runner enrollment for producers + consumer self-review option (config-gated).
-4. [PARTLY DONE: files written, build untested; see DEPLOYMENT.md] Deployment artifacts: Dockerfile (API+worker, serves built frontend), health checks, start scripts, env var docs (Step 2).
+4. [DONE] Deployed on Render free (Docker, branch sasha-work of the fork) at https://pact-compute-sasha.onrender.com; /api/health 200 postgresql; signup works (user confirmed). See DEPLOYMENT.md. Deployment artifacts: Dockerfile (API+worker, serves built frontend), health checks, start scripts, env var docs (Step 2).
 5. [M] Shared/persistent rate limits & artifact storage risk (artifacts live in `.local`; needs persistent disk or object storage).
 6. [L] Outbox events, object storage, pagination (plan backlog #6/#7).
 
@@ -43,3 +43,8 @@ Continue the task list above; Step 2 deployment plan goes to DEPLOYMENT.md.
 
 ## Accounts/tools set up (2026-11-12)
 - gh CLI installed (user scope, winget) and logged in as the user; neonctl via `npx neonctl` (logged in). Fork + `fork` remote created. Secrets only in gitignored `pact-compute/deploy.env`.
+
+## Live deployment status
+- Render service `pact-compute-sasha` (free, ephemeral disk, sleeps when idle) + Neon `pact-deploy`. Env vars were entered by the user in the Render dashboard.
+- Not yet done: GPU runner connected to the live URL (needs GPU machine), reviewer account on the deployed DB (`pact.cli member NAME reviewer --org WORKSPACE_ID` with deploy.env vars loaded), GROQ_API_KEY on Render, full quote->confirm->job flow live.
+- `/api/v1/config` returned non-200 unauthenticated (likely needs session; unchecked).
