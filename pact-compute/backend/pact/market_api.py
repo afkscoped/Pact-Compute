@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy import func, or_, select
 
 from . import market
+from .resilience import retry_db
 from .access import User, require
 from .db import Event, MarketBooking, session
 from .security import sign
@@ -24,6 +25,7 @@ def offer_list(member: User):
 
 
 @router.post('/offers', status_code=201)
+@retry_db
 def publish(data: market.OfferInput, member: User):
     require(member, *market.PRODUCERS)
     with session(write=True) as db:
@@ -38,6 +40,7 @@ def offer_status(offer_id: str, data: market.OfferChange, member: User):
 
 
 @router.post('/quotes')
+@retry_db
 def quote(data: market.QuoteInput, member: User):
     require(member, *market.BUYERS)
     with session(write=True) as db:
@@ -45,6 +48,7 @@ def quote(data: market.QuoteInput, member: User):
 
 
 @router.post('/quotes/{quote_id}/confirm', status_code=201)
+@retry_db
 def confirm(quote_id: str, data: market.ConfirmInput, member: User):
     require(member, *market.BUYERS)
     with session(write=True) as db:

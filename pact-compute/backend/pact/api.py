@@ -13,6 +13,7 @@ from sqlalchemy import desc, select
 from sqlalchemy.exc import IntegrityError
 
 from . import datasets, live, market, ratelimit
+from .resilience import retry_db
 from .access import User, entity, require
 from .audit import compliance
 from .config import COOKIE_SECURE, FRONTEND, LLM_KEY, LLM_MODEL, SESSION_SECONDS, URL
@@ -368,6 +369,7 @@ def preview_job(body: live.JobInput, member: User):
 
 
 @app.post('/api/v1/jobs', status_code=201)
+@retry_db
 def submit_job(body: live.JobInput, member: User, idempotency_key: Annotated[str, Header(min_length=8, max_length=120)]):
     require(member, 'admin', 'operator', 'submitter')
     payload = live.prepared_images(body)
@@ -382,6 +384,7 @@ def job_detail(job_id: str, member: User):
 
 
 @app.post('/api/v1/jobs/{job_id}/cancel')
+@retry_db
 def cancel(job_id: str, member: User):
     require(member, 'admin', 'operator', 'submitter', 'consumer')
     with session(write=True) as db:
@@ -422,12 +425,14 @@ def reconcile(job_id: str, body: ReconcileInput, member: User):
 
 
 @app.post('/api/v1/runners/{runner_id}/heartbeat')
+@retry_db
 def heartbeat(runner_id: str, body: live.Heartbeat, authorization: Auth = None):
     with session(write=True) as db:
         return live.heartbeat(db, live.runner_identity(db, runner_id, authorization), body)
 
 
 @app.post('/api/v1/runners/{runner_id}/claim')
+@retry_db
 def claim(runner_id: str, authorization: Auth = None):
     with session(write=True) as db:
         return live.claim(db, live.runner_identity(db, runner_id, authorization))
@@ -445,6 +450,7 @@ def input_manifest(runner_id: str, attempt_id: str, lease_fence: Annotated[str, 
 
 
 @app.post('/api/v1/runners/{runner_id}/attempts/{attempt_id}/events')
+@retry_db
 def attempt_events(runner_id: str, attempt_id: str, body: live.RunnerUpdate, authorization: Auth = None):
     with session(write=True) as db:
         return live.runner_update(db, live.runner_identity(db, runner_id, authorization), attempt_id, body)

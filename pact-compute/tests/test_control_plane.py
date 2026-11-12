@@ -193,6 +193,55 @@ def test_shared_rate_limit_primitives():
     assert not ratelimit.blocked('unit:cool')
 
 
+def test_bounded_retries_for_retriable_database_errors(client, monkeypatch):
+    from sqlalchemy.exc import IntegrityError, OperationalError
+    from pact import live, resilience
+
+    monkeypatch.setattr(resilience, 'SLEEP', lambda _: None)
+    locked = OperationalError('stmt', {}, Exception('database is locked'))
+    serialization = OperationalError('stmt', {}, Exception({'S': 'ERROR', 'C': '40001', 'M': 'could not serialize access'}))
+    assert resilience.retriable(locked) and resilience.retriable(serialization)
+    assert not resilience.retriable(IntegrityError('stmt', {}, Exception('unique constraint')))
+    assert not resilience.retriable(ValueError('x'))
+    calls = []
+
+    @resilience.retry_db
+    def flaky(error, fail_times):
+        calls.append(1)
+        if len(calls) <= fail_times:
+            raise error
+        return 'ok'
+
+    assert flaky(serialization, 2) == 'ok' and len(calls) == 3
+    calls.clear()
+    with pytest.raises(OperationalError):  # bounded: gives up after 3 attempts
+        flaky(locked, 99)
+    assert len(calls) == 3
+    calls.clear()
+    with pytest.raises(IntegrityError):  # not retriable: exactly one attempt
+        flaky(IntegrityError('stmt', {}, Exception('unique constraint')), 99)
+    assert len(calls) == 1
+
+    # Through a real endpoint: first attempt hits a lock, the retry succeeds, one job exists.
+    policy = approve(client, title='Retry agreement')
+    runner_ready(client)
+    original, state = live.submit_job, {'n': 0}
+
+    def once_locked(*args, **kwargs):
+        state['n'] += 1
+        if state['n'] == 1:
+            raise locked
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(live, 'submit_job', once_locked)
+    body = {'title': 'Retried through lock', 'policy_id': policy, 'mode': 'shadow', 'sample_count': 2}
+    first = client.post('/api/v1/jobs', json=body, headers={'Idempotency-Key': 'retry-lock-0001'})
+    assert first.status_code == 201, first.text
+    assert state['n'] == 2
+    again = client.post('/api/v1/jobs', json=body, headers={'Idempotency-Key': 'retry-lock-0001'})
+    assert again.json()['id'] == first.json()['id']
+
+
 def test_invitation_accept_is_rate_limited():
     import pact.api
     from pact import ratelimit
