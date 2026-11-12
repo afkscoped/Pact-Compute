@@ -90,6 +90,9 @@ class Policy(Base):
     created_at: Mapped[float] = mapped_column(Float, default=time.time)
     approved_at: Mapped[float | None] = mapped_column(Float)
     approved_by: Mapped[str | None] = mapped_column(ForeignKey('members.id'))
+    rejected_at: Mapped[float | None] = mapped_column(Float)
+    rejected_by: Mapped[str | None] = mapped_column(ForeignKey('members.id'))
+    decision_note: Mapped[str | None] = mapped_column(Text)
 
 
 class Runner(Base):

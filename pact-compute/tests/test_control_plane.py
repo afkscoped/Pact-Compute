@@ -457,6 +457,63 @@ def test_offer_list_queries_do_not_grow_with_rows_and_indexes_are_used():
         assert 'ix_jobs_org_created' in plan, plan
 
 
+def test_reviewer_inbox_decisions_lineage_and_tenancy(client, monkeypatch):
+    import pact.api
+    monkeypatch.setattr(pact.api, 'limit_auth_attempts', lambda *args: None)
+    runner_ready(client)
+    base = approve(client, title='Inbox base agreement')
+    job = client.post('/api/v1/jobs', json={'title': 'Booked before revision', 'policy_id': base, 'mode': 'live', 'sample_count': 2},
+                      headers={'Idempotency-Key': 'inbox-job-0001'})
+    assert job.status_code == 201 and job.json()['status'] == 'reserved', job.text
+    detail = client.get('/api/v1/policies/' + base).json()
+    revised = client.post('/api/v1/policies/' + base + '/revisions', json={'rules': detail['rules'], 'resolutions': {}})
+    assert revised.status_code == 201, revised.text
+    revision_id = revised.json()['id']
+    ambiguous = client.post('/api/v1/policies', json={'title': 'Needs clarification', 'source': 'Jobs must finish by 17:00.'}).json()
+    with TestClient(app) as other:  # another tenant's pending draft must never appear
+        assert other.post('/api/v1/accounts', json={'username': 'inbox-other', 'password': 'sample-registration-password',
+                                                    'organization': 'Inbox other', 'role': 'consumer'}).status_code == 201
+        foreign = other.post('/api/v1/policies', json={'title': 'Foreign draft', 'source': EXAMPLE}).json()
+        assert other.get('/api/v1/policies/inbox').status_code == 403           # consumers cannot review
+        assert other.post('/api/v1/policies/' + ambiguous['id'] + '/reject', json={'reason': 'not my tenant at all'}).status_code == 403
+
+    inbox = {item['id']: item for item in client.get('/api/v1/policies/inbox').json()}
+    assert revision_id in inbox and ambiguous['id'] in inbox and foreign['id'] not in inbox
+    assert base not in inbox                                                    # already approved
+    item = inbox[revision_id]
+    assert item['can_approve'] and item['revision_of'] == base and not item['issues']
+    assert len(item['clauses']) == 6
+    assert all(clause['text'] == EXAMPLE[clause['start']:clause['end']] for clause in item['clauses'])
+    assert [row['id'] for row in item['affected_jobs']] == [job.json()['id']]    # booked under the earlier version
+    blocked = inbox[ambiguous['id']]
+    assert not blocked['can_approve'] and blocked['issues'] and blocked['affected_jobs'] == []
+
+    # Approval is blocked while findings are open; rejection needs a real reason and is final for that version.
+    assert client.post('/api/v1/policies/' + ambiguous['id'] + '/approve').status_code == 409
+    assert client.post('/api/v1/policies/' + ambiguous['id'] + '/reject', json={'reason': 'too short'}).status_code == 422
+    assert client.post('/api/v1/policies/' + foreign['id'] + '/reject', json={'reason': 'cross tenant attempt here'}).status_code == 404
+    rejected = client.post('/api/v1/policies/' + ambiguous['id'] + '/reject',
+                           json={'reason': 'The deadline has no date or timezone.'})
+    assert rejected.status_code == 200 and rejected.json()['status'] == 'rejected'
+    assert rejected.json()['decision_note'] == 'The deadline has no date or timezone.' and rejected.json()['rejected_by']
+    assert client.post('/api/v1/policies/' + ambiguous['id'] + '/approve').status_code == 409
+    assert ambiguous['id'] not in [row['id'] for row in client.get('/api/v1/policies/inbox').json()]
+    refused = client.post('/api/v1/jobs', json={'title': 'Uses rejected', 'policy_id': ambiguous['id'], 'mode': 'shadow', 'sample_count': 1},
+                          headers={'Idempotency-Key': 'inbox-job-0002'})
+    assert refused.status_code == 409
+    assert client.post('/api/v1/policies/' + base + '/reject', json={'reason': 'trying to undo an approval'}).status_code == 409
+
+    approved = client.post('/api/v1/policies/' + revision_id + '/approve', json={'note': 'Limits match the vision team request.'})
+    assert approved.status_code == 200 and approved.json()['status'] == 'approved'
+    assert approved.json()['decision_note'] == 'Limits match the vision team request.'
+    assert revision_id not in [row['id'] for row in client.get('/api/v1/policies/inbox').json()]
+    from pact.db import Event
+    with session() as db:
+        kinds = {row.kind for row in db.scalars(select(Event).where(Event.entity_type == 'policy', Event.entity_id.in_([ambiguous['id'], revision_id])))}
+    assert {'PolicyRejected', 'PolicyApproved', 'PolicyRevised'} <= kinds
+    assert client.post('/api/v1/jobs/' + job.json()['id'] + '/cancel').status_code == 200   # leave the shared runner free
+
+
 def test_invitation_accept_is_rate_limited():
     import pact.api
     from pact import ratelimit

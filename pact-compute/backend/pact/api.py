@@ -88,6 +88,14 @@ class RunnerEnrollment(BaseModel):
     rate_cents: int = Field(default=250, ge=0, le=100000)
 
 
+class ApprovalNote(BaseModel):
+    note: Annotated[str, StringConstraints(strip_whitespace=True, max_length=500)] | None = None
+
+
+class Rejection(BaseModel):
+    reason: Annotated[str, StringConstraints(strip_whitespace=True, min_length=12, max_length=500)]
+
+
 class DispatchToggle(BaseModel):
     paused: bool
 
@@ -195,7 +203,8 @@ def policy_view(policy, detail=False):
             'approved_at': policy.approved_at, 'method': policy.method, 'parent_id': policy.parent_id,
             'rule_count': len(policy.rules), 'issue_count': len(policy.issues),
             **({'source': policy.source, 'source_hash': policy.source_hash, 'rules': policy.rules,
-                'issues': policy.issues, 'approved_by': policy.approved_by} if detail else {})}
+                'issues': policy.issues, 'approved_by': policy.approved_by, 'rejected_at': policy.rejected_at,
+                'rejected_by': policy.rejected_by, 'decision_note': policy.decision_note} if detail else {})}
 
 
 @app.get('/api/v1/config')
@@ -209,6 +218,42 @@ def policies(member: User):
     with session() as db:
         return [policy_view(p) for p in db.scalars(select(Policy).where(Policy.org_id == member.org_id)
                                                   .order_by(desc(Policy.created_at)).limit(100))]
+
+
+FUTURE_JOB_STATES = ('reserved',)
+
+
+def policy_lineage(db, policy):
+    ids, current = [], policy
+    while current is not None and current.parent_id and len(ids) < 25:
+        ids.append(current.parent_id)
+        current = db.get(Policy, current.parent_id)
+    return ids
+
+
+def inbox_item(db, policy):
+    clauses = [{'kind': rule['kind'], 'value': rule['value'], 'strict': rule.get('strict', False),
+                'start': rule.get('start'), 'end': rule.get('end'), 'rationale': rule.get('rationale'),
+                'text': policy.source[rule['start']:rule['end']] if rule.get('start') is not None and rule.get('end') is not None else None}
+               for rule in policy.rules]
+    lineage = policy_lineage(db, policy)
+    affected = []
+    if lineage:  # jobs already booked under an earlier version of this agreement and not yet started
+        affected = [{'id': job.id, 'title': job.title, 'status': job.status, 'mode': job.mode, 'start_after': job.start_after,
+                     'policy_id': job.policy_id}
+                    for job in db.scalars(select(Job).where(Job.org_id == policy.org_id, Job.policy_id.in_(lineage),
+                                                            Job.status.in_(FUTURE_JOB_STATES)).order_by(Job.created_at).limit(50))]
+    return {**policy_view(policy, True), 'clauses': clauses, 'affected_jobs': affected,
+            'revision_of': policy.parent_id, 'can_approve': bool(policy.rules) and not policy.issues}
+
+
+@app.get('/api/v1/policies/inbox')
+def policy_inbox(member: User):
+    require(member, 'admin', 'reviewer')
+    with session() as db:
+        pending = db.scalars(select(Policy).where(Policy.org_id == member.org_id, Policy.status == 'draft')
+                             .order_by(Policy.created_at).limit(50)).all()
+        return [inbox_item(db, policy) for policy in pending]
 
 
 @app.post('/api/v1/policies', status_code=201)
@@ -260,20 +305,42 @@ def revision(policy_id: str, body: Revision, member: User):
 
 
 @app.post('/api/v1/policies/{policy_id}/approve')
-def approve(policy_id: str, member: User):
+def approve(policy_id: str, member: User, body: ApprovalNote | None = None):
     require(member, 'admin', 'reviewer')
     with session(write=True) as db:
         policy = scoped(db, Policy, member.org_id, policy_id, lock=True)
         if not policy:
             raise HTTPException(404, 'Policy not found.')
+        if policy.status == 'rejected':
+            raise HTTPException(409, 'This policy was rejected. Create a revision to resubmit it.')
         if policy.issues or not policy.rules:
             raise HTTPException(409, 'Resolve all contract findings before approval.')
         if policy.status == 'draft':
             policy.approved_at = time.time()
             policy.approved_by = member.id
             policy.status = 'approved'
+            policy.decision_note = (body.note if body else None) or None
             record(db, member.org_id, 'policy', policy.id, 'PolicyApproved', actor=member.id,
-                   source_hash=policy.source_hash, rule_count=len(policy.rules))
+                   source_hash=policy.source_hash, rule_count=len(policy.rules), note=policy.decision_note)
+        return policy_view(policy, True)
+
+
+@app.post('/api/v1/policies/{policy_id}/reject')
+def reject(policy_id: str, body: Rejection, member: User):
+    require(member, 'admin', 'reviewer')
+    with session(write=True) as db:
+        policy = scoped(db, Policy, member.org_id, policy_id, lock=True)
+        if not policy:
+            raise HTTPException(404, 'Policy not found.')
+        if policy.status == 'approved':
+            raise HTTPException(409, 'An approved agreement cannot be rejected. Create a revision instead.')
+        if policy.status == 'draft':
+            policy.status = 'rejected'
+            policy.rejected_at = time.time()
+            policy.rejected_by = member.id
+            policy.decision_note = body.reason
+            record(db, member.org_id, 'policy', policy.id, 'PolicyRejected', actor=member.id,
+                   source_hash=policy.source_hash, reason=body.reason)
         return policy_view(policy, True)
 
 

@@ -1,8 +1,9 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { reasonProblem, segments, valueText } from './inbox';
 import { Activity, ArrowRight, CheckCircle2, ChevronRight, ClipboardCheck, Cpu, Download, FileText, FlaskConical, Layers3, Plus, Radio, ShieldCheck, UploadCloud } from 'lucide-react';
 import {
   active, api, countLabel, date, Empty, evidence, go, label, LinkButton, LoadMore, Loading, message, money, Notice, num, Page, Panel, pct, post, ReviewForm, RetryNotice, Status, useDetail, usePagedList,
-  type Agreement, type Candidate, type Config, type Job, type JobDetail, type Policy, type Preview, type Rule, type Run, type Runner, type User,
+  type Agreement, type Candidate, type Config, type InboxItem, type Job, type JobDetail, type Policy, type Preview, type Rule, type Run, type Runner, type User,
 } from './shared';
 
 type Lists = { jobs: Job[]; runners: Runner[]; policies: Policy[]; runs: Run[] };
@@ -87,7 +88,67 @@ function defaultValue(kind: string) {
   return ['prefer_low_carbon', 'report_required'].includes(kind) ? true : 0;
 }
 
-export function Agreements({ policies, config, onChange }: { policies: Policy[]; config: Config; onChange: () => void }) {
+function InboxCard({ item, onDecided }: { item: InboxItem; onDecided: () => void }) {
+  const [note, setNote] = useState('');
+  const [rejecting, setRejecting] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const problem = rejecting ? reasonProblem(note) : null;
+  async function decide(action: 'approve' | 'reject') {
+    setBusy(true); setError('');
+    try {
+      await post<Agreement>('/policies/' + item.id + '/' + action, action === 'approve' ? { note: note.trim() || null } : { reason: note.trim() });
+      onDecided();
+    } catch (failure) { setError(message(failure)); }
+    finally { setBusy(false); }
+  }
+  return <article className="rule-card" aria-label={'Review ' + item.title}>
+    <div className="split"><strong>{item.title}</strong><Status value={item.status} /></div>
+    <small>{countLabel(item.rule_count, 'rule')} · {countLabel(item.issue_count, 'open finding')}{item.revision_of ? ' · revision of ' + item.revision_of.slice(0, 10) : ''}</small>
+    <h4>Clause text</h4>
+    <pre className="source-text">{segments(item.source, item.clauses).map((part, index) => part.clause === null
+      ? <span key={index}>{part.text}</span> : <mark key={index} title={'Rule ' + (part.clause + 1)}>{part.text}</mark>)}</pre>
+    <h4>Parsed values</h4>
+    {item.clauses.length ? <ul>{item.clauses.map((clause, index) => <li key={index}>
+      <strong>{kinds[clause.kind] ?? label(clause.kind)}</strong>: <code>{clause.strict ? '< ' : ''}{valueText(clause.value)}</code>
+      {clause.text ? <small> from “{clause.text}”</small> : <small> (no source span)</small>}</li>)}</ul> : <p className="muted">No rules were extracted.</p>}
+    <h4>Unresolved issues</h4>
+    {item.issues.length ? item.issues.map(issue => <Notice key={issue.id} type="info"><strong>{label(issue.code)}</strong><p>{issue.message}</p>
+      {evidence(item.source, issue.start, issue.end) && <blockquote>{evidence(item.source, issue.start, issue.end)}</blockquote>}</Notice>)
+      : <p className="muted">None. This version can be approved.</p>}
+    <h4>Affected future jobs</h4>
+    {item.affected_jobs.length ? <ul>{item.affected_jobs.map(job => <li key={job.id}><a href={'#/jobs/' + job.id}>{job.title}</a> <small>{label(job.status)} · booked under an earlier version</small></li>)}</ul>
+      : <p className="muted">No reserved jobs are booked under an earlier version of this agreement.</p>}
+    {error && <Notice>{error}</Notice>}
+    <label>{rejecting ? 'Reason for rejection (required)' : 'Approval note (optional)'}
+      <input value={note} maxLength={500} onChange={event => setNote(event.target.value)} aria-invalid={!!problem} /></label>
+    {problem && <small role="status">{problem}</small>}
+    <div className="button-row">
+      <button className="button primary" disabled={busy || !item.can_approve || rejecting} onClick={() => void decide('approve')}><ShieldCheck size={17} />Approve</button>
+      {rejecting
+        ? <button className="button secondary" disabled={busy || !!problem} onClick={() => void decide('reject')}>Confirm rejection</button>
+        : <button className="button secondary" disabled={busy} onClick={() => { setRejecting(true); setNote(''); }}>Reject…</button>}
+      {rejecting && <button className="button ghost" onClick={() => { setRejecting(false); setNote(''); }}>Cancel</button>}
+      <LinkButton to={'/agreements/' + item.id}>Open</LinkButton>
+    </div>
+    {!item.can_approve && <small>Approval is unavailable until every finding is resolved in a revision.</small>}
+  </article>;
+}
+
+function ReviewInbox({ onChange }: { onChange: () => void }) {
+  const [items, setItems] = useState<InboxItem[] | null>(null);
+  const [error, setError] = useState('');
+  const load = () => api<InboxItem[]>('/policies/inbox').then(rows => { setItems(rows); setError(''); }).catch(failure => setError(message(failure)));
+  useEffect(() => { void load(); }, []);
+  return <Panel title="Review queue" subtitle="Draft agreements awaiting a decision, oldest first.">
+    {error && <RetryNotice onRetry={() => void load()}>{error}</RetryNotice>}
+    {items === null && !error && <Loading label="Loading review queue" />}
+    {items?.length === 0 && <Empty title="Nothing to review" icon={<ClipboardCheck size={24} />}>New drafts appear here for a reviewer to approve or reject.</Empty>}
+    <div className="stack">{items?.map(item => <InboxCard key={item.id} item={item} onDecided={() => { onChange(); void load(); }} />)}</div>
+  </Panel>;
+}
+
+export function Agreements({ policies, config, onChange, canReview = false }: { policies: Policy[]; config: Config; onChange: () => void; canReview?: boolean }) {
   const [title, setTitle] = useState('');
   const [source, setSource] = useState('');
   const [method, setMethod] = useState('local');
@@ -102,6 +163,7 @@ export function Agreements({ policies, config, onChange }: { policies: Policy[];
     finally { setBusy(false); }
   }
   return <Page title="Agreements" subtitle="Turn service terms into versioned rules with source evidence.">
+    {canReview && <ReviewInbox onChange={onChange} />}
     <div className="content-grid">
       <Panel title="New agreement" subtitle="Use one clause per line for the deterministic compiler.">
         <form className="stack" onSubmit={extract}>

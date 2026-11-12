@@ -96,3 +96,9 @@ Items: 1 membership/onboarding, 2 reliability, 3 artifact storage. Items 4-5 and
 - Not done / caveats: no automated browser test of the new Load more buttons (needs a running stack; manual check below); the agreements and datasets lists are not paginated (small, bounded); event streams unchanged.
 - ITEM 5 COMPLETE. ITEMS 4 AND 5 COMPLETE. Per the user's instruction the run stops here and waits for the next message.
 - Needs human (new): after the next Render deploy (migration 0005 runs automatically in the entrypoint), open the live site as a consumer and a producer: check Home, offers sort/badges, Load more on Bookings/Jobs (needs more than 50 rows to appear; otherwise only the "Showing all N" text), keyboard navigation (skip link, Escape in the quote panel) and that lists still load.
+
+## Run scope 3 (user): four items (reviewer inbox, job spec + stage timing, support benchmark, runtime baselines), then stop.
+## Run 3 item 1 status: DONE (reviewer inbox)
+- Backend: migration 0006 (policies.rejected_at/rejected_by/decision_note, additive; verified up/down/up on SQLite). `GET /policies/inbox` (admin/reviewer, own org drafts, oldest first, with clause text, parsed values, issues, affected reserved jobs booked under an earlier version, `can_approve`). `POST /policies/{id}/reject` (reason 12-500 chars, drafts only; approved -> 409). `approve` takes an optional note and refuses rejected policies. Events `PolicyRejected`/`PolicyApproved` carry the reason/note.
+- Frontend: Review queue panel on Agreements for admin/reviewer (`inbox.ts` helpers + node tests). Approve is disabled while findings are open.
+- Not browser-tested here (no browser on this machine); needs a human click-through on a reviewer account.
