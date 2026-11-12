@@ -1,10 +1,11 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Activity, ArrowRight, BookOpen, CalendarCheck, Cpu, Database, FileCheck2, FlaskConical, LayoutDashboard, ListOrdered, LogOut, Menu, ShieldCheck, Store, X } from 'lucide-react';
+import { Activity, ArrowRight, BookOpen, CalendarCheck, Cpu, Database, FileCheck2, FlaskConical, LayoutDashboard, ListOrdered, LogOut, Menu, ShieldCheck, Store, Users, X } from 'lucide-react';
 import { AgreementView, Agreements, Capacity, JobView, NewJob, Overview, Queue } from './operations';
 import { DataSources, Research, ResearchResult } from './research';
 import { BookingDetail, Bookings, Exchange } from './exchange';
 import { ExplainConsole } from './explain';
+import { Team, WorkspaceSwitcher } from './team';
 import { api, go, Loading, message, Notice, post, type Config, type Dataset, type Job, type Policy, type Run, type Runner, type User } from './shared';
 import './style.css';
 
@@ -17,6 +18,7 @@ const nav = [
   { path: '/capacity', title: 'Compute capacity', icon: Cpu },
   { path: '/research', title: 'Research Lab', icon: FlaskConical },
   { path: '/data', title: 'Data sources', icon: Database },
+  { path: '/team', title: 'Team', icon: Users },
   { path: '/explain', title: 'Explainable AI', icon: BookOpen },
 ];
 
@@ -26,6 +28,8 @@ function Brand() {
 
 function Login({ signIn }: { signIn: (user: User) => void }) {
   const [creating, setCreating] = useState(false);
+  const [joining, setJoining] = useState(false);
+  const [code, setCode] = useState('');
   const [username, setUsername] = useState('admin');
   const [workspace, setWorkspace] = useState('operations');
   const [organization, setOrganization] = useState('');
@@ -34,6 +38,8 @@ function Login({ signIn }: { signIn: (user: User) => void }) {
   const [error, setError] = useState('');
 
   function switchMode() {
+    setJoining(false);
+    setCode('');
     setCreating(!creating);
     setWorkspace(creating ? 'operations' : 'consumer');
     setUsername(creating ? 'admin' : '');
@@ -48,7 +54,11 @@ function Login({ signIn }: { signIn: (user: User) => void }) {
     setBusy(true);
     setError('');
     try {
-      if (creating) {
+      if (joining) {
+        const user = await post<User>('/invitations/accept', { code: code.trim(), username, password });
+        go('/agreements');
+        signIn(user);
+      } else if (creating) {
         const user = await post<User>('/accounts', { username, password, organization, role: workspace });
         go('/explain');
         signIn(user);
@@ -64,31 +74,33 @@ function Login({ signIn }: { signIn: (user: User) => void }) {
       <div className="login-footer"><ShieldCheck size={17} /> Policy approval · GPU execution · Independent audit</div></div>
     <main className="login-right"><form className="login-panel" onSubmit={submit} aria-labelledby="login-title">
       <div className="runner-icon"><ShieldCheck size={23} /></div>
-      <h2 id="login-title">{creating ? 'Create your account' : 'Sign in to your workspace'}</h2>
-      <p>{creating ? 'Create a workspace to offer GPU capacity or book it for your workloads.' : 'Choose the workspace assigned to your account.'}</p>
-      <label>{creating ? 'Account type' : 'Workspace'}<select value={workspace} onChange={event => {
+      <h2 id="login-title">{joining ? 'Join with an invitation' : creating ? 'Create your account' : 'Sign in to your workspace'}</h2>
+      <p>{joining ? 'Enter the code you were sent and choose a username and password. You will join the workspace that invited you.' : creating ? 'Create a workspace to offer GPU capacity or book it for your workloads.' : 'Choose the workspace assigned to your account.'}</p>
+      {joining && <label>Invitation code<input value={code} required minLength={20} maxLength={100} autoComplete="off" spellCheck={false} onChange={event => setCode(event.target.value)} /></label>}
+      {!joining && <label>{creating ? 'Account type' : 'Workspace'}<select value={workspace} onChange={event => {
         const next = event.target.value;
         setWorkspace(next);
         setError('');
         if (!creating) { setUsername(next === 'operations' ? 'admin' : ''); setPassword(''); }
       }}>{!creating && <option value="operations">Operations and research</option>}
-        <option value="producer">Producer</option><option value="consumer">Consumer</option></select></label>
-      {creating && <label>Organization name<input value={organization} autoComplete="organization" required maxLength={100}
+        <option value="producer">Producer</option><option value="consumer">Consumer</option></select></label>}
+      {creating && !joining && <label>Organization name<input value={organization} autoComplete="organization" required maxLength={100}
         onChange={event => setOrganization(event.target.value)} /></label>}
       <div className="login-field"><label>Username<input value={username} autoComplete="username" autoCapitalize="none" spellCheck={false}
-        required maxLength={64} pattern={creating ? '[a-z][a-z0-9._\\-]{1,63}' : undefined}
+        required maxLength={64} pattern={creating || joining ? '[a-z][a-z0-9._\\-]{1,63}' : undefined}
         aria-describedby={creating ? 'username-help' : undefined} onChange={event => setUsername(event.target.value)} /></label>
         {creating && <small id="username-help">Use 2–64 lowercase letters, numbers, dots, underscores, or hyphens. Start with a letter.</small>}</div>
       <div className="login-field"><label>Password<input key={creating ? 'new' : 'current'} value={password} type="password"
-        autoComplete={creating ? 'new-password' : 'current-password'} required minLength={creating ? 12 : undefined} maxLength={200}
+        autoComplete={creating || joining ? 'new-password' : 'current-password'} required minLength={creating || joining ? 12 : undefined} maxLength={200}
         aria-describedby={creating ? 'password-help' : undefined} onChange={event => setPassword(event.target.value)} /></label>
         {creating && <small id="password-help">Use at least 12 characters.</small>}</div>
       {error && <Notice>{error}</Notice>}
       <button className="button primary" disabled={busy}>
-        {creating ? (busy ? 'Creating account…' : 'Create account') : (busy ? 'Signing in…' : 'Sign in')}<ArrowRight size={17} />
+        {joining ? (busy ? 'Joining…' : 'Join workspace') : creating ? (busy ? 'Creating account…' : 'Create account') : (busy ? 'Signing in…' : 'Sign in')}<ArrowRight size={17} />
       </button>
       <div className="login-switch"><span>{creating ? 'Already have an account?' : 'New to PACT-Compute?'}</span>
-        <button className="button secondary" type="button" disabled={busy} onClick={switchMode}>{creating ? 'Back to sign in' : 'Create account'}</button>
+        <button className="button secondary" type="button" disabled={busy} onClick={switchMode}>{creating || joining ? 'Back to sign in' : 'Create account'}</button>
+        {!joining && <button className="button secondary" type="button" disabled={busy} onClick={() => { setJoining(true); setCreating(false); setUsername(''); setPassword(''); setError(''); }}>I have an invitation code</button>}
       </div>
     </form></main>
   </div>;
@@ -104,8 +116,8 @@ function Shell({ user, logout }: { user: User; logout: () => void }) {
   const [refreshAt, requestRefresh] = useState(0);
   const participant = user.role === 'producer' || user.role === 'consumer';
   const links = participant ? nav.filter(item => (user.role === 'producer'
-    ? ['/market', '/bookings', '/capacity', '/explain']
-    : ['/market', '/bookings', '/jobs', '/agreements', '/explain']).includes(item.path)) : nav;
+    ? ['/market', '/bookings', '/capacity', '/team', '/explain']
+    : ['/market', '/bookings', '/jobs', '/agreements', '/team', '/explain']).includes(item.path)) : nav;
   const refresh = () => requestRefresh(value => value + 1);
   useEffect(() => {
     const onHash = () => { setRoute(location.hash.slice(1) || '/'); setMobile(false); window.scrollTo(0, 0); };
@@ -148,6 +160,7 @@ function Shell({ user, logout }: { user: User; logout: () => void }) {
     else if (route === '/agreements') screen = <Agreements policies={policies} config={config} onChange={refresh} />;
     else if (route.startsWith('/agreements/') && id) screen = <AgreementView key={id} id={id} onChange={refresh} />;
     else if (route === '/capacity') screen = <Capacity runners={runners} onChange={refresh} canEnroll={['producer', 'operator', 'admin'].includes(user.role)} />;
+    else if (route === '/team') screen = <Team user={user} />;
     else if (route === '/research') screen = <Research {...{ datasets, policies, runs }} onChange={refresh} />;
     else if (route.startsWith('/research/') && id) screen = <ResearchResult key={id} id={id} user={user} />;
     else if (route === '/data') screen = <DataSources datasets={datasets} onChange={refresh} />;
@@ -159,6 +172,7 @@ function Shell({ user, logout }: { user: User; logout: () => void }) {
     <aside className={'sidebar ' + (mobile ? 'is-open' : '')}>
       <div className="sidebar-head"><Brand /><button className="icon-button mobile-only" onClick={() => setMobile(false)} aria-label="Close navigation"><X size={20} /></button></div>
       <div className="workspace"><span className="workspace-mark"><Cpu size={17} /></span><div><strong title={user.organization}>{user.organization}</strong><small>Compute workspace</small></div></div>
+      <WorkspaceSwitcher user={user} />
       <nav aria-label="Primary">
         {links.map(({ path, title, icon: Icon }) => <div key={path} className={path === '/research' ? 'nav-section' : ''}>
           {path === '/research' && <span className="nav-caption">Experiments</span>}

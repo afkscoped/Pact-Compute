@@ -18,14 +18,14 @@ Topic = Literal['workspace', 'contract', 'pricing', 'allocation', 'booking', 'jo
 
 GUIDES = {
     'consumer': ('Find and book a GPU', [
-        ('Prepare your service agreement', 'Draft an agreement in Agreements and ask an operator to provision a reviewer for your workspace. A reviewer approves the workload limits before you request a quote.', '/agreements'),
+        ('Prepare your service agreement', 'Draft an agreement in Agreements. A reviewer approves the workload limits before you request a quote: open Team, create a reviewer invitation and send the code to a colleague who will review your agreements.', '/agreements'),
         ('Choose an approved agreement', 'Open Agreements and verify the workload limits and review status.', '/agreements'),
         ('Compare producer offers', 'Open GPU Exchange. Select an offer with enough GPU memory and time.', '/market'),
         ('Request and confirm a quote', 'Select the agreement and image count. Review the start window, expiry and charge cap before confirming.', '/market'),
         ('Follow the shared booking', 'Open Bookings for execution status, the protocol trace and the shared usage receipt.', '/bookings'),
     ]),
     'producer': ('Publish and fulfill GPU capacity', [
-        ('Enroll a GPU runner', 'Ask an operator to enroll a runner for your workspace. Start it on the GPU host using its private enrollment token.', '/capacity'),
+        ('Enroll a GPU runner', 'Open Compute capacity and enroll a GPU host. Copy the one-time token to the GPU host and start the runner with it.', '/capacity'),
         ('Verify a runner', 'Confirm the registered GPU has a recent heartbeat and sufficient memory.', '/capacity'),
         ('Publish an availability window', 'Choose your runner, start and end time, and rate in compute credits per GPU-hour.', '/market'),
         ('Monitor reservations', 'Review active bookings and pause future offers if the runner needs maintenance.', '/bookings'),
@@ -89,7 +89,7 @@ def guide(member, topic):
     steps = [(*row, None) for row in rows]
     if topic == 'workspace' and mode in ('producer', 'consumer'):
         label, detail, url, _ = steps[0]
-        steps[0] = (label, f'{detail} Share workspace ID {member.org_id} with the operator.', url, None)
+        steps[0] = (label, f'{detail} Your workspace ID is {member.org_id}.', url, None)
     return packet(topic, title, steps)
 
 

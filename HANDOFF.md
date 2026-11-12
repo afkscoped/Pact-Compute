@@ -48,3 +48,21 @@ Continue the task list above; Step 2 deployment plan goes to DEPLOYMENT.md.
 - Render service `pact-compute-sasha` (free, ephemeral disk, sleeps when idle) + Neon `pact-deploy`. Env vars were entered by the user in the Render dashboard.
 - Not yet done: GPU runner connected to the live URL (needs GPU machine), reviewer account on the deployed DB (`pact.cli member NAME reviewer --org WORKSPACE_ID` with deploy.env vars loaded), GROQ_API_KEY on Render, full quote->confirm->job flow live.
 - `/api/v1/config` returned non-200 unauthenticated (likely needs session; unchecked).
+
+## Item 1 design: memberships, invitations, workspace switcher (written before coding)
+**Chosen:** invitations + additional memberships + session-scoped workspace switch. **Not chosen:** owner-approves-own-policy (it removes the reviewer's separation of duties; would need explicit user approval).
+- `members` keeps each person's *home* org/role (no backfill, no data migration). New table `memberships(id, member_id, org_id, role, created_at, unique(member_id, org_id))` holds *extra* workspaces. New table `invitations(id, org_id, role, token_digest unique, created_by, created_at, expires_at, accepted_by, accepted_at, revoked_at)`. New nullable columns `sessions.org_id`, `sessions.role` = active-workspace override. Migration 0003 only adds tables/nullable columns, so it is backward compatible with existing rows and with the previous app version.
+- Who can invite: an org's `producer`/`consumer`/`admin` members, into their own org only, roles limited to `reviewer` or the inviter's own participant role (never admin/operator/researcher/submitter: privileged roles stay CLI/platform-admin). Token = 32 random bytes, stored only as SHA-256, shown once, 7-day expiry, single use, revocable. Listing/revoking is org-scoped.
+- Accepting: (a) new person supplies username+password and the code, gets a new member whose home is the inviting org (public, rate-limited like signup, and only possible with a valid code); (b) existing signed-in user adds a membership. Role comes from the invitation, never from the request.
+- Switching: `POST /api/v1/session/workspace {org_id}` is allowed only if the member has a home or extra membership there; it sets the session override. `current_user` re-validates the override against `memberships` on every request and returns a `Principal(id, username, org_id, role)`; all endpoints already scope on `member.org_id`, so tenant isolation is unchanged. Sign-in itself is unchanged for existing accounts.
+- Security implications: new unauthenticated surface = invite acceptance (token-gated, rate limited, constant-time lookup by digest); a reviewer invited by an org owner can approve that org's policies only (existing behaviour of the role); removal of members/sessions revocation is NOT included yet (known gap, tracked below).
+
+## Run scope (amended by user): do items 1-3 only, then stop and wait. Commit+push (fork only) after every slice.
+Items: 1 membership/onboarding, 2 reliability, 3 artifact storage. Items 4-5 and backlog are NOT started (user said do not continue on own).
+
+## Item 1 status: DONE (slice 1a backend+UI)
+- Backend: memberships/invitations/session workspace override (migration 0003, additive; verified up/down/up on throwaway SQLite), routes in backend/pact/membership.py, Principal-based current_user in access.py, guide text fixed in explain.py.
+- Frontend: Team screen (invite/revoke/join), workspace switcher in sidebar, "I have an invitation code" on sign-in (frontend/src/team.tsx, main.tsx).
+- Tests: 11/11 backend pass on SQLite (new: invitation lifecycle, cross-tenant denial, owner cannot self-approve, one-time/revoked/expired codes, workspace switch, accept rate limit). Frontend typecheck+build OK.
+- Known gaps: no member removal / session revocation UI; invitation role limited to reviewer or inviter's own participant role; reviewer nav is the existing full operations nav; no browser (Playwright) test run.
+- Needs human: after the Render redeploy, sign up a consumer on the live site, create a reviewer invite in Team, redeem it in a private window to confirm end to end (I only tested via API/TestClient).

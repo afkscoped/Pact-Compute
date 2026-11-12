@@ -24,6 +24,7 @@ from .research import Scenario
 from .security import COOKIE, bootstrap, password_digest, password_ok, sign
 from .market_api import router as market_router
 from .explain import router as explain_router
+from .membership import router as membership_router
 
 
 @asynccontextmanager
@@ -607,6 +608,7 @@ def event_stream(kind: Literal['jobs', 'runs'], object_id: str, member: User, la
 
 app.include_router(market_router)
 app.include_router(explain_router)
+app.include_router(membership_router)
 
 if (FRONTEND / 'assets').is_dir():
     app.mount('/assets', StaticFiles(directory=FRONTEND / 'assets'), name='web-assets')

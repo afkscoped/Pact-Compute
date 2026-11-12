@@ -115,6 +115,74 @@ def test_producer_self_service_runner_enrollment():
         assert producer.get('/api/v1/runners').json()[0]['device'] == 'Enrolled GPU'
 
 
+def test_invitations_membership_and_workspace_switch(monkeypatch):
+    import pact.api
+    monkeypatch.setattr(pact.api, 'limit_auth_attempts', lambda *args: None)
+    pw = 'sample-registration-password'
+    def signup(name, role, org):
+        c = TestClient(app)
+        c.__enter__()
+        assert c.post('/api/v1/accounts', json={'username': name, 'password': pw, 'organization': org, 'role': role}).status_code == 201
+        return c
+    a, b = signup('inv-owner-a', 'consumer', 'Invite A'), signup('inv-owner-b', 'consumer', 'Invite B')
+    draft = a.post('/api/v1/policies', json={'title': 'A agreement', 'source': EXAMPLE}).json()
+    b_draft = b.post('/api/v1/policies', json={'title': 'B agreement', 'source': EXAMPLE}).json()
+    assert a.post('/api/v1/policies/' + draft['id'] + '/approve').status_code == 403  # owner cannot self-approve
+    assert a.post('/api/v1/invitations', json={'role': 'admin'}).status_code == 422
+    assert a.post('/api/v1/invitations', json={'role': 'producer'}).status_code == 403
+    invite = a.post('/api/v1/invitations', json={'role': 'reviewer'})
+    assert invite.status_code == 201 and invite.json()['code']
+    code = invite.json()['code']
+    assert 'code' not in a.get('/api/v1/invitations').json()[0]
+    assert b.get('/api/v1/invitations').json() == []
+    assert b.delete('/api/v1/invitations/' + invite.json()['id']).status_code == 404
+    with TestClient(app) as reviewer:
+        assert reviewer.post('/api/v1/invitations/accept', json={'code': 'x' * 30, 'username': 'inv-reviewer', 'password': pw}).status_code == 404
+        assert reviewer.post('/api/v1/invitations/accept', json={'code': code}).status_code == 422
+        accepted = reviewer.post('/api/v1/invitations/accept', json={'code': code, 'username': 'inv-reviewer', 'password': pw})
+        assert accepted.status_code == 201 and accepted.json()['role'] == 'reviewer' and accepted.json()['organization'] == 'Invite A'
+        assert reviewer.post('/api/v1/policies/' + draft['id'] + '/approve').status_code == 200
+        assert reviewer.post('/api/v1/policies/' + b_draft['id'] + '/approve').status_code == 404  # other tenant
+        assert reviewer.post('/api/v1/invitations', json={'role': 'reviewer'}).status_code == 403
+        with TestClient(app) as again:
+            assert again.post('/api/v1/invitations/accept', json={'code': code, 'username': 'inv-reviewer-2', 'password': pw}).status_code == 404
+    revoked = a.post('/api/v1/invitations', json={'role': 'reviewer'}).json()
+    assert a.delete('/api/v1/invitations/' + revoked['id']).json()['status'] == 'revoked'
+    with TestClient(app) as late:
+        assert late.post('/api/v1/invitations/accept', json={'code': revoked['code'], 'username': 'inv-late', 'password': pw}).status_code == 404
+    stale = a.post('/api/v1/invitations', json={'role': 'reviewer'}).json()
+    with session(write=True) as db:
+        from pact.db import Invitation
+        db.get(Invitation, stale['id']).expires_at = 1.0
+    with TestClient(app) as old:
+        assert old.post('/api/v1/invitations/accept', json={'code': stale['code'], 'username': 'inv-old', 'password': pw}).status_code == 404
+    # An existing person joins a second workspace and switches between them.
+    extra = a.post('/api/v1/invitations', json={'role': 'consumer'}).json()
+    assert b.get('/api/v1/session').json()['organization'] == 'Invite B'
+    joined = b.post('/api/v1/invitations/accept', json={'code': extra['code']})
+    assert joined.status_code == 201 and joined.json()['organization'] == 'Invite A'
+    assert b.post('/api/v1/invitations/accept', json={'code': a.post('/api/v1/invitations', json={'role': 'consumer'}).json()['code']}).status_code == 409
+    spaces = b.get('/api/v1/memberships').json()
+    assert {item['organization'] for item in spaces} == {'Invite A', 'Invite B'} and sum(item['active'] for item in spaces) == 1
+    assert b.get('/api/v1/session').json()['organization'] == 'Invite A'
+    assert {item['id'] for item in b.get('/api/v1/policies').json()} == {draft['id']}
+    home = next(item for item in spaces if item['home'])
+    assert b.post('/api/v1/session/workspace', json={'org_id': home['org_id']}).status_code == 200
+    assert {item['id'] for item in b.get('/api/v1/policies').json()} == {b_draft['id']}
+    assert b.post('/api/v1/session/workspace', json={'org_id': 'f' * 24}).status_code == 403
+    outsider = signup('inv-outsider', 'consumer', 'Invite C')
+    assert outsider.post('/api/v1/session/workspace', json={'org_id': next(i for i in spaces if not i['home'])['org_id']}).status_code == 403
+
+
+def test_invitation_accept_is_rate_limited():
+    import pact.api
+    pact.api.registration_attempts.clear()
+    with TestClient(app) as anonymous:
+        codes = [anonymous.post('/api/v1/invitations/accept', json={'code': 'y' * 30, 'username': 'rl-user', 'password': 'sample-registration-password'}).status_code for _ in range(8)]
+    pact.api.registration_attempts.clear()
+    assert codes[:6] == [404] * 6 and codes[-1] == 429
+
+
 def test_unresolved_approval_and_tenant_isolation(client):
     draft = client.post('/api/v1/policies', json={'title': 'Missing timezone', 'source': 'Jobs must finish by 17:00.'}).json()
     assert client.post('/api/v1/policies/' + draft['id'] + '/approve').status_code == 409

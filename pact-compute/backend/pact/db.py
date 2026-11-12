@@ -39,6 +39,32 @@ class Login(Base):
     digest: Mapped[str] = mapped_column(String(64), primary_key=True)
     member_id: Mapped[str] = mapped_column(ForeignKey('members.id'), index=True)
     expires: Mapped[float] = mapped_column(Float)
+    org_id: Mapped[str | None] = mapped_column(ForeignKey('organizations.id'), nullable=True)
+
+
+class Membership(Base):
+    # Extra workspaces beyond a member's home org/role (members.org_id / members.role).
+    __tablename__ = 'memberships'
+    __table_args__ = (UniqueConstraint('member_id', 'org_id'),)
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=uid)
+    member_id: Mapped[str] = mapped_column(ForeignKey('members.id'), index=True)
+    org_id: Mapped[str] = mapped_column(ForeignKey('organizations.id'), index=True)
+    role: Mapped[str] = mapped_column(String(20))
+    created_at: Mapped[float] = mapped_column(Float, default=time.time)
+
+
+class Invitation(Base):
+    __tablename__ = 'invitations'
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=uid)
+    org_id: Mapped[str] = mapped_column(ForeignKey('organizations.id'), index=True)
+    role: Mapped[str] = mapped_column(String(20))
+    token_digest: Mapped[str] = mapped_column(String(64), unique=True)
+    created_by: Mapped[str] = mapped_column(ForeignKey('members.id'))
+    created_at: Mapped[float] = mapped_column(Float, default=time.time)
+    expires_at: Mapped[float] = mapped_column(Float)
+    accepted_by: Mapped[str | None] = mapped_column(ForeignKey('members.id'), nullable=True)
+    accepted_at: Mapped[float | None] = mapped_column(Float, nullable=True)
+    revoked_at: Mapped[float | None] = mapped_column(Float, nullable=True)
 
 
 class Policy(Base):
