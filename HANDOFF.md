@@ -85,4 +85,5 @@ Items: 1 membership/onboarding, 2 reliability, 3 artifact storage. Items 4-5 and
 ## Run scope 2 (user): items 4 and 5, then stop and wait.
 ## Item 4 status (frontend polish) - in progress
 - 4a DONE: skip-to-content button, focus moves to main on route change, Loading is an aria-live status with labels, RetryNotice ("Try again") on Exchange/Bookings/BookingDetail load errors, Escape closes the quote panel, offer buttons have descriptive aria-labels. Typecheck+build OK, backend 17/17. No automated browser/a11y test run (Playwright e2e needs demo accounts + GPU runner) - manual keyboard pass is a Needs-human item.
-- 4b consumer home, 4c offer comparison + booking detail: next.
+- 4b DONE: consumer Home at `#/` (frontend/src/home.tsx): one clear next action + 4-step progress + recent bookings; pure logic in src/journey.ts tested with `npm test` (node --test, 7 tests; Node 25 runs .ts natively, no new deps). Nav entry is called Home for consumers; producers still land on the exchange.
+- 4c offer comparison + booking detail: next.

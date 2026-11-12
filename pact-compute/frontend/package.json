@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "build": "tsc --noEmit && node build.mjs",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test": "node --test test/*.test.ts"
   },
   "dependencies": {
     "@xyflow/react": "^12.8.0",

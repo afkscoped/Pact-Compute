@@ -283,3 +283,13 @@ progress { width: 100%; height: 11px; }
 .skip-link { position: fixed; left: 12px; top: -60px; z-index: 100; padding: 9px 14px; border-radius: 8px; background: #b8ffd2; color: #07140d; font-weight: 650; border: 0; cursor: pointer; }
 .skip-link:focus { top: 12px; }
 main:focus { outline: none; }
+
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.next-action { border: 1px solid #3c6d4d; background: linear-gradient(135deg, #17291e, #12201a); border-radius: 12px; padding: 22px 24px; margin-bottom: 18px; display: grid; gap: 8px; justify-items: start; }
+.next-action small { color: #acd7bc; text-transform: uppercase; letter-spacing: .08em; font-size: 11px; }
+.next-action h2 { margin: 0; font-size: 21px; }
+.next-action p { margin: 0 0 6px; max-width: 62ch; color: #c5d6cb; }
+.journey { list-style: none; margin: 0 0 14px; padding: 0; display: grid; gap: 10px; }
+.journey li { display: flex; align-items: center; gap: 10px; color: #9fb3a6; }
+.journey li.done { color: #d9f5e3; }
+.journey li.done svg { color: #76c696; }

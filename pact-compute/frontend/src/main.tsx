@@ -6,6 +6,7 @@ import { DataSources, Research, ResearchResult } from './research';
 import { BookingDetail, Bookings, Exchange } from './exchange';
 import { ExplainConsole } from './explain';
 import { Team, WorkspaceSwitcher } from './team';
+import { ConsumerHome } from './home';
 import { api, go, Loading, message, Notice, post, type Config, type Dataset, type Job, type Policy, type Run, type Runner, type User } from './shared';
 import './style.css';
 
@@ -118,7 +119,7 @@ function Shell({ user, logout }: { user: User; logout: () => void }) {
   const participant = user.role === 'producer' || user.role === 'consumer';
   const links = participant ? nav.filter(item => (user.role === 'producer'
     ? ['/market', '/bookings', '/capacity', '/team', '/explain']
-    : ['/market', '/bookings', '/jobs', '/agreements', '/team', '/explain']).includes(item.path)) : nav;
+    : ['/', '/market', '/bookings', '/jobs', '/agreements', '/team', '/explain']).includes(item.path)).map(item => item.path === '/' && user.role === 'consumer' ? { ...item, title: 'Home' } : item) : nav;
   const refresh = () => requestRefresh(value => value + 1);
   useEffect(() => {
     const onHash = () => { setRoute(location.hash.slice(1) || '/'); setMobile(false); window.scrollTo(0, 0); mainRef.current?.focus({ preventScroll: true }); };
@@ -144,13 +145,13 @@ function Shell({ user, logout }: { user: User; logout: () => void }) {
     const timer = window.setInterval(reload, 4200);
     return () => { current = false; window.clearInterval(timer); };
   }, [refreshAt]);
-  const visibleRoute = route === '/' && participant ? '/market' : route;
+  const visibleRoute = route === '/' && participant && user.role === 'producer' ? '/market' : route;
   const current = links.find(link => link.path === visibleRoute || (link.path !== '/' && visibleRoute.startsWith(link.path + '/'))) ?? links[0];
   let screen = null;
   if (data) {
     const { jobs, runners, policies, runs, datasets, config } = data;
     const id = route.split('/')[2] || '';
-    if (visibleRoute === '/') screen = <Overview {...{ jobs, runners, policies, runs }} />;
+    if (visibleRoute === '/') screen = user.role === 'consumer' ? <ConsumerHome user={user} policies={policies} /> : <Overview {...{ jobs, runners, policies, runs }} />;
     else if (visibleRoute === '/market') screen = <Exchange {...{ user, runners, policies }} />;
     else if (route === '/bookings') screen = <Bookings />;
     else if (route.startsWith('/bookings/') && id) screen = <BookingDetail key={id} id={id} />;
