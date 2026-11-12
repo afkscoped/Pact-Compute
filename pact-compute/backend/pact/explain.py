@@ -7,7 +7,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 
-from . import market
+from . import market, support
 from .access import User, entity
 from .config import STATE
 from .db import Event, Job, MarketBooking, MarketQuote, Policy, ResearchRun, session
@@ -99,13 +99,17 @@ def decision(member, query):
     with session() as db:
         if query.topic == 'booking':
             item = market.booking_view(db, market.booking_for(db, member, query.ref), member, detailed=True)
-            return trace_packet(query.topic, 'Booking ' + item['id'][:8], item['protocol'], '/bookings/' + item['id'])
+            booking = market.booking_for(db, member, query.ref)
+            events = market.trace_events(db, db.get(Job, booking.job_id), db.get(MarketQuote, booking.quote_id))
+            return diagnosed(trace_packet(query.topic, 'Booking ' + item['id'][:8], item['protocol'], '/bookings/' + item['id']),
+                             events, member, query.question, '/bookings/' + item['id'])
         if query.topic == 'job':
             job = entity(db, Job, member, query.ref)
             booked = db.scalar(select(MarketBooking).where(MarketBooking.job_id == job.id))
             quote = db.get(MarketQuote, booked.quote_id) if booked else None
             protocol = market.trace(db, job, quote)
-            data = trace_packet(query.topic, job.title, protocol, '/jobs/' + job.id)
+            data = diagnosed(trace_packet(query.topic, job.title, protocol, '/jobs/' + job.id),
+                             market.trace_events(db, job, quote), member, query.question, '/jobs/' + job.id)
             if job.status == 'rejected':
                 for option in job.decision.get('candidates', []):
                     for reason in option.get('reasons', []):
@@ -131,6 +135,20 @@ def decision(member, query):
                  path, 'provider audit'),
             ], 'completed')
     return guide(member, 'workspace')
+
+
+def diagnosed(data, events, member, question, link):
+    """Prepend a deterministic diagnosis that cites one recorded event and lists only actions this role may take."""
+    result = support.diagnose(events, member.role, question)
+    cited = f"{result['evidence']['kind']} (evidence {result['evidence']['seq']})" if result['evidence'] else 'no recorded event'
+    detail = f"{result['uncertainty']} Next: " + '; '.join(action['label'] for action in result['actions']) + '.'
+    for row in data['steps']:
+        row['id'] += 1
+    data['steps'].insert(0, {'id': 1, 'title': 'Diagnosis: ' + result['title'], 'detail': detail, 'link': link,
+                             'evidence': result['evidence']['seq'] if result['evidence'] else None})
+    data['diagnosis'] = {**result, 'cited': cited}
+    data['focus'] = [1]
+    return data
 
 
 def trace_packet(topic, title, trace, link):

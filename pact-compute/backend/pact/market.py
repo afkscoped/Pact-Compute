@@ -186,7 +186,7 @@ def confirm(db, member, quote_id, data):
     return booking_view(db, booking, member)
 
 
-def trace(db, job, quote=None):
+def trace_events(db, job, quote=None):
     events = []
     if quote:
         events.append({'kind': 'QuoteIssued', 'at': quote.issued_at, 'seq': f'quote:{quote.id}',
@@ -195,7 +195,11 @@ def trace(db, job, quote=None):
                                    'envelope_cents': quote.selection['envelope_cents']}})
     stmt = select(Event).where(Event.entity_type == 'job', Event.entity_id == job.id, Event.org_id == job.org_id).order_by(Event.seq)
     events.extend({'kind': item.kind, 'at': item.at, 'seq': item.seq, 'details': item.details} for item in db.scalars(stmt))
-    return observe(events, market=quote is not None)
+    return events
+
+
+def trace(db, job, quote=None):
+    return observe(trace_events(db, job, quote), market=quote is not None)
 
 
 def booking_view(db, booking, member, detailed=False, attempt=False):

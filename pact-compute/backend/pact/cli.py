@@ -23,6 +23,7 @@ def main():
     sub.add_parser('benchmark')
     sub.add_parser('market-demo')
     sub.add_parser('artifacts-verify')
+    sub.add_parser('support-benchmark')
     study = sub.add_parser('publication-study')
     study.add_argument('--seeds', type=int, default=20)
     study.add_argument('--jobs', type=int, default=90)
@@ -59,6 +60,15 @@ def main():
 
         run(STATE / 'evaluations', seeds=args.seeds, jobs=args.jobs, progress=lambda line: print(line, flush=True))
         print('Publication metrics and evidence saved under .local/evaluations.')
+    elif args.command == 'support-benchmark':
+        from .support_bench import run
+
+        report = run()
+        folder = STATE / 'evaluations'
+        folder.mkdir(parents=True, exist_ok=True)
+        (folder / 'support-benchmark.json').write_text(json.dumps(report, indent=2, sort_keys=True), encoding='utf-8')
+        print(f'{report["passed"]}/{report["cases"]} support cases passed. Report saved under .local/evaluations.')
+        raise SystemExit(0 if report['passed'] == report['cases'] else 1)
     elif args.command == 'artifacts-verify':
         from .db import Artifact
         from .storage import StorageError, store
