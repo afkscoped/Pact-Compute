@@ -21,7 +21,7 @@ Get PACT-Compute running end-to-end on the configured PostgreSQL (Neon), do the 
 1. [DONE] Fix data checksum failure: data files restored to committed bytes, 8/8 tests pass.
 2. [S] Authenticated end-to-end smoke on PostgreSQL (register producer+consumer via API, read lists) — tell user first; minimal data.
 3. [PARTLY DONE] Close the onboarding gap: after signup a producer/consumer needs an operator CLI to enroll runner / provision reviewer (plan backlog #2/#4). Candidate: self-service runner enrollment for producers + consumer self-review option (config-gated).
-4. [M] Deployment artifacts: Dockerfile (API+worker, serves built frontend), health checks, start scripts, env var docs (Step 2).
+4. [PARTLY DONE: files written, build untested; see DEPLOYMENT.md] Deployment artifacts: Dockerfile (API+worker, serves built frontend), health checks, start scripts, env var docs (Step 2).
 5. [M] Shared/persistent rate limits & artifact storage risk (artifacts live in `.local`; needs persistent disk or object storage).
 6. [L] Outbox events, object storage, pagination (plan backlog #6/#7).
 

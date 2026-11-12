@@ -1,0 +1,11 @@
+.git
+docs
+**/.venv
+**/node_modules
+**/.local
+**/.env
+**/*.db
+**/__pycache__
+pact-compute/frontend/dist
+PACT-Compute-data-preflight/*.zip
+PACT-Compute-data-preflight/*.tar.gz
