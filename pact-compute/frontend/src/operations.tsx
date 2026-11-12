@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Activity, ArrowRight, CheckCircle2, ChevronRight, ClipboardCheck, Cpu, Download, FileText, FlaskConical, Layers3, Plus, Radio, ShieldCheck, UploadCloud } from 'lucide-react';
 import {
-  active, api, countLabel, date, Empty, evidence, go, label, LinkButton, Loading, message, money, Notice, num, Page, Panel, pct, post, ReviewForm, Status, useDetail,
+  active, api, countLabel, date, Empty, evidence, go, label, LinkButton, LoadMore, Loading, message, money, Notice, num, Page, Panel, pct, post, ReviewForm, RetryNotice, Status, useDetail, usePagedList,
   type Agreement, type Candidate, type Config, type Job, type JobDetail, type Policy, type Preview, type Rule, type Run, type Runner, type User,
 } from './shared';
 
@@ -60,12 +60,16 @@ export function JobsTable({ jobs }: { jobs: Job[] }) {
       <td>{label(job.mode)}</td><td><Status value={job.status} /></td><td>{date(job.created_at)}</td><td><a className="icon-link" href={'#/jobs/' + job.id} aria-label={'Open ' + job.title}><ChevronRight size={17} /></a></td></tr>)}</tbody></table></div>;
 }
 
-export function Queue({ jobs, exchange = false }: { jobs: Job[]; exchange?: boolean }) {
+export function Queue({ exchange = false }: { exchange?: boolean }) {
   const [filter, setFilter] = useState('all');
+  const list = usePagedList<Job>('/jobs', 4200);
+  const jobs = list.items ?? [];
   return <Page title="Job queue" subtitle="Follow submitted workloads from admission through execution."
     action={<a className="button primary" href={exchange ? '#/market' : '#/jobs/new'}><Plus size={17} />{exchange ? 'Find GPU' : 'Submit job'}</a>}>
     <Panel title="Submissions" action={<select aria-label="Filter jobs" value={filter} onChange={event => setFilter(event.target.value)}><option value="all">All modes</option><option value="live">Live</option><option value="shadow">Shadow</option></select>}>
-      <JobsTable jobs={jobs.filter(job => filter === 'all' || job.mode === filter)} />
+      {list.error && <RetryNotice onRetry={() => void list.refresh()}>{list.error}</RetryNotice>}
+      {list.items === null && !list.error ? <Loading label="Loading jobs" /> : <JobsTable jobs={jobs.filter(job => filter === 'all' || job.mode === filter)} />}
+      {list.items && <LoadMore shown={jobs.length} hasMore={list.hasMore} loading={list.loadingMore} onMore={() => void list.more()} noun="jobs" />}
     </Panel>
   </Page>;
 }

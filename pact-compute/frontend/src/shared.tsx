@@ -1,5 +1,6 @@
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { ArrowUpRight, Check, CircleAlert, Clock3, LoaderCircle } from 'lucide-react';
+import { pagePath, walkPages, type Page } from './paging';
 
 export type User = { username: string; organization: string; role: string };
 export type Config = { llm_available: boolean; example_contract: string; database: string; model: string };
@@ -33,7 +34,7 @@ export type RunResult = {
 };
 export type RunDetail = Run & { artifact_id: string | null; error: string | null; result: RunResult | null; reviews: Review[]; config: { scenario: Record<string, unknown> }; events: LogEvent[] };
 
-export async function api<T>(path: string, options: RequestInit = {}): Promise<T> {
+async function request(path: string, options: RequestInit = {}): Promise<Response> {
   const headers = new Headers(options.headers);
   if (options.body) headers.set('Content-Type', 'application/json');
   const response = await fetch('/api/v1' + path, { ...options, headers });
@@ -43,7 +44,53 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
       ? failure.detail.map((entry: { msg: string }) => entry.msg).join(' · ')
       : 'Request failed (' + response.status + ').');
   }
-  return response.json() as Promise<T>;
+  return response;
+}
+
+export async function api<T>(path: string, options: RequestInit = {}): Promise<T> {
+  return (await request(path, options)).json() as Promise<T>;
+}
+
+// List endpoints return an array and report the next page in the X-Next-Cursor header.
+export async function apiPage<T>(path: string): Promise<Page<T>> {
+  const response = await request(path);
+  return { items: await response.json() as T[], next: response.headers.get('X-Next-Cursor') };
+}
+
+// A list that loads PAGE_SIZE rows, polls, and can load more. Every refresh re-walks the pages already
+// loaded, so nothing is skipped or stale when rows arrive or disappear.
+export function usePagedList<T>(path: string, pollMs = 0) {
+  const pages = useRef(1);
+  const [state, setState] = useState<{ items: T[] | null; next: string | null; error: string }>({ items: null, next: null, error: '' });
+  const [loadingMore, setLoadingMore] = useState(false);
+  const load = useCallback(async () => {
+    try {
+      const walked = await walkPages<T>(cursor => apiPage<T>(pagePath(path, cursor)), pages.current);
+      setState({ items: walked.items, next: walked.next, error: '' });
+    } catch (failure) { setState(old => ({ ...old, error: message(failure) })); }
+  }, [path]);
+  useEffect(() => {
+    pages.current = 1;
+    setState({ items: null, next: null, error: '' });
+    void load();
+    if (!pollMs) return;
+    const timer = window.setInterval(() => void load(), pollMs);
+    return () => window.clearInterval(timer);
+  }, [load, pollMs]);
+  async function more() {
+    setLoadingMore(true);
+    pages.current += 1;
+    await load();
+    setLoadingMore(false);
+  }
+  return { ...state, hasMore: !!state.next, loadingMore, more, refresh: load };
+}
+
+export function LoadMore({ shown, hasMore, loading, onMore, noun = 'items' }: { shown: number; hasMore: boolean; loading: boolean; onMore: () => void; noun?: string }) {
+  return <div className="load-more">
+    <small role="status">{hasMore ? 'Showing the first ' + shown + ' ' + noun + '.' : shown ? 'Showing all ' + shown + ' ' + noun + '.' : ''}</small>
+    {hasMore && <button className="button secondary" type="button" disabled={loading} onClick={onMore}>{loading ? 'Loading…' : 'Load more'}</button>}
+  </div>;
 }
 
 export function post<T>(path: string, body?: unknown, headers?: HeadersInit): Promise<T> {

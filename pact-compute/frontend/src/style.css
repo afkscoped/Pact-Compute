@@ -301,3 +301,5 @@ main:focus { outline: none; }
 .guidance.success { border-color: #3c6d4d; } .guidance.error { border-color: #a35a5a; background: #231616; }
 .guidance small { color: #acd7bc; text-transform: uppercase; letter-spacing: .08em; font-size: 11px; }
 .guidance h2 { margin: 0; font-size: 18px; } .guidance p { margin: 0; max-width: 70ch; color: #c5d6cb; }
+
+.load-more { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 14px; color: #9fb3a6; }

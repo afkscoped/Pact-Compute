@@ -4,7 +4,7 @@ import { Background, Controls, MarkerType, ReactFlow, type Edge, type Node } fro
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import '@xyflow/react/dist/style.css';
 import {
-  countLabel, date, Empty, go, label, LinkButton, Loading, message, money, Notice, num, Page, Panel, pct, post, ReviewForm, Status, useDetail,
+  countLabel, date, Empty, go, label, LinkButton, LoadMore, Loading, message, money, Notice, num, Page, Panel, pct, post, RetryNotice, ReviewForm, Status, useDetail, usePagedList,
   type Auditor, type Dataset, type Policy, type Run, type RunDetail, type User,
 } from './shared';
 import { Metric } from './operations';
@@ -19,6 +19,7 @@ const strategies = [
 ];
 
 export function Research({ datasets, policies, runs, onChange }: { datasets: Dataset[]; policies: Policy[]; runs: Run[]; onChange: () => void }) {
+  const history = usePagedList<Run>('/runs', 4200);
   const [title, setTitle] = useState('Carbon-aware scheduling comparison');
   const [dataset, setDataset] = useState('');
   const [policy, setPolicy] = useState('');
@@ -79,9 +80,11 @@ export function Research({ datasets, policies, runs, onChange }: { datasets: Dat
         </form>
       </Panel>
       <Panel title="Run history" subtitle="Open a result to inspect placements and audit transitions.">
-        {runs.length ? <div className="rows">{runs.map(run => <a className="list-row" href={'#/research/' + run.id} key={run.id}>
+        {history.items === null && !history.error ? <Loading label="Loading runs" /> : history.items?.length ? <div className="rows">{history.items.map(run => <a className="list-row" href={'#/research/' + run.id} key={run.id}>
           <div className="row-icon"><FlaskConical size={18} /></div><div className="grow"><strong>{run.title}</strong><small>{run.jobs} jobs · {countLabel(run.seeds, 'seed')} · {date(run.created_at)}</small></div><Status value={run.status} />
-        </a>)}</div> : <Empty title="No experiment runs" icon={<FlaskConical size={24} />}>Run a paired experiment to populate the comparison.</Empty>}
+        </a>)}</div> : history.items && <Empty title="No experiment runs" icon={<FlaskConical size={24} />}>Run a paired experiment to populate the comparison.</Empty>}
+        {history.error && <RetryNotice onRetry={() => void history.refresh()}>{history.error}</RetryNotice>}
+        {history.items && <LoadMore shown={history.items.length} hasMore={history.hasMore} loading={history.loadingMore} onMore={() => void history.more()} noun="runs" />}
       </Panel>
     </div>
   </Page>;

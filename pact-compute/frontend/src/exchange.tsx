@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { ArrowRight, CheckCircle2, Cpu, Download, GitBranch, Radio, RefreshCw } from 'lucide-react';
-import { api, date, Empty, go, label, LinkButton, Loading, message, money, Notice, num, Page, Panel, post, RetryNotice, Status,
+import { api, apiPage, date, Empty, go, label, LinkButton, LoadMore, Loading, message, money, Notice, num, Page, Panel, post, RetryNotice, Status,
   type Candidate, type Policy, type Runner, type User } from './shared';
 import { encodeImage } from './operations';
+import { pagePath, walkPages } from './paging';
 import { bookingGuidance, offerBadges, SORTS, sortOffers, type SortKey } from './offers';
 
 type Offer = { id: string; title: string; device: string; producer: string; vram_mib: number; zone: string | null; starts_at: number;
@@ -14,8 +15,11 @@ type Booking = { id: string; offer: string; title: string; party: 'consumer' | '
   start_at: number; deadline_at: number; rate_cents: number; maximum_charge_cents: number; usage_cents: number | null;
   duration_s: number | null; energy_kwh: number | null; artifact_sha256: string | null; job_id: string | null; protocol?: Protocol };
 
-function useExchange<T>(path: string) {
+function useExchange<T>(path: string, paged = false) {
   const [data, setData] = useState<T | null>(null);
+  const [next, setNext] = useState<string | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const pages = useRef(1);
   const [error, setError] = useState('');
   const [connected, setConnected] = useState(false);
   const updater = useRef<() => void>(() => {});
@@ -27,8 +31,13 @@ function useExchange<T>(path: string) {
       if (loading) { queued = true; return; }
       loading = true;
       try {
-        const value = await api<T>(path);
-        if (active) { setData(value); setError(''); }
+        if (paged) {
+          const walked = await walkPages<unknown>(cursor => apiPage<unknown>(pagePath(path, cursor)), pages.current);
+          if (active) { setData(walked.items as T); setNext(walked.next); setError(''); }
+        } else {
+          const value = await api<T>(path);
+          if (active) { setData(value); setError(''); }
+        }
       } catch (failure) {
         if (active) setError(message(failure));
       } finally {
@@ -37,7 +46,9 @@ function useExchange<T>(path: string) {
       }
     };
     updater.current = refresh;
+    pages.current = 1;
     setData(null);
+    setNext(null);
     void refresh();
     const stream = new EventSource('/api/v1/market/events');
     stream.onopen = () => setConnected(true);
@@ -46,8 +57,14 @@ function useExchange<T>(path: string) {
     stream.addEventListener('update', refresh);
     const fallback = window.setInterval(refresh, 12000);
     return () => { active = false; window.clearInterval(fallback); stream.close(); };
-  }, [path]);
-  return { data, error, connected, refresh: () => updater.current() };
+  }, [path, paged]);
+  async function more() {
+    setLoadingMore(true);
+    pages.current += 1;
+    await updater.current();
+    setLoadingMore(false);
+  }
+  return { data, error, connected, refresh: () => updater.current(), hasMore: !!next, loadingMore, more };
 }
 
 function LiveLabel({ connected }: { connected: boolean }) {
@@ -60,7 +77,7 @@ function localInput(epoch: number) {
 }
 
 export function Exchange({ user, runners, policies }: { user: User; runners: Runner[]; policies: Policy[] }) {
-  const { data, error, connected, refresh } = useExchange<Offer[]>('/market/offers');
+  const { data, error, connected, refresh, hasMore, loadingMore, more } = useExchange<Offer[]>('/market/offers', true);
   const producer = ['admin', 'operator', 'producer'].includes(user.role);
   const buyer = ['admin', 'consumer', 'submitter'].includes(user.role);
   const [offering, setOffering] = useState(false);
@@ -180,6 +197,8 @@ export function Exchange({ user, runners, policies }: { user: User; runners: Run
                 {busy === item.id ? 'Saving…' : item.status === 'paused' ? 'Resume offer' : 'Pause offer'}</button>}
             </div>
           </article>)}</div>}
+        {data !== null && <LoadMore shown={data.length} hasMore={hasMore} loading={loadingMore} onMore={() => void more()} noun="offers" />}
+        {hasMore && (search || availableOnly) && <small>Filters and sorting apply to the offers loaded so far.</small>}
       </Panel>
       {offer && buyer && <Panel title="Request quote" subtitle={offer.title} action={<button className="button ghost" onClick={() => { select(''); setQuote(null); }}>Close</button>}>
         {!approved.length && <Notice type="info">An approved agreement is required. <a href="#/agreements">Open Agreements</a> to review your options.</Notice>}
@@ -214,7 +233,7 @@ export function Exchange({ user, runners, policies }: { user: User; runners: Run
 }
 
 export function Bookings() {
-  const { data, error, connected, refresh } = useExchange<Booking[]>('/market/bookings');
+  const { data, error, connected, refresh, hasMore, loadingMore, more } = useExchange<Booking[]>('/market/bookings', true);
   return <Page title="Bookings" subtitle="Shared reservations and usage from your side of the exchange." action={<LiveLabel connected={connected} />}>
     {error && <RetryNotice onRetry={refresh}>{error}</RetryNotice>}
     <Panel title="Booking history">{!data ? <Loading /> : !data.length ? <Empty title="No bookings yet">A confirmed quote creates a booking for both parties.</Empty>
@@ -222,6 +241,7 @@ export function Bookings() {
         {data.map(item => <tr key={item.id}><td><a className="table-link" href={'#/bookings/' + item.id}>{item.title}</a></td><td>{item.offer}</td>
           <td>{label(item.party)}</td><td><Status value={item.status} /></td><td>{money(item.usage_cents)}</td></tr>)}
       </tbody></table></div>}
+      {data && <LoadMore shown={data.length} hasMore={hasMore} loading={loadingMore} onMore={() => void more()} noun="bookings" />}
     </Panel>
   </Page>;
 }
