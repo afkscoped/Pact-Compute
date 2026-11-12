@@ -23,6 +23,7 @@ from .db import engine, record, scoped, session, sha, sqlite, uid
 from .policy import EXAMPLE, PolicyText, Revision, compile_local, parse_local, verify
 from .research import Scenario
 from .security import COOKIE, bootstrap, password_digest, password_ok, sign
+from .incidents import router as incidents_router
 from .market_api import router as market_router
 from .explain import router as explain_router
 from .membership import router as membership_router
@@ -490,16 +491,7 @@ def reconcile(job_id: str, body: ReconcileInput, member: User):
     with session(write=True) as db:
         job = entity(db, Job, member, job_id)
         live.lock_job_parties(db, job)
-        if job.status != 'execution_unknown' or time.time() < job.decision.get('reserved_until', 0):
-            raise HTTPException(409, 'The attempt is not eligible for operator reconciliation.')
-        attempt = db.scalar(select(Attempt).where(Attempt.job_id == job.id, Attempt.status == 'execution_unknown'))
-        if not attempt:
-            raise HTTPException(409, 'The uncertain attempt is unavailable.')
-        attempt.status = job.status = 'failed'
-        attempt.finished_at = time.time()
-        attempt.result = {'message': 'Operator confirmed the original process stopped.', 'charged_cents': None}
-        record(db, job.org_id, 'job', job.id, 'ExecutionReconciled', actor=member.id, attempt_id=attempt.id, note=body.note)
-        record(db, job.org_id, 'job', job.id, 'CapacityReleased', runner_id=job.runner_id)
+        live.reconcile_attempt(db, member, job, body.note)
         return job_view(job)
 
 
@@ -676,6 +668,7 @@ def event_stream(kind: Literal['jobs', 'runs'], object_id: str, member: User, la
 app.include_router(market_router)
 app.include_router(explain_router)
 app.include_router(membership_router)
+app.include_router(incidents_router)
 
 if (FRONTEND / 'assets').is_dir():
     app.mount('/assets', StaticFiles(directory=FRONTEND / 'assets'), name='web-assets')

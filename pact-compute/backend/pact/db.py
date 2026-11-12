@@ -53,6 +53,26 @@ class Membership(Base):
     created_at: Mapped[float] = mapped_column(Float, default=time.time)
 
 
+class IncidentRecord(Base):
+    """Ownership and resolution of an incident. The incidents themselves are derived from runners, jobs and attempts;
+    a row exists once someone claims or resolves one, or when an adjustment request is filed."""
+    __tablename__ = 'incident_records'
+    __table_args__ = (Index('ix_incident_records_org_status', 'org_id', 'status', 'created_at'),)
+    id: Mapped[str] = mapped_column(String(32), primary_key=True)  # derived or generated incident id
+    org_id: Mapped[str] = mapped_column(ForeignKey('organizations.id'), index=True)  # the organization whose queue holds it
+    kind: Mapped[str] = mapped_column(String(30))
+    subject_type: Mapped[str] = mapped_column(String(20))
+    subject_id: Mapped[str] = mapped_column(String(32))
+    status: Mapped[str] = mapped_column(String(12))  # claimed | resolved | open (adjustment requests start open)
+    owner_id: Mapped[str | None] = mapped_column(ForeignKey('members.id'))
+    resolution: Mapped[str | None] = mapped_column(Text)
+    outcome: Mapped[str | None] = mapped_column(String(20))
+    resolved_by: Mapped[str | None] = mapped_column(ForeignKey('members.id'))
+    resolved_at: Mapped[float | None] = mapped_column(Float)
+    details: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[float] = mapped_column(Float, default=time.time)
+
+
 class RateHit(Base):
     __tablename__ = 'rate_hits'
     __table_args__ = (Index('ix_rate_hits_bucket_until', 'bucket', 'until'),)

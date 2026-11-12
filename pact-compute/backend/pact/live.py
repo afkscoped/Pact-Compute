@@ -27,6 +27,7 @@ LEASE_SECONDS = 35
 RUNNER_TTL = 25
 MODEL = 'MobileNetV3-Large IMAGENET1K_V2'
 TEMPLATE = 'image-embeddings-v1'
+OUTPUT_REJECTED = 'The control plane rejected the output manifest.'  # also sent by the runner when output validation fails
 SPEC_VERSION = 1
 STAGES = ('staging', 'startup', 'compute', 'validation', 'upload')
 RUNNER_STAGES = ('staging', 'startup', 'compute')
@@ -525,6 +526,21 @@ def output_bytes(artifact, payload, device, weights_sha256=None):
         if not 0.99 <= norm <= 1.01:
             raise LiveError('Output embeddings must have unit norm.')
     return json.dumps(artifact, sort_keys=True, allow_nan=False, separators=(',', ':')).encode()
+
+
+def reconcile_attempt(db, member, job, note):
+    """Operator confirmation that an uncertain attempt's process stopped. Shared by the job endpoint and the incident queue."""
+    if job.status != 'execution_unknown' or time.time() < job.decision.get('reserved_until', 0):
+        raise LiveError('The attempt is not eligible for operator reconciliation.', 409)
+    attempt = db.scalar(select(Attempt).where(Attempt.job_id == job.id, Attempt.status == 'execution_unknown'))
+    if not attempt:
+        raise LiveError('The uncertain attempt is unavailable.', 409)
+    attempt.status = job.status = 'failed'
+    attempt.finished_at = time.time()
+    attempt.result = {'message': 'Operator confirmed the original process stopped.', 'charged_cents': None}
+    record(db, job.org_id, 'job', job.id, 'ExecutionReconciled', actor=member.id, attempt_id=attempt.id, note=note)
+    record(db, job.org_id, 'job', job.id, 'CapacityReleased', runner_id=job.runner_id)
+    return attempt
 
 
 def runner_update(db, runner, attempt_id, update):

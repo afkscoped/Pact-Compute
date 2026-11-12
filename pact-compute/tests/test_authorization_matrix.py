@@ -93,6 +93,10 @@ POLICY = {
     ('POST', '/api/v1/invitations'): (AUTHED, ('admin', 'producer', 'consumer')),
     ('GET', '/api/v1/invitations'): (AUTHED, ('admin', 'producer', 'consumer')),
     ('DELETE', '/api/v1/invitations/{invitation_id}'): (AUTHED, ('admin', 'producer', 'consumer')),
+    ('GET', '/api/v1/incidents'): (AUTHED, ('admin', 'operator')),
+    ('POST', '/api/v1/incidents/{incident}/claim'): (AUTHED, ('admin', 'operator')),
+    ('POST', '/api/v1/incidents/{incident}/resolve'): (AUTHED, ('admin', 'operator')),
+    ('POST', '/api/v1/market/bookings/{booking_id}/adjustments'): (AUTHED, BUYERS),
     ('GET', '/api/v1/memberships'): (AUTHED, None),
     ('POST', '/api/v1/session/workspace'): (AUTHED, None),
 }
@@ -213,7 +217,7 @@ def world(request):
 def fill(template, w):
     ids = {'policy_id': w.policy_id, 'runner_id': w.runner_id, 'job_id': w.job_id, 'attempt_id': w.attempt_id,
            'artifact_id': w.artifact_id, 'run_id': w.run_id, 'offer_id': w.offer_id, 'quote_id': w.quote_id,
-           'booking_id': w.booking_id, 'invitation_id': w.invitation_id, 'object_id': w.job_id, 'kind': 'jobs', 'name': 'publication-study.json'}
+           'booking_id': w.booking_id, 'invitation_id': w.invitation_id, 'incident': 'inc-' + 'f' * 24, 'object_id': w.job_id, 'kind': 'jobs', 'name': 'publication-study.json'}
     return re.sub(r'\{(\w+)(?::\w+)?\}', lambda m: ids[m.group(1)], template)
 
 
@@ -237,6 +241,8 @@ def body_for(method, template, w):
         '/api/v1/market/quotes/{quote_id}/confirm': {},
         '/api/v1/explain/answer': {'topic': 'job', 'ref': w.job_id},
         '/api/v1/invitations': {'role': 'reviewer'},
+        '/api/v1/incidents/{incident}/resolve': {'resolution': 'probing the authorization matrix'},
+        '/api/v1/market/bookings/{booking_id}/adjustments': {'reason': 'probing the authorization matrix'},
         '/api/v1/session/workspace': {'org_id': w.org_a},
     }
     return bodies.get(template)

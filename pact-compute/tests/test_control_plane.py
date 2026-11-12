@@ -599,6 +599,173 @@ def _counterfactual_checks(client, zone):
     assert on_request.status_code == 200 and on_request.json()['baseline']['feasible'] and on_request.json()['suggested']
 
 
+def _reserved_job(client, key, title='Incident job'):
+    policy = approve(client, title='Incident agreement ' + key)
+    job = client.post('/api/v1/jobs', json={'title': title, 'policy_id': policy, 'mode': 'live', 'sample_count': 2},
+                      headers={'Idempotency-Key': key})
+    assert job.status_code == 201 and job.json()['status'] == 'reserved', job.text
+    return job.json()['id']
+
+
+def _incidents(client, status='active'):
+    reply = client.get('/api/v1/incidents', params={'status': status})
+    assert reply.status_code == 200, reply.text
+    return reply.json()
+
+
+def _operator(org_id, username):
+    from pact.db import Member
+    with session(write=True) as db:
+        db.add(Member(org_id=org_id, username=username, password=password_digest('operator-test-password'), role='operator'))
+    other = TestClient(app)
+    assert other.post('/api/v1/session', json={'username': username, 'password': 'operator-test-password'}).status_code == 200
+    return other
+
+
+def test_incident_queue_uncertain_attempt_ownership_and_reconcile(client, monkeypatch):
+    import time as clock
+    import pact.api
+    from pact.db import Job, Member
+    from pact.worker import reconcile
+    monkeypatch.setattr(pact.api, 'limit_auth_attempts', lambda *args: None)
+    runner_ready(client)
+    job_id = _reserved_job(client, 'incident-uncertain-1')
+    lease = client.post('/api/v1/runners/native-gpu/claim', headers=AUTH).json()
+    assert lease['job_id'] == job_id
+    with session(write=True) as db:
+        db.get(Attempt, lease['attempt_id']).lease_until = clock.time() - 1
+    reconcile()
+    events = client.get('/api/v1/jobs/' + job_id).json()['events']
+    uncertain_seq = next(e['seq'] for e in events if e['kind'] == 'ExecutionUncertain')
+    item = next(i for i in _incidents(client) if i['kind'] == 'uncertain_attempt' and i['subject']['id'] == job_id)
+    assert item['status'] == 'open' and item['owner'] is None and item['title'] == 'Execution is uncertain'
+    assert {'type': 'event', 'seq': uncertain_seq, 'kind': 'ExecutionUncertain'} == {k: v for k, v in item['evidence'][0].items() if k != 'at'}
+    assert any(e.get('href') == '/jobs/' + job_id for e in item['evidence'])
+    assert [a['id'] for a in item['permitted_actions']] == ['wait']                      # window still open
+    assert 'jobs' not in item
+    incident = item['id']
+    assert client.post(f'/api/v1/incidents/{incident}/resolve', json={'resolution': 'closing without checking', 'action': 'none'}).status_code == 409
+    assert client.post(f'/api/v1/incidents/{incident}/resolve', json={'resolution': 'closing the window early', 'action': 'reconcile'}).status_code == 409
+    with session(write=True) as db:   # the reserved window has now elapsed
+        job = db.get(Job, job_id)
+        job.decision = {**job.decision, 'reserved_until': clock.time() - 1}
+    with session() as db:
+        org_id = db.scalar(select(Member.org_id).where(Member.username == 'admin'))
+    colleague = _operator(org_id, 'incident-colleague')
+    claimed = client.post(f'/api/v1/incidents/{incident}/claim')
+    assert claimed.status_code == 200 and claimed.json()['status'] == 'claimed' and claimed.json()['owner'] == 'admin'
+    assert colleague.post(f'/api/v1/incidents/{incident}/claim').status_code == 409
+    assert colleague.post(f'/api/v1/incidents/{incident}/resolve', json={'resolution': 'taking over silently', 'action': 'reconcile'}).status_code == 409
+    assert client.post(f'/api/v1/incidents/{incident}/resolve', json={'resolution': 'too short', 'action': 'reconcile'}).status_code == 422
+    assert client.post(f'/api/v1/incidents/{incident}/resolve', json={'resolution': 'The host was power cycled and the process is gone.',
+                                                                         'action': 'reconcile', 'outcome': 'accepted'}).status_code == 422
+    assert [a['id'] for a in next(i for i in _incidents(client) if i['id'] == incident)['permitted_actions']] == ['reconcile']
+    done = client.post(f'/api/v1/incidents/{incident}/resolve', json={'resolution': 'The host was power cycled and the process is gone.', 'action': 'reconcile'})
+    assert done.status_code == 200, done.text
+    assert done.json()['status'] == 'resolved' and done.json()['permitted_actions'] == []
+    assert client.get('/api/v1/jobs/' + job_id).json()['status'] == 'failed'
+    kinds = [e['kind'] for e in client.get('/api/v1/jobs/' + job_id).json()['events']]
+    assert 'ExecutionReconciled' in kinds and 'CapacityReleased' in kinds
+    assert incident not in [i['id'] for i in _incidents(client)]
+    history = next(i for i in _incidents(client, 'resolved') if i['id'] == incident)
+    assert history['resolution'].startswith('The host was power cycled') and history['owner'] == 'admin'
+    assert client.post(f'/api/v1/incidents/{incident}/claim').status_code == 409          # already resolved
+    assert client.post(f'/api/v1/incidents/{incident}/resolve', json={'resolution': 'resolving it twice over', 'action': 'none'}).status_code == 409
+    assert client.get('/api/v1/incidents', params={'status': 'bogus'}).status_code == 422
+    with TestClient(app) as stranger:    # another tenant: no access, no oracle for the id
+        assert stranger.post('/api/v1/accounts', json={'username': 'incident-stranger', 'password': 'sample-registration-password',
+                                                       'organization': 'Incident stranger', 'role': 'producer'}).status_code == 201
+        assert stranger.get('/api/v1/incidents').status_code == 403
+        with session() as db:
+            other_org = db.scalar(select(Member.org_id).where(Member.username == 'incident-stranger'))
+        outsider = _operator(other_org, 'incident-outsider')
+        assert outsider.get('/api/v1/incidents').json() == []
+        assert outsider.post(f'/api/v1/incidents/{incident}/claim').status_code == 404
+        assert outsider.post(f'/api/v1/incidents/{incident}/resolve', json={'resolution': 'trying to resolve foreign', 'action': 'none'}).status_code == 404
+
+
+def test_incident_queue_failed_output_and_stale_runner(client, monkeypatch):
+    import time as clock
+    import pact.api
+    from pact.db import Runner
+    from pact.live import OUTPUT_REJECTED
+    monkeypatch.setattr(pact.api, 'limit_auth_attempts', lambda *args: None)
+    runner_ready(client)
+    job_id = _reserved_job(client, 'incident-output-1')
+    lease = client.post('/api/v1/runners/native-gpu/claim', headers=AUTH).json()
+    endpoint = '/api/v1/runners/native-gpu/attempts/' + lease['attempt_id']
+    assert client.post(endpoint + '/events', json={'fence': lease['fence'], 'state': 'started'}, headers=AUTH).status_code == 200
+    ended = client.post(endpoint + '/events', json={'fence': lease['fence'], 'state': 'failed', 'duration_s': 2.0, 'message': OUTPUT_REJECTED}, headers=AUTH)
+    assert ended.status_code == 200, ended.text
+    item = next(i for i in _incidents(client) if i['kind'] == 'failed_output' and i['subject']['id'] == job_id)
+    finished = next(e['seq'] for e in client.get('/api/v1/jobs/' + job_id).json()['events'] if e['kind'] == 'JobFinished')
+    assert item['evidence'][0]['seq'] == finished and item['evidence'][0]['kind'] == 'JobFinished'
+    assert client.post(f"/api/v1/incidents/{item['id']}/resolve", json={'resolution': 'Resubmitted with smaller images.', 'action': 'reconcile'}).status_code == 422
+    assert client.post(f"/api/v1/incidents/{item['id']}/resolve", json={'resolution': 'Resubmitted with smaller images.', 'outcome': 'accepted'}).status_code == 422
+    assert client.post(f"/api/v1/incidents/{item['id']}/resolve", json={'resolution': 'Resubmitted with smaller images.'}).status_code == 200
+    # an ordinary failure is not an output incident
+    other_job = _reserved_job(client, 'incident-output-2')
+    other = client.post('/api/v1/runners/native-gpu/claim', headers=AUTH).json()
+    path = '/api/v1/runners/native-gpu/attempts/' + other['attempt_id']
+    client.post(path + '/events', json={'fence': other['fence'], 'state': 'started'}, headers=AUTH)
+    client.post(path + '/events', json={'fence': other['fence'], 'state': 'failed', 'duration_s': 1.0, 'message': 'GPU process exited with code 1.'}, headers=AUTH)
+    assert other_job not in [i['subject']['id'] for i in _incidents(client)]
+    # a stale runner opens one incident per silence; a note hides that silence only
+    with session(write=True) as db:
+        db.get(Runner, 'native-gpu').last_seen = clock.time() - 120
+    stale = next(i for i in _incidents(client) if i['kind'] == 'stale_runner' and i['subject']['id'] == 'native-gpu')
+    assert [a['id'] for a in stale['permitted_actions']] == ['pause_dispatch', 'note']
+    assert client.post(f"/api/v1/incidents/{stale['id']}/resolve", json={'resolution': 'Host rebooted by the datacenter team.'}).status_code == 200
+    assert stale['id'] not in [i['id'] for i in _incidents(client)]
+    with session(write=True) as db:
+        db.get(Runner, 'native-gpu').last_seen = clock.time() - 300
+    again = next(i for i in _incidents(client) if i['kind'] == 'stale_runner' and i['subject']['id'] == 'native-gpu')
+    assert again['id'] != stale['id'] and again['status'] == 'open'
+    runner_ready(client)
+    assert not [i for i in _incidents(client) if i['kind'] == 'stale_runner']
+    assert 'The control plane rejected the output manifest.' in open(__import__('pact.runner', fromlist=['x']).__file__, encoding='utf-8').read()
+
+
+def test_incident_queue_adjustment_requests(client, monkeypatch):
+    import time as clock
+    import pact.api
+    from pact.db import Member
+    monkeypatch.setattr(pact.api, 'limit_auth_attempts', lambda *args: None)
+    runner_ready(client)
+    policy = approve(client, title='Adjustment agreement')
+    now = clock.time()
+    offer = client.post('/api/v1/market/offers', json={'runner_id': 'native-gpu', 'title': 'Adjustment offer', 'starts_at': now - 10, 'ends_at': now + 300, 'rate_cents': 100})
+    assert offer.status_code == 201, offer.text
+    quote = client.post('/api/v1/market/quotes', json={'offer_id': offer.json()['id'], 'policy_id': policy, 'title': 'Adjustment label', 'sample_count': 1}).json()
+    booking = client.post(f"/api/v1/market/quotes/{quote['id']}/confirm", json={})
+    assert booking.status_code == 201, booking.text
+    booking_id, job_id = booking.json()['id'], booking.json()['job_id']
+    path = f'/api/v1/market/bookings/{booking_id}/adjustments'
+    request = {'reason': 'The charge looks higher than the time the job ran.', 'requested_cents': 5}
+    assert client.post(path, json=request).status_code == 409                             # not final yet
+    assert client.post('/api/v1/jobs/' + job_id + '/cancel').status_code == 200
+    assert client.post(path, json={'reason': 'short'}).status_code == 422
+    filed = client.post(path, json=request)
+    assert filed.status_code == 201, filed.text
+    assert client.post(path, json=request).status_code == 409                             # one open request per booking
+    client.patch(f"/api/v1/market/offers/{offer.json()['id']}", json={'status': 'paused'})
+    item = next(i for i in _incidents(client) if i['kind'] == 'adjustment_request' and i['id'] == filed.json()['id'])
+    assert item['subject'] == {'type': 'booking', 'id': booking_id, 'label': 'Booking ' + booking_id[:8]}
+    assert 'looks higher' in item['summary'] and item['details']['requested_cents'] == 5
+    assert any(e.get('href') == '/bookings/' + booking_id for e in item['evidence'])
+    assert [a['id'] for a in item['permitted_actions']] == ['accepted', 'declined']
+    assert client.post(f"/api/v1/incidents/{item['id']}/resolve", json={'resolution': 'Reviewed the receipt and the meter.'}).status_code == 422
+    assert client.post(f"/api/v1/incidents/{item['id']}/resolve", json={'resolution': 'Reviewed the receipt and the meter.', 'outcome': 'declined'}).status_code == 200
+    assert item['id'] in [i['id'] for i in _incidents(client, 'resolved')] and item['id'] not in [i['id'] for i in _incidents(client)]
+    assert client.post(path, json=request).status_code == 201                            # a resolved request may be refiled
+    with TestClient(app) as stranger:
+        assert stranger.post('/api/v1/accounts', json={'username': 'adjust-stranger', 'password': 'sample-registration-password',
+                                                       'organization': 'Adjust stranger', 'role': 'consumer'}).status_code == 201
+        assert stranger.post(path, json=request).status_code == 404
+    with session() as db:
+        assert db.scalar(select(Member.id).where(Member.username == 'adjust-stranger')) is not None
+
+
 def test_invitation_accept_is_rate_limited():
     import pact.api
     from pact import ratelimit

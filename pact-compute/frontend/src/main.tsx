@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Activity, ArrowRight, BookOpen, CalendarCheck, Cpu, Database, FileCheck2, FlaskConical, LayoutDashboard, ListOrdered, LogOut, Menu, ShieldCheck, Store, Users, X } from 'lucide-react';
+import { Activity, ArrowRight, BookOpen, CalendarCheck, Cpu, Database, FileCheck2, FlaskConical, LayoutDashboard, LifeBuoy, ListOrdered, LogOut, Menu, ShieldCheck, Store, Users, X } from 'lucide-react';
 import { AgreementView, Agreements, Capacity, JobView, NewJob, Overview, Queue } from './operations';
 import { DataSources, Research, ResearchResult } from './research';
 import { BookingDetail, Bookings, Exchange } from './exchange';
 import { ExplainConsole } from './explain';
 import { Team, WorkspaceSwitcher } from './team';
+import { Incidents } from './incident-queue';
 import { ConsumerHome } from './home';
 import { api, go, Loading, message, Notice, post, type Config, type Dataset, type Job, type Policy, type Run, type Runner, type User } from './shared';
 import './style.css';
@@ -19,6 +20,7 @@ const nav = [
   { path: '/capacity', title: 'Compute capacity', icon: Cpu },
   { path: '/research', title: 'Research Lab', icon: FlaskConical },
   { path: '/data', title: 'Data sources', icon: Database },
+  { path: '/incidents', title: 'Incidents', icon: LifeBuoy },
   { path: '/team', title: 'Team', icon: Users },
   { path: '/explain', title: 'Explainable AI', icon: BookOpen },
 ];
@@ -119,7 +121,7 @@ function Shell({ user, logout }: { user: User; logout: () => void }) {
   const participant = user.role === 'producer' || user.role === 'consumer';
   const links = participant ? nav.filter(item => (user.role === 'producer'
     ? ['/market', '/bookings', '/capacity', '/team', '/explain']
-    : ['/', '/market', '/bookings', '/jobs', '/agreements', '/team', '/explain']).includes(item.path)).map(item => item.path === '/' && user.role === 'consumer' ? { ...item, title: 'Home' } : item) : nav;
+    : ['/', '/market', '/bookings', '/jobs', '/agreements', '/team', '/explain']).includes(item.path)).map(item => item.path === '/' && user.role === 'consumer' ? { ...item, title: 'Home' } : item) : nav.filter(item => item.path !== '/incidents' || ['admin', 'operator'].includes(user.role));
   const refresh = () => requestRefresh(value => value + 1);
   useEffect(() => {
     const onHash = () => { setRoute(location.hash.slice(1) || '/'); setMobile(false); window.scrollTo(0, 0); mainRef.current?.focus({ preventScroll: true }); };
@@ -163,6 +165,7 @@ function Shell({ user, logout }: { user: User; logout: () => void }) {
     else if (route.startsWith('/agreements/') && id) screen = <AgreementView key={id} id={id} onChange={refresh} />;
     else if (route === '/capacity') screen = <Capacity runners={runners} onChange={refresh} canEnroll={['producer', 'operator', 'admin'].includes(user.role)} />;
     else if (route === '/team') screen = <Team user={user} />;
+    else if (route === '/incidents' && ['admin', 'operator'].includes(user.role)) screen = <Incidents user={user} />;
     else if (route === '/research') screen = <Research {...{ datasets, policies, runs }} onChange={refresh} />;
     else if (route.startsWith('/research/') && id) screen = <ResearchResult key={id} id={id} user={user} />;
     else if (route === '/data') screen = <DataSources datasets={datasets} onChange={refresh} />;
