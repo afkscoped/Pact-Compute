@@ -1,0 +1,2 @@
+# Hashed source data must keep exact bytes (manifest SHA-256 checks)
+PACT-Compute-data-preflight/** -text
