@@ -3,6 +3,7 @@ import { ArrowRight, CheckCircle2, Cpu, Download, GitBranch, Radio, RefreshCw } 
 import { api, date, Empty, go, label, LinkButton, Loading, message, money, Notice, num, Page, Panel, post, RetryNotice, Status,
   type Candidate, type Policy, type Runner, type User } from './shared';
 import { encodeImage } from './operations';
+import { bookingGuidance, offerBadges, SORTS, sortOffers, type SortKey } from './offers';
 
 type Offer = { id: string; title: string; device: string; producer: string; vram_mib: number; zone: string | null; starts_at: number;
   ends_at: number; rate_cents: number; status: string; available: boolean; available_at: number | null; fresh_at: number; own: boolean };
@@ -78,6 +79,7 @@ export function Exchange({ user, runners, policies }: { user: User; runners: Run
   const [now, setNow] = useState(() => Date.now() / 1000);
   const [search, setSearch] = useState('');
   const [availableOnly, setAvailableOnly] = useState(false);
+  const [sort, setSort] = useState<SortKey>('soonest');
   const [problem, setProblem] = useState('');
   const [busy, setBusy] = useState('');
   const approved = policies.filter(item => item.status === 'approved');
@@ -138,8 +140,9 @@ export function Exchange({ user, runners, policies }: { user: User; runners: Run
       refresh();
     });
   }
-  const list = (data ?? []).filter(item => (!availableOnly || item.available)
-    && [item.title, item.producer, item.device, item.zone].join(' ').toLowerCase().includes(search.toLowerCase()));
+  const badges = offerBadges(data ?? []);
+  const list = sortOffers((data ?? []).filter(item => (!availableOnly || item.available)
+    && [item.title, item.producer, item.device, item.zone].join(' ').toLowerCase().includes(search.toLowerCase())), sort);
   return <Page title={user.role === 'producer' ? 'Producer exchange' : 'GPU exchange'}
     subtitle={user.role === 'producer' ? 'Publish verified capacity and manage offer availability.' : 'Compare capacity, review the terms, and reserve a GPU for an approved workload.'}
     action={<div className="button-row"><LiveLabel connected={connected} />{producer && <button className="button primary" onClick={() => setOffering(!offering)}>{offering ? 'Close publisher' : 'Publish capacity'}</button>}</div>}>
@@ -160,11 +163,13 @@ export function Exchange({ user, runners, policies }: { user: User; runners: Run
     <div className={offer && buyer ? 'exchange-layout' : ''}>
       <Panel title="Capacity offers" action={<button className="button secondary" onClick={refresh}><RefreshCw size={15} />Refresh</button>}>
         <div className="market-filters"><input aria-label="Filter capacity" placeholder="Filter by GPU, producer, or region" value={search} onChange={event => setSearch(event.target.value)} />
-          <label className="check"><input type="checkbox" checked={availableOnly} onChange={event => setAvailableOnly(event.target.checked)} />Available only</label></div>
+          <label className="check"><input type="checkbox" checked={availableOnly} onChange={event => setAvailableOnly(event.target.checked)} />Available only</label>
+          <label className="sort-by">Sort by<select value={sort} onChange={event => setSort(event.target.value as SortKey)}>{SORTS.map(item => <option key={item.key} value={item.key}>{item.label}</option>)}</select></label></div>
+        <p className="sr-only" role="status">{list.length} offer{list.length === 1 ? '' : 's'} shown, sorted by {SORTS.find(item => item.key === sort)?.label}.</p>
         {data === null ? <Loading /> : !list.length ? <Empty title="No matching offers" icon={<Cpu size={24} />}>Publish capacity or change the search filters.</Empty>
           : <div className="offer-grid">{list.map(item => <article className={'offer-card ' + (item.id === selection ? 'selected' : '')} key={item.id}>
             <div className="split"><div className="runner-icon"><Cpu size={18} /></div><Status value={item.status === 'paused' ? 'paused' : item.available ? 'available' : 'unavailable'} /></div>
-            <h3>{item.title}</h3><p>{item.producer} · {item.device}</p>
+            <h3>{item.title}</h3>{!!badges[item.id]?.length && <div className="badges" aria-label="Best on">{badges[item.id].map(text => <span className="badge" key={text}>{text}</span>)}</div>}<p>{item.producer} · {item.device}</p>
             <div className="form-facts"><span>GPU memory <b>{num(item.vram_mib / 1024)} GiB</b></span><span>Grid zone <b>{item.zone || 'Unverified'}</b></span>
               <span>Hourly rate <b>{money(item.rate_cents)}</b></span><span>First available <b>{date(item.available_at)}</b></span></div>
             <small>Window ends {date(item.ends_at)} · Verified {date(item.fresh_at)}</small>
@@ -242,9 +247,13 @@ export function BookingDetail({ id }: { id: string }) {
   const { data, error, connected, refresh } = useExchange<Booking>('/market/bookings/' + id);
   if (error && !data) return <RetryNotice onRetry={refresh}>{error}</RetryNotice>;
   if (!data) return <Loading label="Loading booking" />;
-  return <Page title={data.title} subtitle={'Booking ' + data.id.slice(0, 10) + ' · ' + data.offer} action={<LiveLabel connected={connected} />}>
+  const guidance = bookingGuidance(data.status, data.party);
+  return <Page title={data.title} subtitle={'Booking ' + data.id.slice(0, 10) + ' · ' + data.offer} action={<div className="button-row"><a className="button ghost" href="#/bookings">← All bookings</a><LiveLabel connected={connected} /></div>}>
     {error && <RetryNotice onRetry={refresh}>{error}</RetryNotice>}
     <div className="content-grid">
+      <section className={'guidance ' + guidance.tone} aria-labelledby="booking-guidance">
+        <small>What this means</small><h2 id="booking-guidance">{guidance.headline}</h2><p>{guidance.detail}</p>
+      </section>
       <Panel title="Shared usage receipt" subtitle="Internal compute credits" action={<Status value={data.status} />}>
         <div className="form-facts"><span>Accepted <b>{date(data.accepted_at)}</b></span><span>Deadline <b>{date(data.deadline_at)}</b></span>
           <span>Reserved start <b>{date(data.start_at)}</b></span><span>Maximum charge <b>{money(data.maximum_charge_cents)}</b></span>

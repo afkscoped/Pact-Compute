@@ -293,3 +293,11 @@ main:focus { outline: none; }
 .journey li { display: flex; align-items: center; gap: 10px; color: #9fb3a6; }
 .journey li.done { color: #d9f5e3; }
 .journey li.done svg { color: #76c696; }
+
+.market-filters .sort-by { display: flex; align-items: center; gap: 8px; margin-left: auto; font-size: 13px; }
+.badges { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 4px; }
+.badge { font-size: 11px; font-weight: 650; padding: 2px 8px; border-radius: 999px; border: 1px solid #3c6d4d; color: #b8ffd2; background: #17291e; }
+.guidance { grid-column: 1 / -1; border: 1px solid #2d4a38; border-radius: 12px; padding: 16px 20px; display: grid; gap: 4px; background: #12201a; }
+.guidance.success { border-color: #3c6d4d; } .guidance.error { border-color: #a35a5a; background: #231616; }
+.guidance small { color: #acd7bc; text-transform: uppercase; letter-spacing: .08em; font-size: 11px; }
+.guidance h2 { margin: 0; font-size: 18px; } .guidance p { margin: 0; max-width: 70ch; color: #c5d6cb; }
