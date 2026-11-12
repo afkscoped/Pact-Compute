@@ -19,7 +19,7 @@ Get PACT-Compute running end-to-end on the configured PostgreSQL (Neon), do the 
 
 ## Prioritized tasks (cost: S/M/L)
 1. [DONE] Fix data checksum failure: data files restored to committed bytes, 8/8 tests pass.
-2. [S] Authenticated end-to-end smoke on PostgreSQL (register producer+consumer via API, read lists) — tell user first; minimal data.
+2. [DONE] API smoke test on PostgreSQL, run against the NEW `pact-deploy` Neon project only (9/9). User instructed: never touch the teammate's DB again.
 3. [PARTLY DONE] Close the onboarding gap: after signup a producer/consumer needs an operator CLI to enroll runner / provision reviewer (plan backlog #2/#4). Candidate: self-service runner enrollment for producers + consumer self-review option (config-gated).
 4. [PARTLY DONE: files written, build untested; see DEPLOYMENT.md] Deployment artifacts: Dockerfile (API+worker, serves built frontend), health checks, start scripts, env var docs (Step 2).
 5. [M] Shared/persistent rate limits & artifact storage risk (artifacts live in `.local`; needs persistent disk or object storage).
@@ -40,3 +40,6 @@ Continue the task list above; Step 2 deployment plan goes to DEPLOYMENT.md.
 
 ## Secrets
 `pact-compute/.env` is not in the repo. Share it with Nithesh privately. Never paste values into docs/chat.
+
+## Accounts/tools set up (2026-11-12)
+- gh CLI installed (user scope, winget) and logged in as the user; neonctl via `npx neonctl` (logged in). Fork + `fork` remote created. Secrets only in gitignored `pact-compute/deploy.env`.

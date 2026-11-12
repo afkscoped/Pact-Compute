@@ -28,14 +28,16 @@ Alternative for a faculty demo that needs persistent files and the GPU on the sa
 | `PACT_RUN_MIGRATIONS` / `PACT_RUN_IMPORT` / `PACT_RUN_WORKER` | Defaults `1`; set `PACT_RUN_MIGRATIONS=0` on any extra replica. Run a single replica: rate limits and Groq budget are process-local |
 | `PORT` | Set by Render automatically |
 
-## Decision needed before first deploy
-The `.env` Neon database is a teammate's real database. A public deployment should use a **separate Neon project/branch** (free) so strangers who sign up do not write into it. The entrypoint runs `alembic upgrade head` automatically, which is a no-op on the already-migrated database but a full schema creation on an empty one.
+## Decisions made
+- Public deployment uses its own new free Neon project `pact-deploy` (aws-us-east-2), separate from the teammate's database. Its direct connection string lives only in the gitignored `pact-compute/deploy.env` (create/refresh with neonctl; never commit or print).
+- Code is deployed from the fork `sashank-talapaneni/Pact-Compute`, branch `sasha-work` (remote `fork`; `origin` is the upstream where this account has no write access).
+- Migrations applied to `pact-deploy` and a 9-step API smoke test passed locally against it (leaves two `Smoke ...` orgs/users in that DB; harmless).
 
 ## Steps
 Repo-side (done in this branch): Dockerfile, entrypoint, dockerignore, health check at `/api/health`.
 
 Manual steps (need Sasha's accounts — Claude will give click-by-click instructions at that point and wait for "done"):
-1. Push this branch to GitHub (Step 3 wrap-up does this; Render deploys from a GitHub repo).
+1. Done: branch pushed to the fork.
 2. Create a Render account (sign in with GitHub). New + Web Service → connect the repo → branch `sasha-work` → Runtime: Docker, Dockerfile path `./Dockerfile`, context `.`, instance type Free.
 3. In the Render service → Environment, add the variables above by hand (generate `PACT_SIGNING_SECRET` locally with `python -c "import secrets;print(secrets.token_hex(32))"` and paste it only into the dashboard).
 4. Set the Health Check Path to `/api/health`. Deploy. Open the URL, create a producer account, enroll a runner under **Compute capacity**.
