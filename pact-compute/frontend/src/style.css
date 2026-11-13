@@ -52,7 +52,9 @@ nav a { color: #a3b2a7; display: flex; align-items: center; gap: 11px; border-ra
 nav a:hover { background: #1c2a21; color: var(--text); }
 nav a[aria-current] { background: #23372a; border-color: #35513d; color: #bbf5cc; font-weight: 650; }
 .nav-caption { display: block; margin: 20px 10px 6px; color: #84968a; font-size: .72rem; font-weight: 600; }
-.sidebar-foot { margin-top: auto; padding-top: 10px; }
+.sidebar > nav { min-height: 0; overflow-y: auto; }
+.sidebar-foot { flex: 0 0 auto; display: grid; gap: 8px; margin-top: auto; padding-top: 10px; }
+.sidebar-foot .sign-out { justify-content: flex-start; }
 .workspace-user { display: flex; align-items: center; gap: 9px; padding: 13px 4px 0; border-top: 1px solid var(--border); }
 .workspace-user > div:nth-child(2) { flex: 1; min-width: 0; }
 .avatar { width: 33px; height: 33px; background: #2a3d31; color: #c2e6ce; font-size: .69rem; font-weight: 700; }
@@ -202,6 +204,16 @@ blockquote { margin: 8px 0 0; padding: 6px 8px; border-left: 2px solid #659b74; 
 .offer-card .form-facts { margin: 0; }
 .quote-summary { margin-top: 14px; }
 .quote-summary .button { justify-self: start; }
+.quote-inspector { border-top: 1px solid #33463a; padding-top: 14px; min-width: 0; }
+.quote-inspector .button-row .button { min-height: 38px; }
+.comparison-bars { display: grid; gap: 11px; margin: 0; padding: 12px; border-radius: 8px; background: var(--deep); }
+.comparison-bars figcaption { font-weight: 620; }
+.comparison-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; font-size: .81rem; }
+.comparison-track { grid-column: 1 / -1; height: 7px; background: #2d4035; border-radius: 5px; overflow: hidden; }
+.comparison-track span { display: block; height: 100%; border-radius: inherit; }
+.market-price-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(115px, 1fr)); gap: 6px; }
+.market-chart { height: 235px; min-width: 0; }
+.protocol-compare { margin-bottom: 16px; }
 .protocol-timeline { display: grid; gap: 11px; }
 .trace-steps { display: flex; overflow-x: auto; padding: 4px; gap: 7px; }
 .trace-step, .guide-step { display: flex; gap: 8px; align-items: center; text-align: left; min-height: 41px; padding: 8px 11px;

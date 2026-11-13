@@ -27,6 +27,8 @@ LEASE_SECONDS = 35
 RUNNER_TTL = 25
 MODEL = 'MobileNetV3-Large IMAGENET1K_V2'
 TEMPLATE = 'image-embeddings-v1'
+CLASSIFICATION = 'image-classification-v1'
+WorkloadTemplate = Literal['image-embeddings-v1', 'image-classification-v1']
 OUTPUT_REJECTED = 'The control plane rejected the output manifest.'  # also sent by the runner when output validation fails
 SPEC_VERSION = 1
 STAGES = ('staging', 'startup', 'compute', 'validation', 'upload')
@@ -39,22 +41,32 @@ def file_digest(name):
 
 def runtime_pin():
     # The runner is native, so the immutable "image" is the exact task source and CUDA kernel bytes it executes.
-    return {'kind': 'native-runner', 'task_sha256': file_digest('gpu_task.py'), 'kernels_sha256': file_digest('mobilenet.ptx')}
+    return {'kind': 'native-runner', 'task_sha256': file_digest('gpu_task.py'),
+            'driver_sha256': file_digest('cuda_driver.py'), 'kernels_sha256': file_digest('mobilenet.ptx')}
+
+
+def workload_label(job):
+    title = 'Image classification batch' if job.spec.get('template') == CLASSIFICATION else 'Image embedding batch'
+    return f'{title} ({job.spec["sample_count"]} images)'
 
 
 def workload_spec(spec, policy, selected, input_artifact):
     """Versioned, hashed description of exactly what a job may run. Stored in Job.spec['workload']; never edited afterwards."""
     limits = values(policy.rules)
     pinned = os.getenv('PACT_MODEL_WEIGHTS_SHA256', '').strip().lower() or None
+    rows = len(spec.images) or spec.sample_count
+    output_schema = ({'name': CLASSIFICATION, 'rows': rows, 'top_k': 5, 'class_count': 1000}
+                     if spec.template == CLASSIFICATION else
+                     {'name': TEMPLATE, 'rows': rows, 'dimension': 960, 'unit_norm_tolerance': 0.01})
     body = {
-        'version': SPEC_VERSION, 'template_id': TEMPLATE, 'runtime': runtime_pin(),
+        'version': SPEC_VERSION, 'template_id': spec.template, 'runtime': runtime_pin(),
         'model': {'name': MODEL, 'weights_sha256': pinned, 'digest_status': 'pinned' if pinned else 'unpinned: the runner verifies the upstream hash'},
         'input_manifest': {'artifact_id': input_artifact.id if input_artifact else None, 'sha256': input_artifact.digest if input_artifact else None,
                            'rows': len(spec.images) or spec.sample_count, 'format': 'png-base64-manifest'},
         'hardware': {'min_vram_mib': limits.get('min_vram_mib', 0), 'gpu_count': 1, 'backend': 'cuda', 'gpu_model': limits.get('gpu_model')},
         'region': (selected or {}).get('zone') or limits.get('grid_zone'),
         'timeout_s': (selected or {}).get('max_runtime_s'),
-        'output_schema': {'name': 'image-embeddings-v1', 'rows': len(spec.images) or spec.sample_count, 'dimension': 960, 'unit_norm_tolerance': 0.01},
+        'output_schema': output_schema,
         'retry': {'max_attempts': 1, 'automatic_retry': False, 'manual_resubmit': True},
     }
     return {**body, 'spec_sha256': sha(json.dumps(body, sort_keys=True, separators=(',', ':')))}
@@ -78,6 +90,7 @@ class JobInput(BaseModel):
     flexible: bool = False
     sample_count: int = Field(default=4, ge=1, le=16)
     images: list[ImageInput] = Field(default_factory=list, max_length=16)
+    template: WorkloadTemplate = TEMPLATE
 
 
 class Heartbeat(BaseModel):
@@ -167,10 +180,10 @@ def expire_leases(db, runner_org, now):
         record(db, job.org_id, 'job', job.id, 'CapacityReleased', runner_id=job.runner_id)
 
 
-def placement(db, org, spec: JobInput, policy: Policy, now, *, offer=None):
+def placement(db, org, spec: JobInput, policy: Policy, now, *, offer=None, runtime=None, carbon_replay=None):
     rules = policy.rules
     limits = values(rules)
-    estimated_s = predicted_seconds(len(spec.images) or spec.sample_count)
+    estimated_s = runtime if runtime is not None else predicted_seconds(len(spec.images) or spec.sample_count)
     reservation_s = estimated_s + 45
     due = deadline(rules, now)
     budget = limits.get('max_charge_cents', 1000)
@@ -212,8 +225,7 @@ def placement(db, org, spec: JobInput, policy: Policy, now, *, offer=None):
             allowed_s = reservation_s
         if spendable < 0 or allowed_s < estimated_s:
             base_reasons.append(reason('budget', 'The cost envelope is too small for the predicted runtime.', 'max_charge_cents'))
-        forecast = forecast_snapshot(runner.zone, now)
-        bound = power_bound()
+        forecast, bound = carbon_replay if carbon_replay else (forecast_snapshot(runner.zone, now), power_bound())
         starts = [next_slot]
         if spec.flexible and limits.get('prefer_low_carbon') and forecast and bound:
             starts += [x['start'] for x in forecast['intervals'] if next_slot < x['start'] <= latest][:16]
@@ -249,7 +261,7 @@ def placement(db, org, spec: JobInput, policy: Policy, now, *, offer=None):
     else:
         feasible.sort(key=lambda c: (c['start'], c['quote_cents'], c['runner_id']))
     return {'policy_id': policy.id, 'deadline_at': due, 'selected': feasible[0] if feasible else None,
-            'candidates': candidates, 'charge_unit': 'compute credits', 'template': TEMPLATE}
+            'candidates': candidates, 'charge_unit': 'compute credits', 'template': spec.template}
 
 
 EDITABLE = ('deadline_seconds', 'max_charge_cents', 'grid_zone')
@@ -377,14 +389,15 @@ def prepared_images(spec: JobInput):
         image.save(output, format='PNG')
         content = output.getvalue()
         records.append({'row': index, 'name': name, 'sha256': sha(content), 'png': base64.b64encode(content).decode()})
-    return json.dumps({'template': TEMPLATE, 'images': records}, separators=(',', ':')).encode()
+    return json.dumps({'template': spec.template, 'images': records}, separators=(',', ':')).encode()
 
 
 def submit_job(db, member, spec, request_key, payload):
     now = time.time()
     organization_lock(db, member.org_id)
     existing = db.scalar(select(Job).where(Job.org_id == member.org_id, Job.request_key == request_key))
-    fingerprint = sha(json.dumps(spec.model_dump(exclude={'images'}), sort_keys=True) + sha(payload))
+    # The input manifest binds the template and preserves existing embedding fingerprints.
+    fingerprint = sha(json.dumps(spec.model_dump(exclude={'images', 'template'}), sort_keys=True) + sha(payload))
     if existing:
         if existing.spec.get('request_hash') != fingerprint:
             raise LiveError('This idempotency key was used for a different submission.', 409)
@@ -400,7 +413,7 @@ def persist_job(db, member, spec, request_key, payload, fingerprint, now, previe
     job = Job(org_id=member.org_id, policy_id=spec.policy_id, submitted_by=member.id, request_key=request_key,
               runner_id=selected['runner_id'] if selected else None, title=spec.title, mode=spec.mode,
               status=('recommended' if spec.mode == 'shadow' else 'reserved') if selected else 'rejected',
-              spec={'template': TEMPLATE, 'sample_count': len(spec.images) or spec.sample_count, 'flexible': spec.flexible,
+              spec={'template': spec.template, 'sample_count': len(spec.images) or spec.sample_count, 'flexible': spec.flexible,
                     'request_hash': fingerprint}, decision={'candidates': preview['candidates'], **(selected or {})},
               created_at=now, start_after=selected['start'] if selected else None, deadline_at=preview['deadline_at'])
     db.add(job)
@@ -410,7 +423,7 @@ def persist_job(db, member, spec, request_key, payload, fingerprint, now, previe
         artifact = save_artifact(db, job.org_id, payload, 'input-manifest.json', 'input', job.id)
         job.spec = {**job.spec, 'input_id': artifact.id, 'input_sha256': artifact.digest}
     job.spec = {**job.spec, 'workload': workload_spec(spec, db.get(Policy, spec.policy_id), selected, artifact)}
-    record(db, job.org_id, 'job', job.id, 'JobSubmitted', policy_id=spec.policy_id, mode=job.mode, template=TEMPLATE)
+    record(db, job.org_id, 'job', job.id, 'JobSubmitted', policy_id=spec.policy_id, mode=job.mode, template=spec.template)
     if accepted:
         record(db, job.org_id, 'job', job.id, 'MarketQuoteAccepted', **accepted)
     record(db, job.org_id, 'job', job.id,
@@ -495,7 +508,7 @@ def claim(db, runner):
                max_runtime_s=max_runtime, estimated_carbon_g=job.decision['dispatch_estimated_carbon_g'],
                forecast_retrieved_at=job.decision['dispatch_forecast_retrieved_at'])
         return {'attempt_id': attempt.id, 'job_id': job.id, 'fence': attempt.fence, 'input_id': job.spec['input_id'],
-                'input_sha256': job.spec['input_sha256'], 'template': TEMPLATE, 'max_runtime_s': max_runtime,
+                'input_sha256': job.spec['input_sha256'], 'template': job.spec.get('template', TEMPLATE), 'max_runtime_s': max_runtime,
                 'reserved_until': end}
     return None
 
@@ -507,8 +520,27 @@ def attempt_for_runner(db, runner, attempt_id, fence):
     return attempt, db.get(Job, attempt.job_id)
 
 
+def validate_predictions(predictions):
+    if not isinstance(predictions, list) or len(predictions) != 5:
+        raise LiveError('Each classification row must contain five predictions.')
+    indices, probabilities = set(), []
+    for prediction in predictions:
+        if not isinstance(prediction, dict):
+            raise LiveError('Invalid classification prediction.')
+        index, label, probability = (prediction.get(key) for key in ('class_index', 'label', 'probability'))
+        if (type(index) is not int or not 0 <= index < 1000 or index in indices
+                or not isinstance(label, str) or not label.strip() or len(label) > 200
+                or type(probability) not in (int, float) or not 0 <= probability <= 1):
+            raise LiveError('Invalid classification prediction.')
+        indices.add(index)
+        probabilities.append(probability)
+    if probabilities != sorted(probabilities, reverse=True) or not 0 < sum(probabilities) <= 1.000001:
+        raise LiveError('Classification probabilities must be ranked and sum to at most one.')
+
+
 def output_bytes(artifact, payload, device, weights_sha256=None):
     source = json.loads(payload)
+    template = source.get('template', TEMPLATE)
     items = artifact.get('items') if artifact else None
     if not isinstance(items, list) or len(items) != len(source['images']):
         raise LiveError('The output manifest must contain one row per input.')
@@ -516,9 +548,14 @@ def output_bytes(artifact, payload, device, weights_sha256=None):
         raise LiveError('The output must record the approved CUDA model and device.')
     if weights_sha256 and artifact.get('weights_sha256') != weights_sha256:
         raise LiveError('The output was produced with model weights that differ from the pinned digest.')
+    if artifact.get('template', TEMPLATE) != template:
+        raise LiveError('The output template does not match the submitted workload.')
     for item, expected in zip(items, source['images'], strict=True):
         if not isinstance(item, dict) or any(item.get(k) != expected[k] for k in ('row', 'name', 'sha256')):
             raise LiveError('Output rows do not match the input manifest.')
+        if template == CLASSIFICATION:
+            validate_predictions(item.get('predictions'))
+            continue
         vector = item.get('embedding')
         if not isinstance(vector, list) or len(vector) != 960 or any(type(v) not in (float, int) or not math.isfinite(v) or abs(v) > 1.01 for v in vector):
             raise LiveError('Output embeddings must contain 960 finite normalized values.')
@@ -572,9 +609,10 @@ def runner_update(db, runner, attempt_id, update):
                                (job.spec.get('workload') or {}).get('model', {}).get('weights_sha256'))
         stages['validation'] = round(time.monotonic() - checking, 6)
         storing = time.monotonic()
-        artifact = save_artifact(db, job.org_id, content, 'image-embeddings.json', 'output', job.id)
+        filename = 'image-classification.json' if job.spec.get('template') == CLASSIFICATION else 'image-embeddings.json'
+        artifact = save_artifact(db, job.org_id, content, filename, 'output', job.id)
         stages['upload'] = round(time.monotonic() - storing, 6)
-        result.update(artifact_id=artifact.id, sha256=artifact.digest, model=MODEL, rows=job.spec['sample_count'])
+        result.update(artifact_id=artifact.id, sha256=artifact.digest, model=MODEL, rows=job.spec['sample_count'], filename=filename)
         inference = update.artifact.get('inference_seconds')
         if type(inference) in (int, float) and 0 <= inference <= 86400:
             result['inference_seconds'] = inference

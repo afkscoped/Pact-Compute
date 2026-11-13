@@ -7,7 +7,7 @@ from statistics import mean
 
 from . import pricing_model, runtime_model
 from .datasets import import_sources, read_snapshot, write_atomic
-from .protocol import observe
+from .protocol import observe, presence_verdict
 from .research import Scenario, experiment
 
 VERSION = 'pact-study-2'
@@ -85,8 +85,7 @@ def protocol_benchmark():
         for family in families:
             for seed in range(1, 13):
                 item = fixture(family, seed)
-                names = {row['kind'] for row in item['trace']}
-                baseline = 'pass' if {'JobSubmitted', 'CapacityReserved', 'CapacityReleased'} <= names else 'incomplete'
+                baseline = presence_verdict(item['trace'])
                 verified = observe(item['trace'], market=True)
                 result.append({'split': split, **item, 'presence_baseline': baseline, 'temporal_monitor': verified['verdict'],
                                'violations': verified['violations']})

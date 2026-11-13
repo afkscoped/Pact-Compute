@@ -6,6 +6,7 @@
 
 # Virtual Environments
 .venv/
+.venv-demo/
 .gpu-venv/
 venv/
 ENV/

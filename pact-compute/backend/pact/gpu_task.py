@@ -13,6 +13,8 @@ from pathlib import Path
 
 
 MODEL = 'MobileNetV3-Large IMAGENET1K_V2'
+EMBEDDINGS = 'image-embeddings-v1'
+CLASSIFICATION = 'image-classification-v1'
 
 
 def guard_parent(pid, timeout):
@@ -93,6 +95,10 @@ def probe(engine, download=False):
         max_error = float((expected - actual).abs().max())
         if cosine < .99999 or max_error > .0005:
             raise RuntimeError(f'GPU model did not match the CPU reference. Cosine {cosine:.8f}, max error {max_error:.8f}.')
+        logits = torch.tensor(MobileNetFeatures(driver, model, classify=True).encode(sample))
+        reference_logits = model(sample[None])[0]
+        if not torch.allclose(logits, reference_logits, atol=.001, rtol=.001):
+            raise RuntimeError('GPU classification did not match the CPU reference.')
         print(json.dumps({'device': driver.device, 'vram_mib': driver.vram_mib, 'torch': torch.__version__,
                           'cuda': driver.version, 'kernel_verified': True, 'cpu_reference_cosine': cosine,
                           'cpu_reference_max_error': max_error, 'kernels_sha256': driver.kernel_digest}))
@@ -105,8 +111,9 @@ def execute(input_path, output_path, engine):
     torch.set_num_threads(2)
     model, weights, digest = load_weights(torch)
     source = json.loads(input_path.read_bytes())
-    if source['template'] != 'image-embeddings-v1' or not 1 <= len(source['images']) <= 16:
+    if source['template'] not in (EMBEDDINGS, CLASSIFICATION) or not 1 <= len(source['images']) <= 16:
         raise ValueError('Invalid workload manifest.')
+    classify = source['template'] == CLASSIFICATION
     preprocess = weights.transforms()
     tensors = []
     for item in source['images']:
@@ -123,7 +130,7 @@ def execute(input_path, output_path, engine):
             began = time.perf_counter()
             features = model.features(batch)
             pooled = model.avgpool(features).flatten(1)
-            result = torch.nn.functional.normalize(pooled, dim=1).cpu().tolist()
+            result = (model.classifier(pooled) if classify else torch.nn.functional.normalize(pooled, dim=1)).cpu().tolist()
             torch.cuda.synchronize()
             elapsed = time.perf_counter() - began
             metadata = {'device': torch.cuda.get_device_name(0), 'cuda': torch.version.cuda,
@@ -132,19 +139,28 @@ def execute(input_path, output_path, engine):
         from cuda_driver import CudaDriver, MobileNetFeatures
 
         with torch.inference_mode(), CudaDriver() as driver:
-            features = MobileNetFeatures(driver, model)
+            features = MobileNetFeatures(driver, model, classify=classify)
             began = time.perf_counter()
             result = [features.encode(tensor) for tensor in tensors]
             elapsed = time.perf_counter() - began
             metadata = {'device': driver.device, 'cuda': driver.version, 'kernels_sha256': driver.kernel_digest,
                         'peak_allocated_mib': round(driver.peak_bytes / 1048576, 2)}
     records = []
-    for item, embedding in zip(source['images'], result, strict=True):
-        records.append({key: item[key] for key in ('row', 'name', 'sha256')} | {'embedding': [round(v, 8) for v in embedding]})
+    for item, values in zip(source['images'], result, strict=True):
+        row = {key: item[key] for key in ('row', 'name', 'sha256')}
+        if classify:
+            scores, indices = torch.tensor(values).softmax(dim=0).topk(5)
+            row['predictions'] = [
+                {'class_index': index, 'label': weights.meta['categories'][index], 'probability': float(score)}
+                for score, index in zip(scores, indices.tolist(), strict=True)
+            ]
+        else:
+            row['embedding'] = [round(v, 8) for v in values]
+        records.append(row)
     manifest = {'template': source['template'], 'model': MODEL, 'weights_sha256': digest, 'backend': 'cuda',
                 'torch': torch.__version__, 'engine': engine, **metadata,
                 'inference_seconds': round(elapsed, 6),
-                'dimension': 960, 'items': records}
+                'items': records, **({'top_k': 5, 'class_count': 1000} if classify else {'dimension': 960})}
     output_path.write_text(json.dumps(manifest, allow_nan=False, separators=(',', ':')), encoding='utf-8')
 
 

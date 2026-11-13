@@ -1,0 +1,20 @@
+{
+  "suite": "synthetic-policy-regression-v1",
+  "examples": 180,
+  "splits": {
+    "development": {
+      "exact": 120,
+      "total": 120
+    },
+    "validation": {
+      "exact": 30,
+      "total": 30
+    },
+    "holdout": {
+      "exact": 30,
+      "total": 30
+    }
+  },
+  "failures": [],
+  "scope": "Template regression suite with family-grouped splits. Independent human review is pending."
+}

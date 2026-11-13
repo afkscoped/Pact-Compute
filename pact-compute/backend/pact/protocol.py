@@ -20,6 +20,11 @@ LABELS = {'initial': 'Initial', 'quoted': 'Quote issued', 'submitted': 'Job subm
           'uncertain': 'Execution uncertain', 'terminal': 'Terminal outcome', 'closed': 'Capacity released or closed'}
 
 
+def presence_verdict(events):
+    names = {event['kind'] for event in events}
+    return 'pass' if {'JobSubmitted', 'CapacityReserved', 'CapacityReleased'} <= names else 'incomplete'
+
+
 def observe(events, *, market=False):
     """Check ordering, unique execution, pinned terms, and settlement envelope."""
     state = 'initial'

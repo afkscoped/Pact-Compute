@@ -5,6 +5,11 @@ import type { Workload } from './stages';
 
 export type User = { username: string; organization: string; role: string };
 export type Config = { llm_available: boolean; example_contract: string; database: string; model: string };
+export type WorkloadTemplate = 'image-embeddings-v1' | 'image-classification-v1';
+export const workloadOptions: [WorkloadTemplate, string][] = [
+  ['image-embeddings-v1', 'Image embeddings'],
+  ['image-classification-v1', 'Image classification (top 5)'],
+];
 export type Rule = { kind: string; value: string | number | boolean; start: number | null; end: number | null; rationale: string | null; strict: boolean };
 export type Issue = { id: string; code: string; message: string; start: number | null; end: number | null };
 export type Policy = { id: string; title: string; status: string; method: string; created_at: number; rule_count: number; issue_count: number };
@@ -19,7 +24,7 @@ export type Preview = { selected: Candidate | null; candidates: Candidate[]; dea
 export type Job = { id: string; title: string; policy_id: string; status: string; mode: 'live' | 'shadow'; created_at: number; deadline_at: number; sample_count: number; cancel_requested: boolean };
 export type LogEvent = { seq: number; at: number; kind: string; details: Record<string, unknown> };
 export type Review = { id: string; finding_id: string; disposition: string; note: string; at: number };
-export type AttemptResult = { duration_s: number; gpu_energy_kwh: number | null; device: string; power_samples: number; telemetry_coverage: number; artifact_id?: string; sha256?: string; rows?: number; model?: string; inference_seconds?: number; charged_cents: number; message?: string; stage_seconds?: Record<string, number> };
+export type AttemptResult = { duration_s: number; gpu_energy_kwh: number | null; device: string; power_samples: number; telemetry_coverage: number; artifact_id?: string; sha256?: string; rows?: number; model?: string; filename?: string; inference_seconds?: number; charged_cents: number; message?: string; stage_seconds?: Record<string, number> };
 export type Finding = { id: string; rule: string; status: string; observed: unknown; expected: unknown; source_span?: [number, number]; evidence: number[] };
 export type JobDetail = Job & { decision: Partial<Candidate> & { candidates: Candidate[] }; policy: Agreement; input_sha256: string | null; workload?: Workload | null; events: LogEvent[]; findings: Finding[]; reviews: Review[]; attempts: { id: string; status: string; result: AttemptResult | null }[] };
 export type Dataset = { id: string; pods: number; gpu_pods: number; gpu_nodes: number; gpu_devices: number; runtime_proxies: number; carbon_intervals: number; carbon_range: number[]; carbon_zone: string; sources: { file: string; url: string; sha256: string }[]; origins: Record<string, string> };
@@ -185,7 +190,7 @@ export function LinkButton({ to, children }: { to: string; children: ReactNode }
   return <a className="button secondary" href={'#' + to}>{children}<ArrowUpRight size={15} /></a>;
 }
 
-export function useDetail<T>(type: 'jobs' | 'runs' | 'policies', id: string) {
+export function useDetail<T>(type: 'jobs' | 'runs' | 'policies' | 'artifacts', id: string) {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState('');
   const refresh = () => api<T>('/' + type + '/' + id).then(setData).catch(value => setError(message(value)));
@@ -197,7 +202,7 @@ export function useDetail<T>(type: 'jobs' | 'runs' | 'policies', id: string) {
     setData(null);
     setError('');
     void fetchDetail();
-    const timer = type === 'policies' ? undefined : window.setInterval(fetchDetail, 2200);
+    const timer = type === 'jobs' || type === 'runs' ? window.setInterval(fetchDetail, 2200) : undefined;
     return () => { current = false; if (timer) window.clearInterval(timer); };
   }, [type, id]);
   return { data, error, refresh, setData };

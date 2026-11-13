@@ -1,19 +1,22 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { ArrowRight, CheckCircle2, Cpu, Download, GitBranch, Radio, RefreshCw } from 'lucide-react';
 import { api, apiPage, date, Empty, go, label, LinkButton, LoadMore, Loading, message, money, Notice, num, Page, Panel, post, RetryNotice, Status,
-  type Candidate, type Policy, type Runner, type User } from './shared';
+  workloadOptions, type Candidate, type Policy, type Runner, type User, type WorkloadTemplate } from './shared';
 import { encodeImage } from './operations';
 import { pagePath, walkPages } from './paging';
 import { bookingGuidance, offerBadges, SORTS, sortOffers, type SortKey } from './offers';
+import { GridComparison, QuoteInspector, RuntimeEvidence, type GridReplay, type QuoteEvidence, type RuntimePlan } from './market-evidence';
 
 type Offer = { id: string; title: string; device: string; producer: string; vram_mib: number; zone: string | null; starts_at: number;
   ends_at: number; rate_cents: number; status: string; available: boolean; available_at: number | null; fresh_at: number; own: boolean };
-type Quote = { id: string | null; offer_id: string; policy_id: string; expires_at?: number; selected?: Candidate; candidates: Candidate[] };
+type Quote = { id: string | null; offer_id: string; policy_id: string; expires_at?: number; selected?: Candidate; candidates: Candidate[]; evidence?: QuoteEvidence };
 export type Protocol = { version: string; verdict: string; state: string; labels: Record<string, string>;
   steps: { event: string; from: string; to: string; at: number; status: string; errors: string[]; evidence: string | number | null }[] };
 type Booking = { id: string; offer: string; title: string; party: 'consumer' | 'producer'; status: string; accepted_at: number;
   start_at: number; deadline_at: number; rate_cents: number; maximum_charge_cents: number; usage_cents: number | null;
-  duration_s: number | null; energy_kwh: number | null; artifact_sha256: string | null; job_id: string | null; protocol?: Protocol };
+  duration_s: number | null; energy_kwh: number | null; artifact_sha256: string | null; job_id: string | null; protocol?: Protocol;
+  protocol_comparison?: { observed: string; changed_rate: string; changed_rate_monitor: Protocol };
+  runtime_plan?: RuntimePlan | null; grid_replay?: GridReplay | null; policy_title?: string; policy_id?: string; estimated_carbon_g?: number | null };
 
 function useExchange<T>(path: string, paged = false) {
   const [data, setData] = useState<T | null>(null);
@@ -88,7 +91,8 @@ export function Exchange({ user, runners, policies }: { user: User; runners: Run
   const [rate, setRate] = useState('2.50');
   const [selection, select] = useState('');
   const [policyId, setPolicyId] = useState('');
-  const [jobTitle, setJobTitle] = useState('Image embedding batch');
+  const [jobTitle, setJobTitle] = useState('Image batch');
+  const [template, setTemplate] = useState<WorkloadTemplate>('image-embeddings-v1');
   const [count, setCount] = useState(4);
   const [files, setFiles] = useState<File[]>([]);
   const [flex, setFlex] = useState(false);
@@ -135,7 +139,7 @@ export function Exchange({ user, runners, policies }: { user: User; runners: Run
     void execute('quote', async () => {
       setNow(Date.now() / 1000);
       setQuote(await post<Quote>('/market/quotes', { offer_id: selection, policy_id: policyId || approved[0]?.id,
-        title: jobTitle, sample_count: remaining, flexible: flex }));
+        title: jobTitle, sample_count: remaining, flexible: flex, template }));
     });
   }
   function confirm() {
@@ -204,6 +208,9 @@ export function Exchange({ user, runners, policies }: { user: User; runners: Run
         {!approved.length && <Notice type="info">An approved agreement is required. <a href="#/agreements">Open Agreements</a> to review your options.</Notice>}
         <form className="stack" onSubmit={getQuote}>
           <label>Job name<input value={jobTitle} onChange={event => { setJobTitle(event.target.value); setQuote(null); }} required maxLength={120} /></label>
+          <label>Workload type<select value={template} onChange={event => { setTemplate(event.target.value as WorkloadTemplate); setQuote(null); }}>
+            {workloadOptions.map(([value, name]) => <option key={value} value={value}>{name}</option>)}
+          </select></label>
           <label>Agreement<select value={policyId || approved[0]?.id || ''} onChange={event => { setPolicyId(event.target.value); setQuote(null); }} required>
             {!approved.length && <option value="">Choose an approved policy</option>}{approved.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}</select></label>
           <label>Image count<input type="number" min={1} max={16} value={remaining} disabled={!!files.length} onChange={event => { setCount(Number(event.target.value)); setQuote(null); }} /></label>
@@ -226,6 +233,7 @@ export function Exchange({ user, runners, policies }: { user: User; runners: Run
             <button className="button primary" onClick={confirm} disabled={!expires || !!busy}><CheckCircle2 size={16} />{busy === 'confirm' ? 'Reserving…' : 'Confirm reservation'}</button>
           </> : <><Notice type="info">The selected capacity cannot meet these terms.</Notice><ul className="reason-list">
             {quote.candidates.flatMap(item => item.reasons).map((reason, index) => <li key={index}>{reason.message}</li>)}</ul></>}
+          {quote.evidence && <QuoteInspector key={quote.id ?? quote.policy_id} evidence={quote.evidence} policyId={quote.policy_id} />}
         </div>}
       </Panel>}
     </div>
@@ -265,9 +273,12 @@ export function ProtocolTimeline({ protocol }: { protocol: Protocol }) {
 
 export function BookingDetail({ id }: { id: string }) {
   const { data, error, connected, refresh } = useExchange<Booking>('/market/bookings/' + id);
+  const [changed, setChanged] = useState(false);
   if (error && !data) return <RetryNotice onRetry={refresh}>{error}</RetryNotice>;
   if (!data) return <Loading label="Loading booking" />;
   const guidance = bookingGuidance(data.status, data.party);
+  const comparison = data.protocol_comparison;
+  const shownProtocol = changed ? comparison?.changed_rate_monitor : data.protocol;
   return <Page title={data.title} subtitle={'Booking ' + data.id.slice(0, 10) + ' · ' + data.offer} action={<div className="button-row"><a className="button ghost" href="#/bookings">← All bookings</a><LiveLabel connected={connected} /></div>}>
     {error && <RetryNotice onRetry={refresh}>{error}</RetryNotice>}
     <div className="content-grid">
@@ -284,8 +295,28 @@ export function BookingDetail({ id }: { id: string }) {
           {data.job_id && <LinkButton to={'/jobs/' + data.job_id}>Job evidence</LinkButton>}</div>
       </Panel>
       <Panel title="Executable protocol" subtitle="Inspect each observed transition and the evidence that supports it." action={<LinkButton to={'/explain/booking/' + id}>Explain</LinkButton>}>
-        {data.protocol && <ProtocolTimeline protocol={data.protocol} />}
+        {comparison && <div className="stack protocol-compare">
+          <div className="button-row">
+            <button type="button" className={'button ' + (!changed ? 'primary' : 'secondary')} aria-pressed={!changed} onClick={() => setChanged(false)}>Recorded booking</button>
+            <button type="button" className={'button ' + (changed ? 'primary' : 'secondary')} aria-pressed={changed} onClick={() => setChanged(true)}>Test a changed price</button>
+          </div>
+          {changed && <Notice type="info">What-if: add one credit cent per GPU-hour to the accepted rate in a copy of the trace.</Notice>}
+          <div className="form-facts"><span>Event checklist<b>{label(changed ? comparison.changed_rate : comparison.observed)}</b></span>
+            <span>Ordered protocol monitor<b>{label(shownProtocol?.verdict ?? 'incomplete')}</b></span></div>
+          {changed && shownProtocol?.steps.some(step => step.errors.includes('quote_terms_changed')) &&
+            <p>The monitor found that the accepted price differs from the issued quote. Select <strong>Market Quote Accepted</strong> to see the failing transition.</p>}
+        </div>}
+        {shownProtocol && <ProtocolTimeline key={changed ? 'changed' : 'recorded'} protocol={shownProtocol} />}
       </Panel>
+      {data.runtime_plan && <Panel title="Estimate versus actual" subtitle="The quote pins its runtime estimate before execution.">
+        {data.policy_id && <a className="text-link" href={'#/agreements/' + data.policy_id}>{data.policy_title}</a>}
+        <RuntimeEvidence plan={data.runtime_plan} actual={data.duration_s} />
+        <small>{data.estimated_carbon_g == null ? 'Live carbon estimate unavailable for this runner.' :
+          'Dispatch carbon estimate: ' + num(data.estimated_carbon_g, 4) + ' g CO₂.'}</small>
+      </Panel>}
+      {data.grid_replay && <Panel title="Scheduling evidence" subtitle="The historical comparison captured with this quote.">
+        <GridComparison replay={data.grid_replay} />
+      </Panel>}
     </div>
   </Page>;
 }

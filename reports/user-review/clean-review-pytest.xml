@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="4" failures="0" skipped="0" tests="4" time="16.089" timestamp="2026-11-13T09:35:50.698457+05:30" hostname="SohLappy77"><testcase classname="" name="tests.test_authorization_matrix" time="0.000"><error message="collection failure">tests\test_authorization_matrix.py:27: in &lt;module&gt;
+    from pact.api import app  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+backend\pact\api.py:24: in &lt;module&gt;
+    from .research import Scenario
+backend\pact\research.py:9: in &lt;module&gt;
+    from ortools.sat.python import cp_model
+.venv-demo\Lib\site-packages\ortools\__init__.py:72: in &lt;module&gt;
+    _load_ortools_libs()
+.venv-demo\Lib\site-packages\ortools\__init__.py:67: in _load_ortools_libs
+    WinDLL(dll_path)
+C:\Program Files\WindowsApps\OpenAI.CodexPrimaryRuntime.v26-1111-570-0_26.1111.570.0_x64__3k8sg7r9htsxt\dependencies\python\Lib\ctypes\__init__.py:379: in __init__
+    self._handle = _dlopen(self._name, mode)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   OSError: [WinError 4551] An Application Control policy has blocked this file</error></testcase><testcase classname="" name="tests.test_control_plane" time="0.000"><error message="collection failure">tests\test_control_plane.py:20: in &lt;module&gt;
+    from pact.api import app
+backend\pact\api.py:24: in &lt;module&gt;
+    from .research import Scenario
+backend\pact\research.py:9: in &lt;module&gt;
+    from ortools.sat.python import cp_model
+.venv-demo\Lib\site-packages\ortools\__init__.py:72: in &lt;module&gt;
+    _load_ortools_libs()
+.venv-demo\Lib\site-packages\ortools\__init__.py:67: in _load_ortools_libs
+    WinDLL(dll_path)
+C:\Program Files\WindowsApps\OpenAI.CodexPrimaryRuntime.v26-1111-570-0_26.1111.570.0_x64__3k8sg7r9htsxt\dependencies\python\Lib\ctypes\__init__.py:379: in __init__
+    self._handle = _dlopen(self._name, mode)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   OSError: [WinError 4551] An Application Control policy has blocked this file</error></testcase><testcase classname="" name="tests.test_failure_recovery" time="0.000"><error message="collection failure">tests\test_failure_recovery.py:9: in &lt;module&gt;
+    from pact import db, runner, storage, worker
+backend\pact\worker.py:12: in &lt;module&gt;
+    from .research import Scenario, experiment
+backend\pact\research.py:9: in &lt;module&gt;
+    from ortools.sat.python import cp_model
+.venv-demo\Lib\site-packages\ortools\__init__.py:72: in &lt;module&gt;
+    _load_ortools_libs()
+.venv-demo\Lib\site-packages\ortools\__init__.py:67: in _load_ortools_libs
+    WinDLL(dll_path)
+C:\Program Files\WindowsApps\OpenAI.CodexPrimaryRuntime.v26-1111-570-0_26.1111.570.0_x64__3k8sg7r9htsxt\dependencies\python\Lib\ctypes\__init__.py:379: in __init__
+    self._handle = _dlopen(self._name, mode)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   OSError: [WinError 4551] An Application Control policy has blocked this file</error></testcase><testcase classname="" name="tests.test_scheduler_baselines" time="0.000"><error message="collection failure">tests\test_scheduler_baselines.py:8: in &lt;module&gt;
+    from pact import research, scheduler_baselines as sb
+backend\pact\research.py:9: in &lt;module&gt;
+    from ortools.sat.python import cp_model
+.venv-demo\Lib\site-packages\ortools\__init__.py:72: in &lt;module&gt;
+    _load_ortools_libs()
+.venv-demo\Lib\site-packages\ortools\__init__.py:67: in _load_ortools_libs
+    WinDLL(dll_path)
+C:\Program Files\WindowsApps\OpenAI.CodexPrimaryRuntime.v26-1111-570-0_26.1111.570.0_x64__3k8sg7r9htsxt\dependencies\python\Lib\ctypes\__init__.py:379: in __init__
+    self._handle = _dlopen(self._name, mode)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   OSError: [WinError 4551] An Application Control policy has blocked this file</error></testcase></testsuite></testsuites>

@@ -1,0 +1,74 @@
+
+=================================== ERRORS ====================================
+_____________ ERROR collecting tests/test_authorization_matrix.py _____________
+tests\test_authorization_matrix.py:27: in <module>
+    from pact.api import app  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+backend\pact\api.py:24: in <module>
+    from .research import Scenario
+backend\pact\research.py:9: in <module>
+    from ortools.sat.python import cp_model
+.venv-demo\Lib\site-packages\ortools\__init__.py:72: in <module>
+    _load_ortools_libs()
+.venv-demo\Lib\site-packages\ortools\__init__.py:67: in _load_ortools_libs
+    WinDLL(dll_path)
+C:\Program Files\WindowsApps\OpenAI.CodexPrimaryRuntime.v26-1111-570-0_26.1111.570.0_x64__3k8sg7r9htsxt\dependencies\python\Lib\ctypes\__init__.py:379: in __init__
+    self._handle = _dlopen(self._name, mode)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   OSError: [WinError 4551] An Application Control policy has blocked this file
+________________ ERROR collecting tests/test_control_plane.py _________________
+tests\test_control_plane.py:20: in <module>
+    from pact.api import app
+backend\pact\api.py:24: in <module>
+    from .research import Scenario
+backend\pact\research.py:9: in <module>
+    from ortools.sat.python import cp_model
+.venv-demo\Lib\site-packages\ortools\__init__.py:72: in <module>
+    _load_ortools_libs()
+.venv-demo\Lib\site-packages\ortools\__init__.py:67: in _load_ortools_libs
+    WinDLL(dll_path)
+C:\Program Files\WindowsApps\OpenAI.CodexPrimaryRuntime.v26-1111-570-0_26.1111.570.0_x64__3k8sg7r9htsxt\dependencies\python\Lib\ctypes\__init__.py:379: in __init__
+    self._handle = _dlopen(self._name, mode)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   OSError: [WinError 4551] An Application Control policy has blocked this file
+_______________ ERROR collecting tests/test_failure_recovery.py _______________
+tests\test_failure_recovery.py:9: in <module>
+    from pact import db, runner, storage, worker
+backend\pact\worker.py:12: in <module>
+    from .research import Scenario, experiment
+backend\pact\research.py:9: in <module>
+    from ortools.sat.python import cp_model
+.venv-demo\Lib\site-packages\ortools\__init__.py:72: in <module>
+    _load_ortools_libs()
+.venv-demo\Lib\site-packages\ortools\__init__.py:67: in _load_ortools_libs
+    WinDLL(dll_path)
+C:\Program Files\WindowsApps\OpenAI.CodexPrimaryRuntime.v26-1111-570-0_26.1111.570.0_x64__3k8sg7r9htsxt\dependencies\python\Lib\ctypes\__init__.py:379: in __init__
+    self._handle = _dlopen(self._name, mode)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   OSError: [WinError 4551] An Application Control policy has blocked this file
+_____________ ERROR collecting tests/test_scheduler_baselines.py ______________
+tests\test_scheduler_baselines.py:8: in <module>
+    from pact import research, scheduler_baselines as sb
+backend\pact\research.py:9: in <module>
+    from ortools.sat.python import cp_model
+.venv-demo\Lib\site-packages\ortools\__init__.py:72: in <module>
+    _load_ortools_libs()
+.venv-demo\Lib\site-packages\ortools\__init__.py:67: in _load_ortools_libs
+    WinDLL(dll_path)
+C:\Program Files\WindowsApps\OpenAI.CodexPrimaryRuntime.v26-1111-570-0_26.1111.570.0_x64__3k8sg7r9htsxt\dependencies\python\Lib\ctypes\__init__.py:379: in __init__
+    self._handle = _dlopen(self._name, mode)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   OSError: [WinError 4551] An Application Control policy has blocked this file
+============================== warnings summary ===============================
+.venv-demo\Lib\site-packages\fastapi\testclient.py:1
+  C:\Users\raddo\Documents\main el 5th sem\pact-compute\.venv-demo\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+ERROR tests/test_authorization_matrix.py - OSError: [WinError 4551] An Applic...
+ERROR tests/test_control_plane.py - OSError: [WinError 4551] An Application C...
+ERROR tests/test_failure_recovery.py - OSError: [WinError 4551] An Applicatio...
+ERROR tests/test_scheduler_baselines.py - OSError: [WinError 4551] An Applica...
+!!!!!!!!!!!!!!!!!!! Interrupted: 4 errors during collection !!!!!!!!!!!!!!!!!!!
+1 warning, 4 errors in 16.08s

@@ -45,7 +45,7 @@ def evidence_for(events, kinds, own):
 
 
 def public_label(job):
-    return f'Image embedding batch ({job.spec["sample_count"]} images)'
+    return live.workload_label(job)
 
 
 def derive(db, member, now):

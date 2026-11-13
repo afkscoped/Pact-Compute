@@ -11,6 +11,8 @@ test('approves an agreement, executes a real GPU job, and runs the trace benchma
   const errors: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.goto('/');
+  await page.getByRole('combobox', { name: 'Workspace', exact: true }).selectOption('operations');
+  await page.getByLabel('Username', { exact: true }).fill('admin');
   await page.getByLabel('Password', { exact: true }).fill(credentials.admin_password);
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Operations overview' })).toBeVisible();

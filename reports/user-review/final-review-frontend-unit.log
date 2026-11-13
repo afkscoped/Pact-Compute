@@ -1,0 +1,45 @@
+
+> pact-compute-console@0.1.0 test
+> node --test test/*.test.ts
+
+✔ applying edits copies rules, replaces existing values and adds missing ones (1.9969ms)
+✔ change lines show before and after (1.4716ms)
+✔ reason codes get plain wording and unknown codes degrade gracefully (0.3798ms)
+✔ verdicts distinguish feasible, partial and useless options (0.3285ms)
+✔ segments highlight clauses and keep the text in between (1.9011ms)
+✔ unsorted spans are sorted; overlapping, empty and out-of-range spans are ignored (0.4155ms)
+✔ no clauses yields one plain segment (0.3345ms)
+✔ a decision reason needs at least 12 characters (0.4523ms)
+✔ values print plainly (0.3534ms)
+✔ only app routes become evidence links (1.1655ms)
+✔ evidence text names the event and its sequence (0.2301ms)
+✔ a recorded resolution needs a real note (0.46ms)
+✔ resolve bodies match the server contract per incident kind (1.1092ms)
+✔ resolvable actions exclude waiting, links and finished incidents (0.3731ms)
+✔ no agreement: create one (1.0804ms)
+✔ draft with findings: resolve them (0.3409ms)
+✔ clean draft: invite a reviewer (0.1511ms)
+✔ approved and no bookings: compare offers (0.147ms)
+✔ active booking takes priority over everything else (0.5873ms)
+✔ uncertain execution outranks an active one (0.1983ms)
+✔ finished booking: book again (0.1879ms)
+✔ sorting puts bookable offers first, then the chosen order (2.7086ms)
+✔ badges mark the best bookable offer per dimension and ignore unavailable ones (0.6438ms)
+✔ ties share a badge and a single bookable offer gets none (0.399ms)
+✔ booking guidance is role-aware and flags uncertain execution (0.5702ms)
+✔ pagePath adds limit and an encoded cursor, respecting existing queries (1.6611ms)
+✔ walkPages stops at the requested page count and reports the next cursor (1.4702ms)
+✔ walkPages stops early on the last page and always loads at least one (0.349ms)
+✔ a refresh re-walks from the start: dropped rows vanish and new rows appear without gaps (0.4173ms)
+✔ errors propagate so callers can show a retry notice (1.1357ms)
+✔ stage rows keep canonical order and compute shares (1.7531ms)
+✔ missing or empty timings yield no rows (0.2819ms)
+✔ spec rows describe every required field plainly (0.4196ms)
+ℹ tests 33
+ℹ suites 0
+ℹ pass 33
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7509.6206

@@ -1,0 +1,19 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\raddo\Documents\main el 5th sem\pact-compute\backend\pact\cli.py", line 153, in <module>
+    main()
+  File "C:\Users\raddo\Documents\main el 5th sem\pact-compute\backend\pact\cli.py", line 86, in main
+    from .scheduler_baselines import run
+  File "C:\Users\raddo\Documents\main el 5th sem\pact-compute\backend\pact\scheduler_baselines.py", line 19, in <module>
+    from . import research
+  File "C:\Users\raddo\Documents\main el 5th sem\pact-compute\backend\pact\research.py", line 9, in <module>
+    from ortools.sat.python import cp_model
+  File "C:\Users\raddo\Documents\main el 5th sem\pact-compute\.venv-demo\Lib\site-packages\ortools\__init__.py", line 72, in <module>
+    _load_ortools_libs()
+  File "C:\Users\raddo\Documents\main el 5th sem\pact-compute\.venv-demo\Lib\site-packages\ortools\__init__.py", line 67, in _load_ortools_libs
+    WinDLL(dll_path)
+  File "C:\Program Files\WindowsApps\OpenAI.CodexPrimaryRuntime.v26-1111-570-0_26.1111.570.0_x64__3k8sg7r9htsxt\dependencies\python\Lib\ctypes\__init__.py", line 379, in __init__
+    self._handle = _dlopen(self._name, mode)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [WinError 4551] An Application Control policy has blocked this file

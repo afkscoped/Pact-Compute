@@ -1,14 +1,15 @@
 import json
 import time
 from collections import defaultdict
+from types import SimpleNamespace
 from typing import Literal
 
 from pydantic import BaseModel, Field
 from sqlalchemy import or_, select
 
-from . import live, pagination
-from .db import Attempt, CapacityOffer, Event, Job, MarketBooking, MarketQuote, Organization, Runner, record, scoped, sha
-from .protocol import observe
+from . import live, market_evidence, pagination
+from .db import Attempt, CapacityOffer, Event, Job, MarketBooking, MarketQuote, Organization, Policy, Runner, record, scoped, sha
+from .protocol import observe, presence_verdict
 
 BUYERS = ('admin', 'consumer', 'submitter')
 PRODUCERS = ('admin', 'operator', 'producer')
@@ -35,6 +36,7 @@ class QuoteInput(BaseModel):
     title: str = Field(min_length=2, max_length=120)
     sample_count: int = Field(default=4, ge=1, le=16)
     flexible: bool = False
+    template: live.WorkloadTemplate = live.TEMPLATE
 
 
 class ConfirmInput(BaseModel):
@@ -119,20 +121,52 @@ def create_quote(db, member, data):
         raise live.LiveError('The offer is unavailable. Refresh the listing.', 409)
     policy = live.active_policy(db, member.org_id, data.policy_id)
     spec = live.JobInput(**data.model_dump(exclude={'offer_id'}))
-    preview = live.placement(db, member.org_id, spec, policy, now, offer=offer)
+    runtime = market_evidence.runtime_plan(db, member.org_id, offer.runner_id, spec, live.predicted_seconds(spec.sample_count))
+    preview = live.placement(db, member.org_id, spec, policy, now, offer=offer, runtime=runtime['runtime_s'])
     selected = preview['selected']
+    candidate = selected or min(preview['candidates'], key=lambda row: len(row['reasons']), default={'reasons': []})
+    evidence = {'runtime': runtime, 'clauses': market_evidence.clause_evidence(policy, candidate, spec.flexible, now),
+                'policy_title': policy.title, 'policy_sha256': policy.source_hash,
+                'prices': market_evidence.price_history(db, offer), 'replay': None,
+                'live_runtime_carbon_g': market_evidence.energy_plan(candidate, runtime['runtime_s']) if selected else None}
+    evidence['price_cases'] = quote_price_cases(db, member, spec, policy, offer, now, runtime['runtime_s'], preview)
+    signal = market_evidence.historical_signal(now)
+    if signal:
+        modeled_power = market_evidence.REPLAY_POWER_W
+        replay = live.placement(db, member.org_id, spec, policy, now, offer=offer, runtime=runtime['runtime_s'],
+                                carbon_replay=(signal['forecast'], modeled_power))
+        evidence['replay'] = market_evidence.replay_comparison(replay, signal, now, modeled_power)
     if not selected:
-        return {'id': None, 'offer_id': offer.id, 'policy_id': policy.id, 'candidates': preview['candidates']}
+        return {'id': None, 'offer_id': offer.id, 'policy_id': policy.id, 'candidates': preview['candidates'], 'evidence': evidence}
     # Issuing a quote never holds capacity. Confirmation serializes both organizations.
+    excluded = {'images', 'template'} if spec.template == live.TEMPLATE else {'images'}
     quote = MarketQuote(org_id=member.org_id, offer_id=offer.id, consumer_id=member.id,
-                        offer_version=offer.version, policy_id=policy.id, spec=spec.model_dump(exclude={'images'}),
-                        selection=selected, issued_at=now, expires_at=min(now + QUOTE_TTL, offer.ends_at))
+                        offer_version=offer.version, policy_id=policy.id, spec=spec.model_dump(exclude=excluded),
+                        selection={**selected, 'runtime_plan': runtime, 'grid_replay': evidence['replay']},
+                        issued_at=now, expires_at=min(now + QUOTE_TTL, offer.ends_at))
     db.add(quote)
     db.flush()
     record(db, member.org_id, 'market_quote', quote.id, 'QuoteIssued')
     return {'id': quote.id, 'offer_id': offer.id, 'offer_version': quote.offer_version, 'policy_id': quote.policy_id,
             'issued_at': quote.issued_at, 'expires_at': quote.expires_at, 'selected': selected,
-            'candidates': preview['candidates']}
+            'candidates': preview['candidates'], 'evidence': evidence}
+
+
+def quote_price_cases(db, member, spec, policy, offer, now, runtime, posted):
+    cases = []
+    for name, rate in (('Posted rate', offer.rate_cents), ('20% lower', round(offer.rate_cents * .8)),
+                       ('20% higher', min(100_000, round(offer.rate_cents * 1.2)))):
+        alternate = SimpleNamespace(runner_id=offer.runner_id, starts_at=offer.starts_at,
+                                    ends_at=offer.ends_at, status=offer.status, rate_cents=rate)
+        decision = posted if rate == offer.rate_cents else live.placement(
+            db, member.org_id, spec, policy, now, offer=alternate, runtime=runtime)
+        selected = decision['selected']
+        reasons = list(dict.fromkeys(reason['message'] for row in decision['candidates'] for reason in row['reasons']))
+        cases.append({'name': name, 'rate_cents': rate, 'eligible': selected is not None,
+                      'estimated_charge_cents': selected['quote_cents'] if selected else None,
+                      'maximum_charge_cents': selected['envelope_cents'] if selected else None,
+                      'reason': reasons[0] if reasons and not selected else None})
+    return cases
 
 
 def booking_for(db, member, booking_id):
@@ -169,7 +203,7 @@ def confirm(db, member, quote_id, data):
         raise live.LiveError('The quote expired or the offer changed. Get a new quote.', 409)
     policy = live.active_policy(db, member.org_id, quote.policy_id)
     live.expire_leases(db, offer.org_id, now)
-    preview = live.placement(db, member.org_id, spec, policy, now, offer=offer)
+    preview = live.placement(db, member.org_id, spec, policy, now, offer=offer, runtime=quote.selection['runtime_s'])
     selected = preview['selected']
     locked = quote.selection
     if (not selected or selected['start'] > locked['start'] + START_TOLERANCE + max(0, now - quote.issued_at)
@@ -202,6 +236,17 @@ def trace(db, job, quote=None):
     return observe(trace_events(db, job, quote), market=quote is not None)
 
 
+def inspect_booking(db, job, quote):
+    events = trace_events(db, job, quote)
+    protocol = observe(events, market=True)
+    # The alternative trace is only evaluated in memory. The persisted booking is the control.
+    altered = [{**event, 'details': {**event['details'], 'rate_cents': quote.selection['rate_cents'] + 1}}
+               if event['kind'] == 'MarketQuoteAccepted' else event for event in events]
+    check = observe(altered, market=True)
+    return {'protocol': protocol, 'protocol_comparison': {'observed': presence_verdict(events),
+            'changed_rate': presence_verdict(altered), 'changed_rate_monitor': check}}
+
+
 def booking_view(db, booking, member, detailed=False, attempt=False):
     job = db.get(Job, booking.job_id)
     quote = db.get(MarketQuote, booking.quote_id)
@@ -210,14 +255,19 @@ def booking_view(db, booking, member, detailed=False, attempt=False):
         attempt = db.scalar(select(Attempt).where(Attempt.job_id == job.id).order_by(Attempt.ordinal.desc()).limit(1))
     result = (attempt.result or {}) if attempt else {}
     consumer = booking.consumer_org_id == member.org_id
-    public_title = job.title if consumer else f'Image embedding batch ({job.spec["sample_count"]} images)'
+    public_title = job.title if consumer else live.workload_label(job)
     return {'id': booking.id, 'quote_id': quote.id, 'offer': offer.title, 'title': public_title,
             'job_id': job.id if consumer else None, 'party': 'consumer' if consumer else 'producer',
             'status': job.status, 'accepted_at': booking.accepted_at, 'start_at': job.start_after, 'deadline_at': job.deadline_at,
             'rate_cents': quote.selection['rate_cents'], 'maximum_charge_cents': quote.selection['envelope_cents'],
             'usage_cents': result.get('charged_cents'), 'duration_s': result.get('duration_s'),
             'energy_kwh': result.get('gpu_energy_kwh'), 'artifact_sha256': result.get('sha256'),
-            **({'protocol': trace(db, job, quote)} if detailed else {})}
+            **(inspect_booking(db, job, quote) if detailed else {}),
+            **({'runtime_plan': quote.selection.get('runtime_plan'),
+                'grid_replay': quote.selection.get('grid_replay'),
+                'policy_id': job.policy_id, 'policy_title': db.get(Policy, job.policy_id).title,
+                'estimated_carbon_g': job.decision.get('dispatch_estimated_carbon_g', job.decision.get('estimated_carbon_g'))}
+               if detailed and consumer else {})}
 
 
 def bookings_page(db, member, limit=100, cursor=None):

@@ -1,0 +1,18 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\raddo\Documents\main el 5th sem\pact-compute\backend\pact\cli.py", line 153, in <module>
+    main()
+  File "C:\Users\raddo\Documents\main el 5th sem\pact-compute\backend\pact\cli.py", line 80, in main
+    card = import_sources()
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\raddo\Documents\main el 5th sem\pact-compute\backend\pact\datasets.py", line 131, in import_sources
+    return normalize(source_index())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\raddo\Documents\main el 5th sem\pact-compute\backend\pact\datasets.py", line 59, in normalize
+    import pyarrow.parquet as pq
+  File "C:\Users\raddo\Documents\main el 5th sem\pact-compute\.venv-demo\Lib\site-packages\pyarrow\parquet\__init__.py", line 20, in <module>
+    from .core import *
+  File "C:\Users\raddo\Documents\main el 5th sem\pact-compute\.venv-demo\Lib\site-packages\pyarrow\parquet\core.py", line 34, in <module>
+    raise ImportError(
+ImportError: The pyarrow installation is not built with support for the Parquet file format (DLL load failed while importing _parquet: An Application Control policy has blocked this file.)

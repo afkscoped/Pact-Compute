@@ -141,7 +141,7 @@ class Block:
 
 
 class MobileNetFeatures:
-    def __init__(self, driver, network):
+    def __init__(self, driver, network, classify=False):
         import torch
         from torchvision.models.mobilenetv3 import InvertedResidual
         from torchvision.ops.misc import Conv2dNormActivation, SqueezeExcitation
@@ -151,6 +151,14 @@ class MobileNetFeatures:
         self.torch = torch
         self.types = (Conv2dNormActivation, SqueezeExcitation, InvertedResidual)
         self.activations = {torch.nn.ReLU: 1, torch.nn.Hardswish: 2, torch.nn.Hardsigmoid: 3, type(None): 0}
+        self.classifier = []
+        if classify:
+            first, activation, _, last = network.classifier
+            # A linear layer on a pooled feature is a 1x1 convolution.
+            for layer, kind in ((first, type(activation)), (last, type(None))):
+                self.classifier.append(Conv(driver.send(layer.weight), driver.send(layer.bias),
+                                            layer.out_features, layer.in_features, layer.out_features,
+                                            (1, 1), (1, 1), (0, 0), self.activations[kind]))
         for layer in network.features:
             if isinstance(layer, InvertedResidual):
                 self.layers.append(Block([self.compile(part) for part in layer.block], layer.use_res_connect))
@@ -215,7 +223,12 @@ class MobileNetFeatures:
             result = Feature(self.driver.send(image), *image.shape)
             for layer in self.layers:
                 result = self.apply(result, layer)
-            output = self.driver.receive(self.average(result).ptr, np.empty(result.channels, dtype=np.float32))
+            result = self.average(result)
+            for layer in self.classifier:
+                result = self.apply_conv(result, layer)
+            output = self.driver.receive(result.ptr, np.empty(result.channels, dtype=np.float32))
+            if self.classifier:
+                return output.tolist()
             scale = math.sqrt(float(np.dot(output, output)))
             if not math.isfinite(scale) or scale <= 0:
                 raise RuntimeError('The GPU produced a non-finite embedding.')

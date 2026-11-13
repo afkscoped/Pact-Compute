@@ -917,6 +917,12 @@ def test_market_roles_last_slot_and_privacy(client):
     assert loser.get(shared).status_code == 404
     assert producer.get('/api/v1/jobs/' + booking['job_id']).status_code == 404
     assert winner.post('/api/v1/jobs/' + booking['job_id'] + '/cancel').status_code == 200
+    checked = winner.get(shared).json()
+    comparison = checked['protocol_comparison']
+    assert checked['protocol']['verdict'] == comparison['observed'] == comparison['changed_rate'] == 'pass'
+    assert comparison['changed_rate_monitor']['verdict'] == 'fail'
+    assert comparison['changed_rate_monitor']['violations'][0]['code'] == 'quote_terms_changed'
+    assert producer.get(shared).json().get('runtime_plan') is None
     receipt = producer.get(shared + '/receipt').json()
     assert receipt['manifest']['booking']['protocol']['verdict'] == 'pass'
     assert sign(receipt['manifest']) == receipt['hmac_sha256']

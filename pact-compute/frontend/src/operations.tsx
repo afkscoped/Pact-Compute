@@ -5,7 +5,7 @@ import { applyEdits, changeLines, reasonName, verdict, type Counterfactual, type
 import { Activity, ArrowRight, CheckCircle2, ChevronRight, ClipboardCheck, Cpu, Download, FileText, FlaskConical, Layers3, Plus, Radio, ShieldCheck, UploadCloud } from 'lucide-react';
 import {
   active, api, countLabel, date, Empty, evidence, go, label, LinkButton, LoadMore, Loading, message, money, Notice, num, Page, Panel, pct, post, ReviewForm, RetryNotice, Status, useDetail, usePagedList,
-  type Agreement, type Candidate, type Config, type InboxItem, type Job, type JobDetail, type Policy, type Preview, type Rule, type Run, type Runner, type User,
+  workloadOptions, type Agreement, type Candidate, type Config, type InboxItem, type Job, type JobDetail, type Policy, type Preview, type Rule, type Run, type Runner, type User, type WorkloadTemplate,
 } from './shared';
 
 type Lists = { jobs: Job[]; runners: Runner[]; policies: Policy[]; runs: Run[] };
@@ -323,7 +323,8 @@ function WhatIf({ spec, policyId, canRevise, onChange, auto }: { spec: object; p
 export function NewJob({ policies, config, onChange, canRevise = false }: { policies: Policy[]; config: Config; onChange: () => void; canRevise?: boolean }) {
   const approved = policies.filter(policy => policy.status === 'approved');
   const [policy, setPolicy] = useState('');
-  const [title, setTitle] = useState('Nightly image embeddings');
+  const [title, setTitle] = useState('Image batch');
+  const [template, setTemplate] = useState<WorkloadTemplate>('image-embeddings-v1');
   const [count, setCount] = useState(4);
   const [mode, setMode] = useState('live');
   const [flexible, setFlexible] = useState(false);
@@ -334,7 +335,7 @@ export function NewJob({ policies, config, onChange, canRevise = false }: { poli
   const [key, setKey] = useState(() => crypto.randomUUID());
   const selected = policy || approved[0]?.id || '';
   function invalidate() { setPreview(null); setKey(crypto.randomUUID()); }
-  function spec() { return { policy_id: selected, title, sample_count: files.length || count, mode, flexible }; }
+  function spec() { return { policy_id: selected, title, sample_count: files.length || count, mode, flexible, template }; }
   async function check(event: FormEvent) {
     event.preventDefault(); setBusy(true); setError('');
     try { setPreview(await post<Preview>('/jobs/preview', spec())); }
@@ -354,9 +355,12 @@ export function NewJob({ policies, config, onChange, canRevise = false }: { poli
   return <Page title="Submit GPU job" subtitle="Preview available capacity against an approved agreement." action={<LinkButton to="/jobs">Back to queue</LinkButton>}>
     {!approved.length && <Notice type="info">An approved policy is required. <a href="#/agreements">Create or approve an agreement</a>.</Notice>}
     <div className="content-grid">
-      <Panel title="Workload" subtitle={config.model + ' · 960-dimensional image embeddings'}>
+      <Panel title="Workload" subtitle={config.model}>
         <form className="stack" onSubmit={check}>
           <label>Job name<input value={title} required minLength={2} maxLength={120} onChange={event => { setTitle(event.target.value); invalidate(); }} /></label>
+          <label>Workload type<select value={template} onChange={event => { setTemplate(event.target.value as WorkloadTemplate); invalidate(); }}>
+            {workloadOptions.map(([value, name]) => <option key={value} value={value}>{name}</option>)}
+          </select></label>
           <label>Approved agreement<select value={selected} onChange={event => { setPolicy(event.target.value); invalidate(); }} required>
             {!approved.length && <option value="">No approved agreements</option>}{approved.map(item => <option key={item.id} value={item.id}>{item.title} · {item.id.slice(0, 6)}</option>)}
           </select></label>
@@ -388,6 +392,23 @@ export function NewJob({ policies, config, onChange, canRevise = false }: { poli
 
 function observed(value: unknown) {
   return value == null ? '—' : typeof value === 'object' ? JSON.stringify(value) : String(value);
+}
+
+type ClassificationOutput = { items: { row: number; name: string; predictions: { class_index: number; label: string; probability: number }[] }[] };
+
+function ClassificationResults({ id }: { id: string }) {
+  const { data, error } = useDetail<ClassificationOutput>('artifacts', id);
+  if (error) return <Notice>{error}</Notice>;
+  if (!data) return <Loading label="Loading predictions" />;
+  return <div className="table-wrap"><table>
+    <caption>Top five predictions per image</caption>
+    <thead><tr><th>Image</th><th>Prediction</th><th>Model probability</th></tr></thead>
+    {data.items.map(item => <tbody key={item.row}>{item.predictions.map((prediction, index) =>
+      <tr key={item.row + ':' + prediction.class_index}>
+        {index === 0 && <th scope="rowgroup" rowSpan={item.predictions.length}>{item.name}</th>}
+        <td>{prediction.label}</td><td>{pct(prediction.probability)}</td>
+      </tr>)}</tbody>)}
+  </table></div>;
 }
 
 export function JobView({ id, user, onChange }: { id: string; user: User; onChange: () => void }) {
@@ -426,11 +447,12 @@ export function JobView({ id, user, onChange }: { id: string; user: User; onChan
         </form>}
         {result?.message && <Notice type="info">{result.message}</Notice>}
         {result?.artifact_id && <div className="artifact">
-          <div className="runner-icon"><FileText size={22} /></div><div className="grow"><strong>image-embeddings.json</strong><small>{result.rows} verified rows · {result.model}</small>
+          <div className="runner-icon"><FileText size={22} /></div><div className="grow"><strong>{result.filename ?? 'image-embeddings.json'}</strong><small>{result.rows} verified rows · {result.model}</small>
             {result.inference_seconds != null && <small>{num(result.inference_seconds, 3)} seconds of model inference</small>}</div>
           <a className="button secondary" href={'/api/v1/artifacts/' + result.artifact_id}><Download size={16} /> Output</a>
           <div className="hash"><small>Output SHA-256</small><code>{result.sha256}</code></div>
         </div>}
+        {result?.artifact_id && job.workload?.template_id === 'image-classification-v1' && <ClassificationResults id={result.artifact_id} />}
         {job.input_sha256 && <div className="hash"><small>Input SHA-256</small><code>{job.input_sha256}</code></div>}
         <ol className="timeline">{job.events.map(event => <li key={event.seq}><div><strong>{event.kind.replace(/([a-z])([A-Z])/g, '$1 $2')}</strong><small>{date(event.at)} · event {event.seq}</small></div>
           <details><summary>Data</summary><pre>{JSON.stringify(event.details, null, 2)}</pre></details></li>)}</ol>

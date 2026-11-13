@@ -54,7 +54,7 @@ test('consumer signup, reviewer invitation and inbox approval work across isolat
     await page.getByRole('button', { name: 'Close navigation' }).last().click();
     const homeAudit = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
     const report = { login: loginAudit.violations, consumerHome390: homeAudit.violations };
-    await writeFile(path.resolve('..', '..', 'reports', 'final-validation', 'accessibility-axe.json'), JSON.stringify(report, null, 2));
+    await writeFile(path.resolve(process.env.PACT_TEST_REPORT_DIR || path.resolve('..', '..', 'reports', 'final-validation'), 'accessibility-axe.json'), JSON.stringify(report, null, 2));
     expect(report).toEqual({ login: [], consumerHome390: [] });
     await page.context().setOffline(true);
     await page.getByRole('button', { name: 'Open navigation' }).click();
@@ -68,6 +68,7 @@ test('consumer signup, reviewer invitation and inbox approval work across isolat
     await expect(page.getByRole('button', { name: 'Try again', exact: true })).toHaveCount(0);
     await page.getByRole('button', { name: 'Open navigation' }).click();
     await page.getByRole('button', { name: 'Sign out' }).click();
+    await expect(page.getByRole('heading', { name: 'Sign in to your workspace' })).toBeVisible();
     expect((await page.request.get('/api/v1/session')).status()).toBe(401);
   } finally { await reviewerContext.close(); }
 });
@@ -76,6 +77,8 @@ test('operator explores a policy revision and resolves a stale-heartbeat fixture
   const state = process.env.PACT_STATE_DIR || path.resolve('..', '.local');
   const credentials = JSON.parse(await readFile(path.join(state, 'local-credentials.json'), 'utf8'));
   await page.goto('/');
+  await page.getByRole('combobox', { name: 'Workspace', exact: true }).selectOption('operations');
+  await page.getByLabel('Username', { exact: true }).fill('admin');
   await page.getByLabel('Password', { exact: true }).fill(credentials.admin_password);
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Operations overview' })).toBeVisible();

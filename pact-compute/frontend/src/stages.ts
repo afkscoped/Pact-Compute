@@ -3,7 +3,7 @@ export const STAGE_LABELS: [string, string, string][] = [
   ['staging', 'Staging', 'Fetching and checking the input on the runner'],
   ['startup', 'Startup', 'GPU process, CUDA and model load'],
   ['compute', 'Compute', 'Model inference on the GPU'],
-  ['validation', 'Validation', 'Control plane checking rows, embeddings and digests'],
+  ['validation', 'Validation', 'Control plane checking output rows and digests'],
   ['upload', 'Upload', 'Control plane storing the verified output'],
 ];
 
@@ -25,7 +25,7 @@ export type Workload = {
   input_manifest: { artifact_id: string | null; sha256: string | null; rows: number; format: string };
   hardware: { min_vram_mib: number; gpu_count: number; backend: string; gpu_model: string | null };
   region: string | null; timeout_s: number | null;
-  output_schema: { name: string; rows: number; dimension: number };
+  output_schema: { name: string; rows: number; dimension?: number; top_k?: number; class_count?: number };
   retry: { max_attempts: number; automatic_retry: boolean; manual_resubmit: boolean };
 };
 
@@ -39,7 +39,8 @@ export function specRows(spec: Workload): [string, string][] {
     ['Hardware', spec.hardware.gpu_count + ' × ' + spec.hardware.backend.toUpperCase() + ' GPU, at least ' + spec.hardware.min_vram_mib + ' MiB' + (spec.hardware.gpu_model ? ', ' + spec.hardware.gpu_model : '')],
     ['Region', spec.region ?? 'not constrained'],
     ['Timeout', spec.timeout_s == null ? 'not reserved' : spec.timeout_s + ' s'],
-    ['Output schema', spec.output_schema.name + ' · ' + spec.output_schema.rows + ' rows × ' + spec.output_schema.dimension + ' values'],
+    ['Output schema', spec.output_schema.name + ' · ' + spec.output_schema.rows + ' rows × ' +
+      (spec.output_schema.top_k ? spec.output_schema.top_k + ' ranked predictions' : spec.output_schema.dimension + ' values')],
     ['Retries', spec.retry.automatic_retry ? 'up to ' + spec.retry.max_attempts + ' attempts' : 'no automatic retry' + (spec.retry.manual_resubmit ? '; resubmit manually' : '')],
   ];
 }

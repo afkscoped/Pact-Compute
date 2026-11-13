@@ -8,7 +8,7 @@ import { ExplainConsole } from './explain';
 import { Team, WorkspaceSwitcher } from './team';
 import { Incidents } from './incident-queue';
 import { ConsumerHome } from './home';
-import { api, go, Loading, message, Notice, post, type Config, type Dataset, type Job, type Policy, type Run, type Runner, type User } from './shared';
+import { api, go, Loading, message, Notice, post, RetryNotice, type Config, type Dataset, type Job, type Policy, type Run, type Runner, type User } from './shared';
 import './style.css';
 
 const nav = [
@@ -33,19 +33,20 @@ function Login({ signIn }: { signIn: (user: User) => void }) {
   const [creating, setCreating] = useState(false);
   const [joining, setJoining] = useState(false);
   const [code, setCode] = useState('');
-  const [username, setUsername] = useState('admin');
-  const [workspace, setWorkspace] = useState('operations');
+  const [username, setUsername] = useState('');
+  const [workspace, setWorkspace] = useState('');
   const [organization, setOrganization] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
   function switchMode() {
+    const nextCreating = !creating && !joining;
     setJoining(false);
     setCode('');
-    setCreating(!creating);
-    setWorkspace(creating ? 'operations' : 'consumer');
-    setUsername(creating ? 'admin' : '');
+    setCreating(nextCreating);
+    setWorkspace(nextCreating ? 'consumer' : '');
+    setUsername('');
     setOrganization('');
     setPassword('');
     setError('');
@@ -80,12 +81,12 @@ function Login({ signIn }: { signIn: (user: User) => void }) {
       <h2 id="login-title">{joining ? 'Join with an invitation' : creating ? 'Create your account' : 'Sign in to your workspace'}</h2>
       <p>{joining ? 'Enter the code you were sent and choose a username and password. You will join the workspace that invited you.' : creating ? 'Create a workspace to offer GPU capacity or book it for your workloads.' : 'Choose the workspace assigned to your account.'}</p>
       {joining && <label>Invitation code<input value={code} required minLength={20} maxLength={100} autoComplete="off" spellCheck={false} onChange={event => setCode(event.target.value)} /></label>}
-      {!joining && <label>{creating ? 'Account type' : 'Workspace'}<select value={workspace} onChange={event => {
+      {!joining && <label>{creating ? 'Account type' : 'Workspace'}<select value={workspace} required onChange={event => {
         const next = event.target.value;
         setWorkspace(next);
         setError('');
-        if (!creating) { setUsername(next === 'operations' ? 'admin' : ''); setPassword(''); }
-      }}>{!creating && <option value="operations">Operations and research</option>}
+        if (!creating) { setUsername(''); setPassword(''); }
+      }}>{!creating && <><option value="" disabled>Select your workspace</option><option value="operations">Operations and research</option></>}
         <option value="producer">Producer</option><option value="consumer">Consumer</option></select></label>}
       {creating && !joining && <label>Organization name<input value={organization} autoComplete="organization" required maxLength={100}
         onChange={event => setOrganization(event.target.value)} /></label>}
@@ -111,11 +112,13 @@ function Login({ signIn }: { signIn: (user: User) => void }) {
 
 type WorkspaceData = { jobs: Job[]; runners: Runner[]; policies: Policy[]; runs: Run[]; datasets: Dataset[]; config: Config };
 
-function Shell({ user, logout }: { user: User; logout: () => void }) {
+function Shell({ user, logout }: { user: User; logout: () => Promise<void> }) {
   const [route, setRoute] = useState(location.hash.slice(1) || '/');
   const [mobile, setMobile] = useState(false);
   const [data, setData] = useState<WorkspaceData | null>(null);
   const [error, setError] = useState('');
+  const [signingOut, setSigningOut] = useState(false);
+  const [signOutError, setSignOutError] = useState('');
   const [refreshAt, requestRefresh] = useState(0);
   const mainRef = useRef<HTMLElement>(null);
   const navigationRef = useRef<HTMLElement>(null);
@@ -126,6 +129,13 @@ function Shell({ user, logout }: { user: User; logout: () => void }) {
     ? ['/market', '/bookings', '/capacity', '/team', '/explain']
     : ['/', '/market', '/bookings', '/jobs', '/agreements', '/team', '/explain']).includes(item.path)).map(item => item.path === '/' && user.role === 'consumer' ? { ...item, title: 'Home' } : item) : nav.filter(item => item.path !== '/incidents' || ['admin', 'operator'].includes(user.role));
   const refresh = () => requestRefresh(value => value + 1);
+  async function signOut() {
+    setSigningOut(true);
+    setSignOutError('');
+    try { await logout(); }
+    catch (failure) { setSignOutError('Could not sign out. ' + message(failure)); }
+    finally { setSigningOut(false); }
+  }
   useEffect(() => {
     const onHash = () => { returnToNavigation.current = false; setRoute(location.hash.slice(1) || '/'); setMobile(false); window.scrollTo(0, 0); mainRef.current?.focus({ preventScroll: true }); };
     window.addEventListener('hashchange', onHash);
@@ -214,8 +224,14 @@ function Shell({ user, logout }: { user: User; logout: () => void }) {
           <a href={'#' + path} aria-current={current.path === path ? 'page' : undefined}><Icon size={18} /><span>{title}</span></a>
         </div>)}
       </nav>
-      <div className="sidebar-foot"><div className="workspace-user"><div className="avatar">{user.username.slice(0, 2).toUpperCase()}</div>
-        <div><strong>{user.username}</strong><small>{user.role}</small></div><button className="icon-button" aria-label="Sign out" title="Sign out" onClick={logout}><LogOut size={17} /></button></div></div>
+      <div className="sidebar-foot">
+        <div className="workspace-user"><div className="avatar">{user.username.slice(0, 2).toUpperCase()}</div>
+          <div><strong>{user.username}</strong><small>{user.role}</small></div></div>
+        {signOutError && <Notice>{signOutError}</Notice>}
+        <button className="button secondary sign-out" type="button" disabled={signingOut} onClick={signOut}>
+          <LogOut size={17} aria-hidden="true" />{signingOut ? 'Signing out…' : 'Sign out'}
+        </button>
+      </div>
     </aside>
     <div className="workspace-body" inert={mobile}>
       <header className="topbar"><div><button ref={navigationButtonRef} className="icon-button mobile-only" aria-label="Open navigation"
@@ -227,13 +243,32 @@ function Shell({ user, logout }: { user: User; logout: () => void }) {
   </div>;
 }
 
+async function endSession() {
+  await api('/session', { method: 'DELETE' });
+  const url = new URL(location.href);
+  url.searchParams.delete('start');
+  url.hash = '';
+  history.replaceState(history.state, '', url);
+  window.scrollTo(0, 0);
+}
+
 function App() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
-  useEffect(() => { api<User>('/session').then(setUser).catch(() => setUser(null)); }, []);
+  const [launchError, setLaunchError] = useState('');
+  useEffect(() => {
+    if (new URLSearchParams(location.search).get('start') === 'sign-in') {
+      endSession().then(() => setUser(null)).catch(failure => setLaunchError(message(failure)));
+    } else {
+      api<User>('/session').then(setUser).catch(() => setUser(null));
+    }
+  }, []);
   async function logout() {
-    try { await api('/session', { method: 'DELETE' }); go('/'); setUser(null); }
-    catch (error) { window.alert(message(error)); }
+    await endSession();
+    setUser(null);
   }
+  if (launchError) return <main className="login-right"><div className="login-panel"><RetryNotice onRetry={() => location.reload()}>
+    Could not open the sign-in page. {launchError}
+  </RetryNotice></div></main>;
   if (user === undefined) return <Loading />;
   return user ? <Shell user={user} logout={logout} /> : <Login signIn={setUser} />;
 }

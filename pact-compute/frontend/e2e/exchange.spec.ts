@@ -4,6 +4,8 @@ import { expect, test, type Page } from '@playwright/test';
 
 test('producer and consumers share a live booking and inspect its protocol', async ({ browser, baseURL }) => {
   const state = process.env.PACT_STATE_DIR || path.resolve('..', '.local');
+  const evidence = path.join(state, 'verified');
+  await mkdir(evidence, { recursive: true });
   const passwords = JSON.parse(await readFile(path.join(state, 'market-credentials.json'), 'utf8'));
   const contexts = await Promise.all([1, 2, 3].map(() => browser.newContext({ baseURL })));
   const [producer, consumer, rival] = await Promise.all(contexts.map(context => context.newPage()));
@@ -47,10 +49,24 @@ test('producer and consumers share a live booking and inspect its protocol', asy
       await expect(listing).toBeVisible();
       await listing.getByRole('button', { name: 'Request quote for ' + offer, exact: true }).click();
       if (policies.has(page)) await page.getByRole('combobox', { name: /^Agreement/ }).selectOption(policies.get(page)!);
+      await page.getByLabel('Workload type').selectOption('image-classification-v1');
+      await page.getByLabel('Allow deferral within the agreement').check();
       await page.getByRole('button', { name: 'Get quote', exact: true }).click();
       await expect(page.getByRole('button', { name: 'Confirm reservation', exact: true })).toBeEnabled();
     };
     await Promise.all([requestQuote(consumer), requestQuote(rival)]);
+    const evidencePanel = consumer.getByRole('region', { name: 'Quote evidence' });
+    await expect(evidencePanel.getByText(/Jobs require at least 4 GiB VRAM/)).toBeVisible();
+    await evidencePanel.getByRole('button', { name: 'Provider pricing' }).click();
+    await expect(evidencePanel.getByRole('heading', { name: 'How price changes affect this quote' })).toBeVisible();
+    await expect(evidencePanel.getByLabel('Controlled pricing case')).toBeVisible();
+    await consumer.screenshot({ path: path.join(evidence, 'market-quote-pricing.png'), fullPage: true });
+    await evidencePanel.getByLabel('Controlled pricing case').selectOption('expensive_control');
+    await expect(evidencePanel.getByText('0 credit cents', { exact: true })).toBeVisible();
+    await evidencePanel.getByRole('button', { name: 'Scheduling comparison' }).click();
+    await expect(evidencePanel.getByRole('heading', { name: 'Replay this quote against the GB grid' })).toBeVisible();
+    await expect(evidencePanel.getByText(/120 s additional wait/)).toBeVisible();
+    await consumer.screenshot({ path: path.join(evidence, 'market-quote-scheduling.png'), fullPage: true });
     await Promise.all([consumer, rival].map(page => page.getByRole('button', { name: 'Confirm reservation', exact: true }).click()));
     await expect.poll(() => [consumer.url(), rival.url()].filter(url => url.includes('#/bookings/')).length,
       { timeout: 20000 }).toBe(1);
@@ -71,8 +87,27 @@ test('producer and consumers share a live booking and inspect its protocol', asy
     expect(producerReceipt).toEqual(consumerReceipt);
     expect(consumerReceipt.manifest.booking.protocol.verdict).toBe('pass');
     expect(consumerReceipt.manifest.booking.artifact_sha256).toMatch(/^[a-f0-9]{64}$/);
+    await winner.getByRole('button', { name: 'Test a changed price' }).click();
+    await expect(winner.getByText('The monitor found that the accepted price differs', { exact: false })).toBeVisible();
+    await winner.getByRole('button', { name: /Market Quote Accepted/ }).click();
+    await expect(winner.getByText('Quote terms changed', { exact: true })).toBeVisible();
+    await winner.getByRole('button', { name: 'Recorded booking' }).click();
+    await expect(winner.getByRole('heading', { name: 'Estimate versus actual' })).toBeVisible();
+    await expect(winner.getByRole('heading', { name: 'Scheduling evidence' })).toBeVisible();
     const booking = await (await winner.request.get(endpoint)).json();
     expect((await producer.request.get('/api/v1/jobs/' + booking.job_id)).status()).toBe(404);
+    await winner.goto('/#/jobs/' + booking.job_id);
+    await expect(winner.getByRole('table', { name: 'Top five predictions per image' })).toBeVisible();
+    await expect(winner.getByText('image-classification.json', { exact: true })).toBeVisible();
+    const job = await (await winner.request.get('/api/v1/jobs/' + booking.job_id)).json();
+    const output = await (await winner.request.get('/api/v1/artifacts/' + job.attempts[0].result.artifact_id)).json();
+    expect(output.template).toBe('image-classification-v1');
+    expect(output.backend).toBe('cuda');
+    expect(output.items).toHaveLength(4);
+    for (const image of output.items) {
+      expect(image.predictions).toHaveLength(5);
+      expect(image.predictions[0].probability).toBeGreaterThan(0);
+    }
     await winner.getByRole('link', { name: 'Explain', exact: true }).click();
     await expect(winner.getByRole('heading', { name: 'Explainable AI', exact: true })).toBeVisible();
     await expect(winner.getByText('Publication comparisons', { exact: true })).toBeVisible({ timeout: 15000 });
@@ -80,8 +115,6 @@ test('producer and consumers share a live booking and inspect its protocol', asy
     await expect(winner.getByRole('heading', { name: 'Learned pricing states' })).toBeVisible();
     await winner.getByRole('button', { name: 'Runtime and allocation', exact: true }).click();
     await expect(winner.getByRole('heading', { name: 'Held-out runtime estimates' })).toBeVisible();
-    const evidence = path.join(state, 'verified');
-    await mkdir(evidence, { recursive: true });
     await writeFile(path.join(evidence, 'market-receipt.json'), JSON.stringify(consumerReceipt, null, 2));
     await producer.screenshot({ path: path.join(evidence, 'market-producer.png'), fullPage: true });
     await winner.screenshot({ path: path.join(evidence, 'explainable-ai.png'), fullPage: true });
